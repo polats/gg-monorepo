@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd ../.. && pnpm install && cd apps/goblin-gardens && pnpm run build:client",
+  "outputDirectory": "dist/client",
+  "framework": null,
+  "installCommand": "echo 'Skipping default install'",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
