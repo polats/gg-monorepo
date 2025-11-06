@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Development
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+apps/diamond-hands/prisma/dev.db
+apps/diamond-hands/prisma/dev.db-journal
+
+# Devvit
+apps/goblin-gardens/.devvit/
+
+# Misc
+*.tsbuildinfo
+.turbo/

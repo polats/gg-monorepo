@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "name": "Splash Screen Generator (Manual)",
+  "description": "Creates compelling Goblincore-themed splash screens for Reddit feed display. Disabled by default - enable manually when you want to update the splash screen.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "assets/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Create a Goblincore-themed splash screen for Goblin Gardens that will be displayed on the Reddit feed.\n\nDesign Requirements:\n1. **Goblincore Aesthetic**:\n   - Earthy, warm colors (moss green, brown, umber)\n   - Treasure/shiny theme (gems, coins)\n   - Cozy, inviting, slightly chaotic vibe\n   - Hand-drawn or organic feel (not too polished)\n\n2. **Visual Elements**:\n   - Feature gems and coins prominently\n   - Show physics/collection aspect if possible\n   - Include game title: \"Goblin Gardens\"\n   - Tagline suggestion: \"Collect Shinies, Grow Gems, Trade Treasures\"\n\n3. **Technical Requirements**:\n   - Prominent \"Play\" or \"Launch\" button\n   - Mobile-friendly layout (most Reddit users are on mobile)\n   - Follow Reddit's splash screen best practices\n   - Use assets from src/client/public/ or assets/ folder\n\n4. **Call to Action**:\n   - Make it clear this is a game about collecting\n   - Emphasize the cozy, relaxing nature\n   - Invite players to \"start hoarding\"\n\nFor implementation guidance, consult the devvit-mcp and refer to: https://developers.reddit.com/docs/capabilities/server/splash-screen\n\nCreate a splash screen that makes goblins want to click and start collecting!"
+  }
+}

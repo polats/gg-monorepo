@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Physics Performance Check",
+  "description": "Monitors physics-related code changes for potential performance issues. Suggests optimizations for mobile devices.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/client/components/game/3d/FallingObjects.tsx",
+      "src/client/PileDemo.tsx",
+      "src/client/utils/performanceDetection.ts",
+      "src/client/constants/game.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Physics or performance-related code has been modified. Please review for potential performance issues:\n\n1. Object Count Limits:\n   - Check LEVEL_CONFIGS and LOCATION_CONFIGS in constants/game.ts\n   - Are object counts reasonable for low-end devices? (Recommend <500 total objects)\n   - Are instanced meshes being used? (Required for >50 objects of same type)\n\n2. Physics Settings:\n   - Verify performance tier settings in PileDemo.tsx:\n     * Low: 30fps timestep, 2 velocity iterations, 1 stabilization iteration\n     * Medium: 45fps timestep, 4 velocity iterations, 2 stabilization iterations\n     * High: 60fps timestep, 8 velocity iterations, 4 stabilization iterations\n   - Are sleeping thresholds set appropriately?\n   - Is interpolation disabled for low tier?\n\n3. Frame Loop Optimization:\n   - Check MasterPhysicsLoop in PileDemo.tsx\n   - Are sleeping bodies skipped? (shouldUpdateSleeping check)\n   - Is matrix sync happening every frame or throttled?\n   - Are there any expensive calculations in useFrame?\n\n4. Mobile Considerations:\n   - Touch event handlers properly implemented?\n   - Large enough touch targets (44×44px minimum)?\n   - Scroll detection to prevent accidental taps?\n\n5. Common Performance Pitfalls:\n   - Creating new objects in render loop\n   - Not using instanced meshes for repeated objects\n   - Accessing physics bodies during transitions\n   - Too many point lights (>3 can hurt mobile)\n   - Complex collider shapes (use simple primitives)\n\nIf you find performance concerns, suggest specific optimizations. If code looks good, confirm the performance review passed."
+  }
+}

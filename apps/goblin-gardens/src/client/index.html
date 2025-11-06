@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="full-screen" content="yes" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="360-fullscreen" content="true" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  </head>
+  <body>
+    <!-- Color Grid Screen -->
+    <div id="color-grid-screen" style="display: none;">
+      <div class="color-grid-container">
+        <h1 class="grid-title" id="grid-title">Your Color Map</h1>
+        <p class="grid-subtitle">Click any square to change its color!</p>
+        <div id="color-grid" class="color-grid"></div>
+        <button class="grid-button" id="continue-button">Continue to Game</button>
+      </div>
+    </div>
+
+    <!-- Main App (3D Scene) -->
+    <div id="main-app" style="display: none;">
+      <canvas id="bg"></canvas>
+      <div class="overlay">
+        <h1 class="title" id="title"></h1>
+        <p class="description">Edit the <span class="code">src/client/main.ts</span> to get started.</p>
+        <div class="counter-row">
+          <!-- Counter buttons removed. Value updated programmatically. -->
+          <span class="counter-value" id="counter-value">0</span>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <button class="demo-button" id="demo-button">Physics Demo</button>
+          <button class="demo-button" id="pile-demo-button">Pile Demo</button>
+        </div>
+        <footer class="footer">
+          <div class="docs-link" tabindex="0" id="docs-link">Docs</div>
+          <span class="divider">|</span>
+          <div class="docs-link" tabindex="0" id="playtest-link">r/Devvit</div>
+          <span class="divider">|</span>
+          <div class="docs-link" tabindex="0" id="discord-link">Discord</div>
+        </footer>
+      </div>
+    </div>
+    <div id="demo-root" style="display: block;"></div>
+    <script type="module" src="main.ts" defer></script>
+  </body>
+</html>

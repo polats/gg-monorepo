@@ -1,0 +1,43 @@
+{
+  "name": "@gg/platform",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Platform detection and unified interfaces for World and Reddit",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@gg/types": "workspace:*",
+    "@gg/utils": "workspace:*"
+  },
+  "peerDependencies": {
+    "@worldcoin/minikit-js": "^1.6.0",
+    "@devvit/web": "^0.12.0"
+  },
+  "peerDependenciesMeta": {
+    "@worldcoin/minikit-js": {
+      "optional": true
+    },
+    "@devvit/web": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@worldcoin/minikit-js": "^1.6.0",
+    "@devvit/web": "^0.12.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "enabled": false,
+  "name": "Multi-User Test Helper (Manual)",
+  "description": "Generates test scenarios and instructions for multi-user testing in local mode. Disabled by default - enable when you need to test trading or multiplayer features.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/server/index.ts",
+      "src/server/local.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Trading or multiplayer code has been modified. Generate multi-user test scenarios for local development:\n\n1. **Analyze Recent Changes**:\n   - What trading/multiplayer features were modified?\n   - What edge cases need testing?\n   - What race conditions could occur?\n\n2. **Generate Test Scenarios**:\n   Create step-by-step instructions for testing with multiple browser tabs:\n   \n   Example format:\n   ```\n   Scenario: Test Gem Trading\n   \n   Tab 1 (Seller):\n   1. Open http://localhost:5173\n   2. Collect 5 gems in Scrounge mode\n   3. Go to Garden → Trade\n   4. Select 3 gems and create offer\n   5. Note the username (e.g., Player_ABC123)\n   \n   Tab 2 (Buyer):\n   1. Open http://localhost:5173 in new tab\n   2. Collect coins in Scrounge mode\n   3. Go to Garden → Trade\n   4. Find Player_ABC123's offer\n   5. Purchase the gems\n   \n   Verification:\n   - Tab 1: Check gems removed, coins added\n   - Tab 2: Check gems added, coins removed\n   - Both: Verify offer removed from marketplace\n   ```\n\n3. **Edge Cases to Test**:\n   - Concurrent trades on same offer\n   - Insufficient coins\n   - Seller removes gems before trade\n   - Network errors during trade\n   - Trading with yourself (should fail)\n\n4. **Console Commands**:\n   Provide helpful console commands for testing:\n   ```javascript\n   // Check current username\n   sessionStorage.getItem('localDevUsername')\n   \n   // Reset username\n   sessionStorage.removeItem('localDevUsername'); location.reload();\n   \n   // Manually set username\n   sessionStorage.setItem('localDevUsername', 'TestUser1'); location.reload();\n   ```\n\n5. **Debugging Tips**:\n   - How to monitor API calls in Network tab\n   - What to look for in server logs\n   - Common issues and solutions\n\nProvide clear, actionable test scenarios that cover the modified functionality."
+  }
+}

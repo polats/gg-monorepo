@@ -1,0 +1,1 @@
+line library from react-three-drei causes error on devvit

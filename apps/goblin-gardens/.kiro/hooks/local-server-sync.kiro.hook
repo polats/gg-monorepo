@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Local Server Synchronization",
+  "description": "Ensures local.ts mock server stays in sync with production server index.ts. Validates API endpoints, types, and critical logic match.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/server/index.ts",
+      "src/server/local.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Server files have been modified. Verify local mock server stays in sync with production server:\n\n1. **API Endpoints**: Check that all endpoints in index.ts exist in local.ts\n   - /api/init\n   - /api/player-state/save\n   - /api/player-state/load\n   - /api/offers\n   - /api/offers/update\n   - /api/offers/remove\n   - /api/trade/execute\n\n2. **Request/Response Types**: Verify both servers use identical types from shared/types/api.ts\n   - Request body types\n   - Response types\n   - Error responses\n\n3. **Critical Logic**: Ensure these match exactly between servers:\n   - calculateGemValue() function (SECURITY CRITICAL)\n   - formatLastActive() function\n   - Coin conversion logic\n   - Trade validation steps\n\n4. **Mock Storage**: Verify local.ts properly mocks Redis operations:\n   - Map.get() replaces redis.get()\n   - Map.set() replaces redis.set()\n   - Map.delete() replaces redis.del()\n   - activeOffers Map replaces sorted set\n\n5. **Username Handling**: Check X-Username header support in local.ts for multi-user testing\n\n6. **CORS**: Verify local.ts has cors() middleware enabled\n\nIf you find discrepancies:\n- Flag them immediately\n- Explain which server needs updating\n- Suggest the specific changes needed\n\nIf servers are in sync, confirm validation passed."
+  }
+}

@@ -1,0 +1,666 @@
+openapi: 3.0.3
+info:
+  title: RaffleTime API
+  description: WorldID-Powered Zero-Loss On-Chain Sweepstakes Platform
+  version: 1.0.0
+  contact:
+    name: RaffleTime Team
+    url: https://raffletime.com
+
+servers:
+  - url: https://api.raffletime.com/v1
+    description: Production server
+  - url: https://staging-api.raffletime.com/v1
+    description: Staging server
+  - url: http://localhost:3000/api
+    description: Local development
+
+security:
+  - BearerAuth: []
+  - WorldIDAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate with WorldID
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                worldid_proof:
+                  type: string
+                  description: WorldID verification proof
+                wallet_address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                  description: Ethereum wallet address
+              required: [worldid_proof, wallet_address]
+      responses:
+        200:
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                  user:
+                    $ref: '#/components/schemas/User'
+        400:
+          description: Invalid WorldID proof
+        409:
+          description: User already exists with different wallet
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      tags: [Authentication]
+      responses:
+        200:
+          description: Logout successful
+
+  /users/me:
+    get:
+      summary: Get current user profile
+      tags: [Users]
+      responses:
+        200:
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /raffles:
+    get:
+      summary: List raffles with filtering
+      tags: [Raffles]
+      security: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, active, drawing, completed, cancelled, refunding]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: operator_id
+          in: query
+          schema:
+            type: string
+            description: Filter by raffle operator
+      responses:
+        200:
+          description: List of raffles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  raffles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RaffleWithStats'
+                  total:
+                    type: integer
+                  has_more:
+                    type: boolean
+
+    post:
+      summary: Create new raffle
+      tags: [Raffles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRaffleRequest'
+      responses:
+        201:
+          description: Raffle created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Raffle'
+        400:
+          description: Invalid raffle parameters
+        402:
+          description: Insufficient deposit (need 10 WLD)
+
+  /raffles/{raffle_id}:
+    get:
+      summary: Get raffle details
+      tags: [Raffles]
+      security: []
+      parameters:
+        - name: raffle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Raffle details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaffleWithStats'
+        404:
+          description: Raffle not found
+
+  /raffles/{raffle_id}/tickets:
+    post:
+      summary: Purchase raffle tickets
+      tags: [Tickets]
+      parameters:
+        - name: raffle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                beneficiary_id:
+                  type: string
+                  format: uuid
+                  description: Required if multiple beneficiaries
+                payment_signature:
+                  type: string
+                  description: Signed WLD transfer transaction
+              required: [quantity, payment_signature]
+      responses:
+        201:
+          description: Tickets purchased successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+                  transaction_hash:
+                    type: string
+        400:
+          description: Invalid purchase request
+        403:
+          description: Purchase limit exceeded or raffle not active
+        402:
+          description: Insufficient WLD balance
+
+    get:
+      summary: List user's tickets for raffle
+      tags: [Tickets]
+      parameters:
+        - name: raffle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: User's tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ticket'
+
+  /raffles/{raffle_id}/draw:
+    post:
+      summary: Initiate raffle drawing (operator only)
+      tags: [Raffles]
+      parameters:
+        - name: raffle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Drawing initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vrf_request_id:
+                    type: string
+                    description: Chainlink VRF request ID
+        400:
+          description: Raffle not ready for drawing
+        403:
+          description: Not raffle operator
+
+  /raffles/{raffle_id}/results:
+    get:
+      summary: Get raffle results
+      tags: [Raffles]
+      security: []
+      parameters:
+        - name: raffle_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Raffle results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RaffleResults'
+        404:
+          description: Results not available yet
+
+  /tickets/{ticket_id}/claim:
+    post:
+      summary: Claim prize for winning ticket
+      tags: [Tickets]
+      parameters:
+        - name: ticket_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient_address:
+                  type: string
+                  pattern: '^0x[a-fA-F0-9]{40}$'
+                  description: Address to receive WLD
+              required: [recipient_address]
+      responses:
+        200:
+          description: Prize claim initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrizeClaim'
+        400:
+          description: Ticket not eligible for claiming
+        404:
+          description: Ticket not found
+
+  /beneficiaries:
+    get:
+      summary: List verified beneficiaries
+      tags: [Beneficiaries]
+      security: []
+      responses:
+        200:
+          description: List of beneficiaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Beneficiary'
+
+  /websocket:
+    get:
+      summary: WebSocket endpoint for real-time updates
+      tags: [WebSocket]
+      description: |
+        Connect to receive real-time updates for:
+        - Raffle participation changes
+        - Prize pool updates
+        - Drawing results
+        - Prize claims
+      responses:
+        101:
+          description: WebSocket connection established
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    WorldIDAuth:
+      type: apiKey
+      in: header
+      name: X-WorldID-Proof
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: WorldID hash
+        wallet_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        created_at:
+          type: string
+          format: date-time
+        is_verified:
+          type: boolean
+      required: [id, wallet_address, created_at, is_verified]
+
+    Raffle:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        operator_id:
+          type: string
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        ticket_price:
+          type: string
+          pattern: '^[0-9]+\.?[0-9]*$'
+          description: WLD amount as string to preserve precision
+        max_entries_per_user:
+          type: integer
+          minimum: 1
+          maximum: 100
+        num_winners:
+          type: integer
+          minimum: 0
+        winner_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        beneficiaries:
+          type: array
+          items:
+            type: string
+            format: uuid
+        beneficiary_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        entry_start:
+          type: string
+          format: date-time
+        entry_end:
+          type: string
+          format: date-time
+        draw_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [upcoming, active, drawing, completed, cancelled, refunding]
+        vault_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required: [id, operator_id, title, ticket_price, max_entries_per_user, 
+                 num_winners, winner_percentage, beneficiaries, 
+                 beneficiary_percentage, entry_start, entry_end, status]
+
+    RaffleWithStats:
+      allOf:
+        - $ref: '#/components/schemas/Raffle'
+        - type: object
+          properties:
+            ticket_count:
+              type: integer
+              description: Total tickets sold
+            current_pool:
+              type: string
+              description: Current WLD prize pool
+            unique_participants:
+              type: integer
+              description: Number of unique participants
+            time_remaining:
+              type: integer
+              description: Seconds until entry_end (if active)
+
+    CreateRaffleRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        ticket_price:
+          type: string
+          pattern: '^[0-9]+\.?[0-9]*$'
+        max_entries_per_user:
+          type: integer
+          minimum: 1
+          maximum: 100
+        num_winners:
+          type: integer
+          minimum: 0
+        winner_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        beneficiaries:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+        beneficiary_percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        entry_duration_hours:
+          type: integer
+          minimum: 1
+          maximum: 720
+          description: Duration in hours from now
+        deposit_signature:
+          type: string
+          description: Signed 10 WLD deposit transaction
+      required: [title, ticket_price, max_entries_per_user, num_winners,
+                 winner_percentage, beneficiaries, beneficiary_percentage,
+                 entry_duration_hours, deposit_signature]
+
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          description: NFT token ID
+        raffle_id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+        beneficiary_vote_id:
+          type: string
+          format: uuid
+          nullable: true
+        purchase_price:
+          type: string
+          description: WLD amount paid
+        transaction_hash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+        purchased_at:
+          type: string
+          format: date-time
+        is_winning_ticket:
+          type: boolean
+        prize_amount:
+          type: string
+          description: WLD prize amount if winner
+          nullable: true
+      required: [id, raffle_id, owner_id, purchase_price, 
+                 transaction_hash, purchased_at, is_winning_ticket]
+
+    Beneficiary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        wallet_address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+        website_url:
+          type: string
+          format: uri
+        is_verified:
+          type: boolean
+      required: [id, name, wallet_address, is_verified]
+
+    RaffleResults:
+      type: object
+      properties:
+        raffle_id:
+          type: string
+          format: uuid
+        total_pool:
+          type: string
+          description: Total WLD collected
+        winner_pool:
+          type: string
+          description: Amount distributed to winners
+        beneficiary_pool:
+          type: string
+          description: Amount sent to charity
+        winning_beneficiary:
+          $ref: '#/components/schemas/Beneficiary'
+        winning_tickets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ticket'
+        random_seed:
+          type: string
+          description: VRF random seed used
+        distribution_tx:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+          description: Prize distribution transaction hash
+      required: [raffle_id, total_pool, winner_pool, beneficiary_pool,
+                 winning_beneficiary, winning_tickets, random_seed]
+
+    PrizeClaim:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticket_id:
+          type: string
+        claimer_id:
+          type: string
+        amount:
+          type: string
+          description: WLD amount claimed
+        transaction_hash:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{64}$'
+          nullable: true
+        claimed_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [pending, completed, failed]
+      required: [id, ticket_id, claimer_id, amount, claimed_at, status]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+      required: [error, message]
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Error'
+              - type: object
+                properties:
+                  validation_errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string

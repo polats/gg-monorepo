@@ -1,0 +1,1762 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Physics Testing Tool - Goblin Gardens</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #1a1a1a;
+        color: #ffffff;
+        overflow: hidden;
+      }
+
+      /* Fullscreen canvas */
+      #canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000000;
+      }
+
+      /* Stats overlay - top left */
+      #stats-overlay {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background-color: rgba(42, 42, 42, 0.9);
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.6;
+        min-width: 200px;
+        z-index: 100;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      #stats-overlay h3 {
+        margin-bottom: 10px;
+        color: #00ffff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #aaaaaa;
+      }
+
+      .stat-value {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* Control panel - right side */
+      #control-panel {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+      }
+
+      /* Loading indicator */
+      #loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(42, 42, 42, 0.95);
+        padding: 30px 40px;
+        border-radius: 12px;
+        text-align: center;
+        z-index: 1000;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+      }
+
+      #loading h2 {
+        color: #00ffff;
+        margin-bottom: 15px;
+        font-size: 20px;
+      }
+
+      #loading p {
+        color: #aaaaaa;
+        font-size: 14px;
+      }
+
+      .spinner {
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #00ffff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Hidden class */
+      .hidden {
+        display: none !important;
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        #stats-overlay {
+          font-size: 12px;
+          padding: 10px;
+          min-width: 150px;
+        }
+
+        #stats-overlay h3 {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Canvas for Three.js rendering -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Loading indicator -->
+    <div id="loading">
+      <h2>Initializing Physics Engine</h2>
+      <div class="spinner"></div>
+      <p>Loading Rapier WASM...</p>
+    </div>
+
+    <!-- Stats overlay -->
+    <div id="stats-overlay" class="hidden">
+      <h3>Performance Stats</h3>
+      <div class="stat-row">
+        <span class="stat-label">FPS:</span>
+        <span class="stat-value" id="fps-value">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Physics Time:</span>
+        <span class="stat-value" id="physics-time-value">0ms</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Objects:</span>
+        <span class="stat-value" id="object-count-value">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Active:</span>
+        <span class="stat-value" id="active-count-value">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Sleeping:</span>
+        <span class="stat-value" id="sleeping-count-value">0</span>
+      </div>
+    </div>
+
+    <!-- Control panel container (Leva will mount here) -->
+    <div id="control-panel"></div>
+
+    <!-- dat.GUI for controls (simpler alternative to Leva) -->
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.9/build/dat.gui.min.js"></script>
+
+    <!-- Import maps for ES modules -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.178.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.178.0/examples/jsm/",
+          "@dimforge/rapier3d-compat": "https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.14.0/+esm"
+        }
+      }
+    </script>
+
+    <!-- Main Application Script -->
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+      import RAPIER from '@dimforge/rapier3d-compat';
+
+      /**
+       * Physics Testing Tool for Goblin Gardens
+       *
+       * A standalone tool for testing and debugging Rapier physics interactions.
+       * Provides real-time parameter controls, visual debugging, and performance monitoring.
+       *
+       * Usage:
+       * - Use mouse to orbit camera (left click + drag)
+       * - Use mouse wheel to zoom
+       * - Right click + drag to pan
+       * - Click objects to drag them
+       * - Use control panel to adjust physics parameters
+       * - Spawn objects to test pile physics
+       * - Enable debug visualizations to see colliders and forces
+       *
+       * Controls:
+       * - Physics Settings: Adjust gravity, timestep, solver iterations
+       * - Spawn Settings: Choose object type, count, and spawn rate
+       * - Debug Settings: Toggle wireframes, velocity vectors, sleeping highlights
+       * - Performance Tiers: Quick presets for Low/Medium/High performance
+       * - Actions: Spawn objects, reset simulation, export/import configs
+       */
+
+      console.log('Physics Testing Tool initializing...');
+      console.log('Three.js version:', THREE.REVISION);
+
+      /**
+       * PhysicsWorld Class
+       *
+       * Manages the Rapier physics simulation including:
+       * - World initialization with configurable parameters
+       * - Rigid body creation and tracking
+       * - Physics update loop with fixed timestep
+       * - Body removal and cleanup
+       *
+       * @class PhysicsWorld
+       */
+      class PhysicsWorld {
+        /**
+         * Create a PhysicsWorld instance
+         * @param {Object} RAPIER - Rapier physics engine module
+         * @param {Object} config - Physics configuration
+         * @param {Object} config.gravity - Gravity vector {x, y, z}
+         * @param {number} config.timestep - Physics timestep in seconds
+         * @param {number} config.velocityIterations - Velocity solver iterations
+         * @param {number} config.stabilizationIterations - Stabilization iterations
+         */
+        constructor(RAPIER, config) {
+          this.RAPIER = RAPIER;
+          this.config = config;
+
+          // Create physics world with gravity
+          const gravity = new RAPIER.Vector3(
+            config.gravity.x,
+            config.gravity.y,
+            config.gravity.z
+          );
+          this.world = new RAPIER.World(gravity);
+
+          // Configure solver iterations
+          this.world.integrationParameters.numSolverIterations =
+            config.velocityIterations;
+          this.world.integrationParameters.numAdditionalFrictionIterations =
+            config.stabilizationIterations;
+
+          // Tracking structures
+          this.rigidBodies = new Map(); // handle -> { body, mesh, type, shape }
+          this.nextBodyId = 0;
+
+          // Timestep accumulator for fixed timestep
+          this.accumulator = 0;
+          this.lastUpdateTime = performance.now();
+
+          // Performance tracking
+          this.physicsTime = 0;
+          this.activeCount = 0;
+          this.sleepingCount = 0;
+
+          console.log('PhysicsWorld created with config:', config);
+        }
+
+        /**
+         * Create a rigid body with collider
+         * @param {string} type - Object type ('gem', 'coin', 'rock')
+         * @param {string} shape - Shape type ('tetrahedron', 'octahedron', 'dodecahedron', 'coin', 'rock')
+         * @param {Object} position - Position {x, y, z}
+         * @param {THREE.Mesh} mesh - Three.js mesh to sync with
+         * @returns {number} Body handle/ID
+         */
+        createRigidBody(type, shape, position, mesh) {
+          const RAPIER = this.RAPIER;
+
+          // Create rigid body descriptor (dynamic by default)
+          const rigidBodyDesc = RAPIER.RigidBodyDesc.dynamic().setTranslation(
+            position.x,
+            position.y,
+            position.z
+          );
+
+          const rigidBody = this.world.createRigidBody(rigidBodyDesc);
+
+          // Create collider based on shape
+          let colliderDesc;
+          let mass = 0.1;
+          let restitution = 0.3;
+
+          switch (shape) {
+            case 'tetrahedron': {
+              // Tetrahedron vertices (regular tetrahedron)
+              const size = 0.05;
+              const vertices = new Float32Array([
+                0,
+                size,
+                0, // top
+                -size,
+                -size / 3,
+                size, // front left
+                size,
+                -size / 3,
+                size, // front right
+                0,
+                -size / 3,
+                -size * 1.5, // back
+              ]);
+              const indices = new Uint32Array([
+                0, 1, 2, 0, 2, 3, 0, 3, 1, 1, 3, 2,
+              ]);
+              colliderDesc = RAPIER.ColliderDesc.convexMesh(vertices, indices);
+              mass = 0.1;
+              restitution = 0.4;
+              break;
+            }
+
+            case 'octahedron': {
+              // Octahedron vertices
+              const size = 0.05;
+              const vertices = new Float32Array([
+                0,
+                size,
+                0, // top
+                0,
+                -size,
+                0, // bottom
+                size,
+                0,
+                0, // right
+                -size,
+                0,
+                0, // left
+                0,
+                0,
+                size, // front
+                0,
+                0,
+                -size, // back
+              ]);
+              const indices = new Uint32Array([
+                0, 4, 2, 0, 2, 5, 0, 5, 3, 0, 3, 4, 1, 2, 4, 1, 5, 2, 1, 3, 5,
+                1, 4, 3,
+              ]);
+              colliderDesc = RAPIER.ColliderDesc.convexMesh(vertices, indices);
+              mass = 0.15;
+              restitution = 0.35;
+              break;
+            }
+
+            case 'dodecahedron': {
+              // Simplified dodecahedron as sphere for now (convex hull would be complex)
+              const size = 0.05;
+              colliderDesc = RAPIER.ColliderDesc.ball(size);
+              mass = 0.2;
+              restitution = 0.3;
+              break;
+            }
+
+            case 'coin': {
+              // Cylinder (coin shape)
+              const radius = 0.03;
+              const halfHeight = 0.005;
+              colliderDesc = RAPIER.ColliderDesc.cylinder(halfHeight, radius);
+              mass = 0.05;
+              restitution = 0.2;
+              break;
+            }
+
+            case 'rock': {
+              // Sphere (rock)
+              const radius = 0.04;
+              colliderDesc = RAPIER.ColliderDesc.ball(radius);
+              mass = 0.2;
+              restitution = 0.25;
+              break;
+            }
+
+            default:
+              console.warn(`Unknown shape: ${shape}, using sphere`);
+              colliderDesc = RAPIER.ColliderDesc.ball(0.05);
+              mass = 0.1;
+              restitution = 0.3;
+          }
+
+          // Set collider properties
+          colliderDesc.setMass(mass);
+          colliderDesc.setRestitution(restitution);
+          colliderDesc.setFriction(0.5);
+
+          // Create collider and attach to body
+          this.world.createCollider(colliderDesc, rigidBody);
+
+          // Generate unique ID
+          const bodyId = this.nextBodyId++;
+
+          // Store body data
+          this.rigidBodies.set(bodyId, {
+            body: rigidBody,
+            mesh: mesh,
+            type: type,
+            shape: shape,
+          });
+
+          return bodyId;
+        }
+
+        /**
+         * Update physics simulation
+         * @param {number} deltaTime - Time since last update in seconds
+         */
+        update(deltaTime) {
+          const startTime = performance.now();
+
+          // Accumulate time for fixed timestep
+          this.accumulator += deltaTime;
+
+          // Step physics with fixed timestep
+          const timestep = this.config.timestep;
+          let stepsThisFrame = 0;
+
+          while (this.accumulator >= timestep && stepsThisFrame < 5) {
+            this.world.step();
+            this.accumulator -= timestep;
+            stepsThisFrame++;
+          }
+
+          // Prevent spiral of death
+          if (this.accumulator > timestep * 5) {
+            this.accumulator = 0;
+          }
+
+          // Update sleeping state tracking
+          this.activeCount = 0;
+          this.sleepingCount = 0;
+
+          // Sync rigid body transforms to Three.js meshes
+          for (const [bodyId, bodyData] of this.rigidBodies) {
+            const { body, mesh } = bodyData;
+
+            if (!body || !mesh) continue;
+
+            // Track sleeping state
+            if (body.isSleeping()) {
+              this.sleepingCount++;
+            } else {
+              this.activeCount++;
+            }
+
+            // Sync position
+            const translation = body.translation();
+            mesh.position.set(translation.x, translation.y, translation.z);
+
+            // Sync rotation
+            const rotation = body.rotation();
+            mesh.quaternion.set(rotation.x, rotation.y, rotation.z, rotation.w);
+          }
+
+          // Track physics time
+          this.physicsTime = performance.now() - startTime;
+        }
+
+        /**
+         * Remove a rigid body from the world
+         * @param {number} bodyId - Body ID to remove
+         */
+        removeBody(bodyId) {
+          const bodyData = this.rigidBodies.get(bodyId);
+
+          if (!bodyData) {
+            console.warn(`Body ${bodyId} not found`);
+            return;
+          }
+
+          // Remove from physics world
+          if (bodyData.body) {
+            this.world.removeRigidBody(bodyData.body);
+          }
+
+          // Remove from tracking
+          this.rigidBodies.delete(bodyId);
+        }
+
+        /**
+         * Reset the physics world (remove all bodies)
+         */
+        reset() {
+          console.log('Resetting physics world...');
+
+          // Remove all rigid bodies
+          for (const [bodyId, bodyData] of this.rigidBodies) {
+            if (bodyData.body) {
+              this.world.removeRigidBody(bodyData.body);
+            }
+          }
+
+          // Clear tracking
+          this.rigidBodies.clear();
+          this.nextBodyId = 0;
+
+          // Reset accumulator
+          this.accumulator = 0;
+
+          console.log('Physics world reset complete');
+        }
+
+        /**
+         * Update physics configuration
+         * @param {Object} newConfig - New configuration values
+         */
+        updateConfig(newConfig) {
+          if (newConfig.gravity) {
+            const gravity = new this.RAPIER.Vector3(
+              newConfig.gravity.x,
+              newConfig.gravity.y,
+              newConfig.gravity.z
+            );
+            this.world.gravity = gravity;
+            this.config.gravity = newConfig.gravity;
+          }
+
+          if (newConfig.timestep !== undefined) {
+            this.config.timestep = newConfig.timestep;
+          }
+
+          if (newConfig.velocityIterations !== undefined) {
+            this.world.integrationParameters.numSolverIterations =
+              newConfig.velocityIterations;
+            this.config.velocityIterations = newConfig.velocityIterations;
+          }
+
+          if (newConfig.stabilizationIterations !== undefined) {
+            this.world.integrationParameters.numAdditionalFrictionIterations =
+              newConfig.stabilizationIterations;
+            this.config.stabilizationIterations =
+              newConfig.stabilizationIterations;
+          }
+
+          console.log('Physics config updated:', this.config);
+        }
+
+        /**
+         * Get current physics statistics
+         * @returns {Object} Stats object
+         */
+        getStats() {
+          return {
+            totalBodies: this.rigidBodies.size,
+            activeBodies: this.activeCount,
+            sleepingBodies: this.sleepingCount,
+            physicsTime: this.physicsTime,
+          };
+        }
+      }
+
+      /**
+       * InteractionController Class
+       *
+       * Manages user interactions with physics objects including:
+       * - Raycasting for object picking
+       * - Drag mechanics with kinematic mode switching
+       * - Visual feedback for hover and selection
+       * - Mouse and touch event handling
+       *
+       * @class InteractionController
+       */
+      class InteractionController {
+        /**
+         * Create an InteractionController instance
+         * @param {THREE.Camera} camera - Three.js camera
+         * @param {THREE.Scene} scene - Three.js scene
+         * @param {PhysicsWorld} physicsWorld - Physics world instance
+         * @param {HTMLCanvasElement} canvas - Canvas element for event listeners
+         * @param {OrbitControls} controls - Camera controls to disable during drag
+         */
+        constructor(camera, scene, physicsWorld, canvas, controls) {
+          this.camera = camera;
+          this.scene = scene;
+          this.physicsWorld = physicsWorld;
+          this.canvas = canvas;
+          this.controls = controls;
+
+          // Raycaster for object picking
+          this.raycaster = new THREE.Raycaster();
+          this.pointer = new THREE.Vector2();
+
+          // Drag state
+          this.draggedObject = null; // { bodyId, bodyData, mesh, originalBodyType }
+          this.dragPlane = new THREE.Plane();
+          this.dragPlaneNormal = new THREE.Vector3();
+          this.dragOffset = new THREE.Vector3();
+          this.isDragging = false;
+
+          // Hover state
+          this.hoveredObject = null; // { bodyId, mesh }
+
+          // Visual feedback materials
+          this.originalMaterial = null;
+          this.hoverMaterial = new THREE.MeshStandardMaterial({
+            color: 0x00ffff,
+            metalness: 0.5,
+            roughness: 0.3,
+            emissive: 0x00ffff,
+            emissiveIntensity: 0.3,
+          });
+          this.selectedMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffff00,
+            metalness: 0.5,
+            roughness: 0.3,
+            emissive: 0xffff00,
+            emissiveIntensity: 0.5,
+          });
+
+          // Bind event handlers
+          this.onPointerDown = this.onPointerDown.bind(this);
+          this.onPointerMove = this.onPointerMove.bind(this);
+          this.onPointerUp = this.onPointerUp.bind(this);
+
+          // Add event listeners
+          this.canvas.addEventListener('pointerdown', this.onPointerDown);
+          this.canvas.addEventListener('pointermove', this.onPointerMove);
+          this.canvas.addEventListener('pointerup', this.onPointerUp);
+          this.canvas.addEventListener('pointerleave', this.onPointerUp);
+
+          console.log('InteractionController initialized');
+        }
+
+        /**
+         * Convert screen coordinates to normalized device coordinates
+         * @param {number} clientX - Screen X coordinate
+         * @param {number} clientY - Screen Y coordinate
+         */
+        updatePointerPosition(clientX, clientY) {
+          const rect = this.canvas.getBoundingClientRect();
+          this.pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+          this.pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        }
+
+        /**
+         * Perform raycast to find intersected objects
+         * @returns {Object|null} Intersected object data or null
+         */
+        raycastObjects() {
+          // Update raycaster with current pointer position
+          this.raycaster.setFromCamera(this.pointer, this.camera);
+
+          // Get all meshes from physics world
+          const meshes = [];
+          for (const [bodyId, bodyData] of this.physicsWorld.rigidBodies) {
+            if (bodyData.mesh) {
+              meshes.push({ bodyId, mesh: bodyData.mesh, bodyData });
+            }
+          }
+
+          // Perform raycast
+          const intersects = this.raycaster.intersectObjects(
+            meshes.map((m) => m.mesh)
+          );
+
+          if (intersects.length > 0) {
+            // Find the corresponding body data for the intersected mesh
+            const intersectedMesh = intersects[0].object;
+            const meshData = meshes.find((m) => m.mesh === intersectedMesh);
+
+            if (meshData) {
+              return {
+                bodyId: meshData.bodyId,
+                bodyData: meshData.bodyData,
+                mesh: meshData.mesh,
+                point: intersects[0].point,
+              };
+            }
+          }
+
+          return null;
+        }
+
+        /**
+         * Handle pointer down event (start drag or selection)
+         * @param {PointerEvent} event - Pointer event
+         */
+        onPointerDown(event) {
+          // Update pointer position
+          this.updatePointerPosition(event.clientX, event.clientY);
+
+          // Raycast to find object
+          const intersected = this.raycastObjects();
+
+          if (intersected) {
+            // Start dragging
+            this.isDragging = true;
+            this.draggedObject = intersected;
+
+            // Disable orbit controls during drag
+            this.controls.enabled = false;
+
+            // Store original body type
+            const body = intersected.bodyData.body;
+            this.draggedObject.originalBodyType = body.bodyType();
+
+            // Switch to kinematic mode for dragging
+            body.setBodyType(this.physicsWorld.RAPIER.RigidBodyType.KinematicPositionBased);
+
+            // Wake up the body if sleeping
+            body.wakeUp();
+
+            // Create drag plane perpendicular to camera view
+            this.dragPlaneNormal.set(0, 0, 1).applyQuaternion(this.camera.quaternion);
+            this.dragPlane.setFromNormalAndCoplanarPoint(
+              this.dragPlaneNormal,
+              intersected.point
+            );
+
+            // Calculate offset from object center to intersection point
+            this.dragOffset.copy(intersected.mesh.position).sub(intersected.point);
+
+            // Apply selected material
+            this.originalMaterial = intersected.mesh.material;
+            intersected.mesh.material = this.selectedMaterial;
+
+            console.log('Started dragging object:', intersected.bodyId);
+          }
+        }
+
+        /**
+         * Handle pointer move event (update drag or hover)
+         * @param {PointerEvent} event - Pointer event
+         */
+        onPointerMove(event) {
+          // Update pointer position
+          this.updatePointerPosition(event.clientX, event.clientY);
+
+          if (this.isDragging && this.draggedObject) {
+            // Update dragged object position
+            this.updateDraggedObjectPosition();
+          } else {
+            // Update hover state
+            this.updateHoverState();
+          }
+        }
+
+        /**
+         * Update position of dragged object to follow cursor
+         */
+        updateDraggedObjectPosition() {
+          if (!this.draggedObject) return;
+
+          // Create ray from camera through pointer
+          this.raycaster.setFromCamera(this.pointer, this.camera);
+
+          // Find intersection with drag plane
+          const intersectionPoint = new THREE.Vector3();
+          this.raycaster.ray.intersectPlane(this.dragPlane, intersectionPoint);
+
+          if (intersectionPoint) {
+            // Apply offset to get object center position
+            intersectionPoint.add(this.dragOffset);
+
+            // Update physics body position (kinematic mode)
+            const body = this.draggedObject.bodyData.body;
+            body.setTranslation(
+              {
+                x: intersectionPoint.x,
+                y: intersectionPoint.y,
+                z: intersectionPoint.z,
+              },
+              true
+            );
+
+            // Mesh position will be synced in physics update loop
+          }
+        }
+
+        /**
+         * Update hover state for visual feedback
+         */
+        updateHoverState() {
+          // Raycast to find hovered object
+          const intersected = this.raycastObjects();
+
+          // Clear previous hover if different object
+          if (this.hoveredObject && (!intersected || this.hoveredObject.bodyId !== intersected.bodyId)) {
+            this.clearHover();
+          }
+
+          // Apply hover to new object
+          if (intersected && (!this.hoveredObject || this.hoveredObject.bodyId !== intersected.bodyId)) {
+            this.hoveredObject = {
+              bodyId: intersected.bodyId,
+              mesh: intersected.mesh,
+            };
+
+            // Store original material and apply hover material
+            this.originalMaterial = intersected.mesh.material;
+            intersected.mesh.material = this.hoverMaterial;
+
+            // Change cursor to pointer
+            this.canvas.style.cursor = 'pointer';
+          }
+        }
+
+        /**
+         * Clear hover state
+         */
+        clearHover() {
+          if (this.hoveredObject && this.originalMaterial) {
+            this.hoveredObject.mesh.material = this.originalMaterial;
+            this.originalMaterial = null;
+          }
+          this.hoveredObject = null;
+          this.canvas.style.cursor = 'default';
+        }
+
+        /**
+         * Handle pointer up event (end drag)
+         * @param {PointerEvent} event - Pointer event
+         */
+        onPointerUp(event) {
+          if (this.isDragging && this.draggedObject) {
+            // Restore original body type (dynamic)
+            const body = this.draggedObject.bodyData.body;
+            body.setBodyType(this.draggedObject.originalBodyType);
+
+            // Calculate release velocity based on recent movement
+            // For now, just restore to dynamic mode without applying velocity
+            // (velocity application would require tracking previous positions)
+
+            // Restore original material
+            if (this.originalMaterial) {
+              this.draggedObject.mesh.material = this.originalMaterial;
+              this.originalMaterial = null;
+            }
+
+            console.log('Released object:', this.draggedObject.bodyId);
+
+            // Clear drag state
+            this.draggedObject = null;
+            this.isDragging = false;
+
+            // Re-enable orbit controls
+            this.controls.enabled = true;
+          }
+
+          // Reset cursor
+          this.canvas.style.cursor = 'default';
+        }
+
+        /**
+         * Cleanup event listeners
+         */
+        dispose() {
+          this.canvas.removeEventListener('pointerdown', this.onPointerDown);
+          this.canvas.removeEventListener('pointermove', this.onPointerMove);
+          this.canvas.removeEventListener('pointerup', this.onPointerUp);
+          this.canvas.removeEventListener('pointerleave', this.onPointerUp);
+
+          // Clear any active hover or drag state
+          this.clearHover();
+          if (this.isDragging) {
+            this.onPointerUp(new PointerEvent('pointerup'));
+          }
+
+          console.log('InteractionController disposed');
+        }
+      }
+
+      /**
+       * RenderingEngine Class
+       *
+       * Manages Three.js rendering including:
+       * - Scene, camera, and renderer setup
+       * - Lighting and environment
+       * - Floor and grid visualization
+       * - Object mesh creation and materials
+       * - Render loop with camera controls
+       *
+       * @class RenderingEngine
+       */
+      class RenderingEngine {
+        /**
+         * Create a RenderingEngine instance
+         * @param {HTMLCanvasElement} canvas - Canvas element for rendering
+         * @param {PhysicsWorld} physicsWorld - Physics world instance
+         */
+        constructor(canvas, physicsWorld) {
+          this.canvas = canvas;
+          this.physicsWorld = physicsWorld;
+
+          // Initialize Three.js scene
+          this.scene = new THREE.Scene();
+          this.scene.background = new THREE.Color(0x000000);
+
+          // Initialize camera at position (5, 5, 5)
+          const aspect = window.innerWidth / window.innerHeight;
+          this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+          this.camera.position.set(5, 5, 5);
+          this.camera.lookAt(0, 0, 0);
+
+          // Initialize WebGL renderer with antialiasing and shadows
+          this.renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+          });
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+          // Initialize OrbitControls
+          this.controls = new OrbitControls(this.camera, canvas);
+          this.controls.enableDamping = true;
+          this.controls.dampingFactor = 0.05;
+          this.controls.minDistance = 2;
+          this.controls.maxDistance = 50;
+          this.controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent going below floor
+
+          // Store default camera position for reset
+          this.defaultCameraPosition = new THREE.Vector3(5, 5, 5);
+          this.defaultCameraTarget = new THREE.Vector3(0, 0, 0);
+
+          // Tracking structures
+          this.meshes = new Map(); // bodyId -> mesh
+          this.materials = this.createMaterials();
+
+          // Add window resize handler
+          window.addEventListener('resize', () => this.onWindowResize());
+
+          // Setup lighting and floor
+          this.setupLighting();
+          this.setupFloor();
+
+          console.log('RenderingEngine initialized');
+        }
+
+        /**
+         * Create material library for different gem and coin types
+         * @returns {Object} Materials object
+         */
+        createMaterials() {
+          return {
+            // Gem materials
+            emerald: new THREE.MeshStandardMaterial({
+              color: 0x50c878,
+              metalness: 0.3,
+              roughness: 0.2,
+              emissive: 0x50c878,
+              emissiveIntensity: 0.1,
+            }),
+            sapphire: new THREE.MeshStandardMaterial({
+              color: 0x0f52ba,
+              metalness: 0.3,
+              roughness: 0.2,
+              emissive: 0x0f52ba,
+              emissiveIntensity: 0.1,
+            }),
+            amethyst: new THREE.MeshStandardMaterial({
+              color: 0x9966cc,
+              metalness: 0.3,
+              roughness: 0.2,
+              emissive: 0x9966cc,
+              emissiveIntensity: 0.1,
+            }),
+            ruby: new THREE.MeshStandardMaterial({
+              color: 0xe0115f,
+              metalness: 0.3,
+              roughness: 0.2,
+              emissive: 0xe0115f,
+              emissiveIntensity: 0.1,
+            }),
+            diamond: new THREE.MeshStandardMaterial({
+              color: 0xb9f2ff,
+              metalness: 0.8,
+              roughness: 0.1,
+              emissive: 0xb9f2ff,
+              emissiveIntensity: 0.2,
+            }),
+            // Coin materials
+            bronze: new THREE.MeshStandardMaterial({
+              color: 0xcd7f32,
+              metalness: 0.6,
+              roughness: 0.4,
+            }),
+            silver: new THREE.MeshStandardMaterial({
+              color: 0xc0c0c0,
+              metalness: 0.8,
+              roughness: 0.3,
+            }),
+            gold: new THREE.MeshStandardMaterial({
+              color: 0xffd700,
+              metalness: 0.9,
+              roughness: 0.2,
+            }),
+          };
+        }
+
+        /**
+         * Setup scene lighting
+         */
+        setupLighting() {
+          // Ambient light for overall illumination
+          const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+          this.scene.add(ambientLight);
+
+          // Directional light for shadows and definition
+          const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+          directionalLight.position.set(10, 20, 10);
+          directionalLight.castShadow = true;
+
+          // Configure shadow properties
+          directionalLight.shadow.mapSize.width = 2048;
+          directionalLight.shadow.mapSize.height = 2048;
+          directionalLight.shadow.camera.near = 0.5;
+          directionalLight.shadow.camera.far = 50;
+          directionalLight.shadow.camera.left = -10;
+          directionalLight.shadow.camera.right = 10;
+          directionalLight.shadow.camera.top = 10;
+          directionalLight.shadow.camera.bottom = -10;
+
+          this.scene.add(directionalLight);
+
+          // Add a second fill light from opposite side
+          const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+          fillLight.position.set(-10, 10, -10);
+          this.scene.add(fillLight);
+
+          console.log('Lighting setup complete');
+        }
+
+        /**
+         * Setup floor plane with grid helper
+         */
+        setupFloor() {
+          // Create floor plane mesh
+          const floorGeometry = new THREE.PlaneGeometry(20, 20);
+          const floorMaterial = new THREE.MeshStandardMaterial({
+            color: 0x2a2a2a,
+            roughness: 0.8,
+            metalness: 0.2,
+          });
+          const floorMesh = new THREE.Mesh(floorGeometry, floorMaterial);
+          floorMesh.rotation.x = -Math.PI / 2;
+          floorMesh.position.y = 0;
+          floorMesh.receiveShadow = true;
+          this.scene.add(floorMesh);
+
+          // Add grid helper for visual reference
+          const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+          gridHelper.position.y = 0.01; // Slightly above floor to prevent z-fighting
+          this.scene.add(gridHelper);
+
+          // Create floor physics collider
+          const RAPIER = this.physicsWorld.RAPIER;
+          const floorBodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(
+            0,
+            0,
+            0
+          );
+          const floorBody = this.physicsWorld.world.createRigidBody(
+            floorBodyDesc
+          );
+
+          const floorColliderDesc = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
+            .setFriction(0.7)
+            .setRestitution(0.3);
+
+          this.physicsWorld.world.createCollider(floorColliderDesc, floorBody);
+
+          console.log('Floor setup complete');
+        }
+
+        /**
+         * Create a mesh for a specific object type and shape
+         * @param {string} type - Object type ('gem', 'coin', 'rock')
+         * @param {string} shape - Shape type
+         * @param {string} color - Color name for material
+         * @returns {THREE.Mesh} Created mesh
+         */
+        createMesh(type, shape, color) {
+          let geometry;
+
+          // Create geometry based on shape
+          switch (shape) {
+            case 'tetrahedron':
+              geometry = new THREE.TetrahedronGeometry(0.05);
+              break;
+
+            case 'octahedron':
+              geometry = new THREE.OctahedronGeometry(0.05);
+              break;
+
+            case 'dodecahedron':
+              geometry = new THREE.DodecahedronGeometry(0.05);
+              break;
+
+            case 'coin':
+              geometry = new THREE.CylinderGeometry(0.03, 0.03, 0.01, 16);
+              break;
+
+            case 'rock':
+              geometry = new THREE.SphereGeometry(0.04, 16, 12);
+              break;
+
+            default:
+              console.warn(`Unknown shape: ${shape}, using sphere`);
+              geometry = new THREE.SphereGeometry(0.05, 16, 12);
+          }
+
+          // Get material for color
+          const material =
+            this.materials[color] || this.materials.emerald;
+
+          // Create mesh
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+
+          return mesh;
+        }
+
+        /**
+         * Add a mesh to the scene and track it
+         * @param {number} bodyId - Physics body ID
+         * @param {THREE.Mesh} mesh - Mesh to add
+         */
+        addMesh(bodyId, mesh) {
+          this.scene.add(mesh);
+          this.meshes.set(bodyId, mesh);
+        }
+
+        /**
+         * Remove a mesh from the scene
+         * @param {number} bodyId - Physics body ID
+         */
+        removeMesh(bodyId) {
+          const mesh = this.meshes.get(bodyId);
+          if (mesh) {
+            this.scene.remove(mesh);
+            mesh.geometry.dispose();
+            this.meshes.delete(bodyId);
+          }
+        }
+
+        /**
+         * Reset camera to default position
+         */
+        resetCamera() {
+          this.camera.position.copy(this.defaultCameraPosition);
+          this.controls.target.copy(this.defaultCameraTarget);
+          this.controls.update();
+          console.log('Camera reset to default position');
+        }
+
+        /**
+         * Handle window resize
+         */
+        onWindowResize() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+
+          this.camera.aspect = width / height;
+          this.camera.updateProjectionMatrix();
+
+          this.renderer.setSize(width, height);
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        }
+
+        /**
+         * Render loop - called every frame
+         */
+        render() {
+          // Update camera controls
+          this.controls.update();
+
+          // Render scene
+          this.renderer.render(this.scene, this.camera);
+        }
+
+        /**
+         * Clear all meshes from scene
+         */
+        clearAllMeshes() {
+          for (const [bodyId, mesh] of this.meshes) {
+            this.scene.remove(mesh);
+            mesh.geometry.dispose();
+          }
+          this.meshes.clear();
+          console.log('All meshes cleared');
+        }
+      }
+
+      async function init() {
+        try {
+          console.log('Initializing Rapier...');
+
+          // Initialize Rapier WASM
+          await RAPIER.init();
+          console.log('Rapier initialized successfully');
+
+          // Wait for dat.GUI to be available
+          console.log('Waiting for dat.GUI...');
+          
+          if (typeof dat === 'undefined') {
+            throw new Error('dat.GUI not loaded. Make sure the dat.GUI script tag is present.');
+          }
+          
+          console.log('dat.GUI available');
+
+          // Initialize physics world
+          const physicsWorld = new PhysicsWorld(RAPIER, {
+            gravity: { x: 0, y: -9.81, z: 0 },
+            timestep: 1 / 60,
+            velocityIterations: 8,
+            stabilizationIterations: 4,
+          });
+
+          console.log('Physics world created');
+
+          // Initialize rendering engine
+          const canvas = document.getElementById('canvas');
+          const renderingEngine = new RenderingEngine(canvas, physicsWorld);
+
+          console.log('Rendering engine created');
+
+          // Initialize interaction controller
+          const interactionController = new InteractionController(
+            renderingEngine.camera,
+            renderingEngine.scene,
+            physicsWorld,
+            canvas,
+            renderingEngine.controls
+          );
+
+          console.log('Interaction controller created');
+
+          // Object spawning state
+          let spawnState = {
+            objectType: 'tetrahedron',
+            spawnCount: 10,
+            spawnRate: 5,
+          };
+
+          // Performance tier presets
+          const tierPresets = {
+            low: {
+              timestep: 1 / 30,
+              velocityIterations: 2,
+              stabilizationIterations: 1,
+            },
+            medium: {
+              timestep: 1 / 45,
+              velocityIterations: 4,
+              stabilizationIterations: 2,
+            },
+            high: {
+              timestep: 1 / 60,
+              velocityIterations: 8,
+              stabilizationIterations: 4,
+            },
+          };
+
+          // Spawn objects function
+          function spawnObjects() {
+            const count = spawnState.spawnCount;
+            const type = spawnState.objectType;
+            
+            console.log(`Spawning ${count} ${type} objects...`);
+
+            // Determine color based on object type
+            let color;
+            if (type === 'coin') {
+              color = 'gold';
+            } else if (type === 'rock') {
+              color = 'bronze';
+            } else {
+              // Gem types - use gem colors
+              const gemColors = ['emerald', 'sapphire', 'amethyst', 'ruby', 'diamond'];
+              color = gemColors[Math.floor(Math.random() * gemColors.length)];
+            }
+
+            // Spawn objects with slight delay between each
+            const delayBetweenSpawns = 1000 / spawnState.spawnRate; // ms
+            let spawned = 0;
+
+            const spawnInterval = setInterval(() => {
+              if (spawned >= count) {
+                clearInterval(spawnInterval);
+                console.log(`Spawned ${count} objects`);
+                return;
+              }
+
+              // Random spawn position above floor
+              const position = {
+                x: (Math.random() - 0.5) * 2,
+                y: 3 + Math.random() * 2,
+                z: (Math.random() - 0.5) * 2,
+              };
+
+              // Create mesh
+              const mesh = renderingEngine.createMesh('object', type, color);
+
+              // Create physics body
+              const bodyId = physicsWorld.createRigidBody(
+                'object',
+                type,
+                position,
+                mesh
+              );
+
+              // Add mesh to scene
+              renderingEngine.addMesh(bodyId, mesh);
+
+              spawned++;
+            }, delayBetweenSpawns);
+          }
+
+          // Location configurations (from game)
+          const locationConfigs = {
+            rockfall: {
+              name: 'Rockfall',
+              objects: [
+                { type: 'coin', shape: 'coin', color: 'silver', count: 20 },
+                { type: 'coin', shape: 'coin', color: 'bronze', count: 25 },
+                { type: 'gem', shape: 'octahedron', color: 'emerald', count: 10 },
+                { type: 'gem', shape: 'tetrahedron', color: 'emerald', count: 10 },
+                { type: 'gem', shape: 'tetrahedron', color: 'sapphire', count: 10 },
+                { type: 'rock', shape: 'rock', color: 'bronze', count: 50 },
+              ],
+            },
+            'bright-warrens': {
+              name: 'Bright Warrens',
+              objects: [
+                { type: 'coin', shape: 'coin', color: 'silver', count: 60 },
+                { type: 'gem', shape: 'dodecahedron', color: 'emerald', count: 40 },
+                { type: 'gem', shape: 'octahedron', color: 'sapphire', count: 35 },
+                { type: 'gem', shape: 'tetrahedron', color: 'ruby', count: 25 },
+                { type: 'rock', shape: 'rock', color: 'bronze', count: 50 },
+              ],
+            },
+            'crystal-caves': {
+              name: 'Crystal Caves',
+              objects: [
+                { type: 'coin', shape: 'coin', color: 'gold', count: 60 },
+                { type: 'gem', shape: 'octahedron', color: 'diamond', count: 50 },
+                { type: 'gem', shape: 'dodecahedron', color: 'sapphire', count: 45 },
+                { type: 'gem', shape: 'dodecahedron', color: 'ruby', count: 40 },
+                { type: 'rock', shape: 'rock', color: 'bronze', count: 24 },
+              ],
+            },
+          };
+
+          // Spawn location-based objects function
+          function spawnLocationObjects(locationId) {
+            const location = locationConfigs[locationId];
+            if (!location) {
+              console.error(`Unknown location: ${locationId}`);
+              return;
+            }
+
+            console.log(`Spawning objects from ${location.name}...`);
+
+            let totalSpawned = 0;
+            const spawnRate = spawnState.spawnRate;
+            const delayBetweenSpawns = 1000 / spawnRate;
+
+            // Flatten all objects into a single array with their counts
+            const objectsToSpawn = [];
+            location.objects.forEach((obj) => {
+              for (let i = 0; i < obj.count; i++) {
+                objectsToSpawn.push({
+                  type: obj.type,
+                  shape: obj.shape,
+                  color: obj.color,
+                });
+              }
+            });
+
+            // Shuffle array for random spawn order
+            for (let i = objectsToSpawn.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [objectsToSpawn[i], objectsToSpawn[j]] = [objectsToSpawn[j], objectsToSpawn[i]];
+            }
+
+            console.log(`Total objects to spawn: ${objectsToSpawn.length}`);
+
+            const spawnInterval = setInterval(() => {
+              if (totalSpawned >= objectsToSpawn.length) {
+                clearInterval(spawnInterval);
+                console.log(`Spawned ${totalSpawned} objects from ${location.name}`);
+                return;
+              }
+
+              const obj = objectsToSpawn[totalSpawned];
+
+              // Random spawn position above floor
+              const position = {
+                x: (Math.random() - 0.5) * 4,
+                y: 3 + Math.random() * 3,
+                z: (Math.random() - 0.5) * 4,
+              };
+
+              // Create mesh
+              const mesh = renderingEngine.createMesh(obj.type, obj.shape, obj.color);
+
+              // Create physics body
+              const bodyId = physicsWorld.createRigidBody(
+                obj.type,
+                obj.shape,
+                position,
+                mesh
+              );
+
+              // Add mesh to scene
+              renderingEngine.addMesh(bodyId, mesh);
+
+              totalSpawned++;
+            }, delayBetweenSpawns);
+          }
+
+          // Reset simulation function
+          function resetSimulation() {
+            console.log('Resetting simulation...');
+
+            // Clear all meshes from scene
+            renderingEngine.clearAllMeshes();
+
+            // Reset physics world
+            physicsWorld.reset();
+
+            console.log('Simulation reset complete');
+          }
+
+          // Reset camera function
+          function resetCamera() {
+            renderingEngine.resetCamera();
+          }
+
+          // Export configuration function
+          function exportConfig() {
+            const config = {
+              physics: {
+                gravity: physicsWorld.config.gravity,
+                timestep: physicsWorld.config.timestep,
+                velocityIterations: physicsWorld.config.velocityIterations,
+                stabilizationIterations: physicsWorld.config.stabilizationIterations,
+              },
+              spawn: spawnState,
+              camera: {
+                position: {
+                  x: renderingEngine.camera.position.x,
+                  y: renderingEngine.camera.position.y,
+                  z: renderingEngine.camera.position.z,
+                },
+                target: {
+                  x: renderingEngine.controls.target.x,
+                  y: renderingEngine.controls.target.y,
+                  z: renderingEngine.controls.target.z,
+                },
+              },
+            };
+
+            const jsonString = JSON.stringify(config, null, 2);
+
+            // Copy to clipboard
+            navigator.clipboard
+              .writeText(jsonString)
+              .then(() => {
+                console.log('Configuration copied to clipboard');
+                alert('Configuration copied to clipboard!');
+              })
+              .catch((err) => {
+                console.error('Failed to copy to clipboard:', err);
+                // Fallback: show in alert
+                alert('Configuration:\n\n' + jsonString);
+              });
+
+            return jsonString;
+          }
+
+          // Import configuration function
+          function importConfig() {
+            const jsonString = prompt('Paste configuration JSON:');
+
+            if (!jsonString) {
+              console.log('Import cancelled');
+              return;
+            }
+
+            try {
+              const config = JSON.parse(jsonString);
+
+              // Validate config structure
+              if (!config.physics || !config.spawn) {
+                throw new Error('Invalid configuration structure');
+              }
+
+              // Apply physics config
+              physicsWorld.updateConfig({
+                gravity: config.physics.gravity,
+                timestep: config.physics.timestep,
+                velocityIterations: config.physics.velocityIterations,
+                stabilizationIterations: config.physics.stabilizationIterations,
+              });
+
+              // Apply spawn config
+              spawnState = { ...config.spawn };
+
+              // Apply camera config if present
+              if (config.camera) {
+                renderingEngine.camera.position.set(
+                  config.camera.position.x,
+                  config.camera.position.y,
+                  config.camera.position.z
+                );
+                renderingEngine.controls.target.set(
+                  config.camera.target.x,
+                  config.camera.target.y,
+                  config.camera.target.z
+                );
+                renderingEngine.controls.update();
+              }
+
+              // Update GUI controls to reflect imported values
+              guiState.gravityX = config.physics.gravity.x;
+              guiState.gravityY = config.physics.gravity.y;
+              guiState.gravityZ = config.physics.gravity.z;
+              guiState.timestepFPS = Math.round(1 / config.physics.timestep);
+              guiState.velocityIterations = config.physics.velocityIterations;
+              guiState.stabilizationIterations = config.physics.stabilizationIterations;
+              guiState.objectType = config.spawn.objectType;
+              guiState.spawnCount = config.spawn.spawnCount;
+              guiState.spawnRate = config.spawn.spawnRate;
+              
+              // Update GUI display
+              gui.updateDisplay();
+
+              console.log('Configuration imported successfully');
+              alert('Configuration imported successfully!');
+            } catch (error) {
+              console.error('Failed to import configuration:', error);
+              alert('Failed to import configuration: ' + error.message);
+            }
+          }
+
+          // Create dat.GUI controls
+          const gui = new dat.GUI({ autoPlace: false });
+          document.getElementById('control-panel').appendChild(gui.domElement);
+
+          // GUI state object
+          const guiState = {
+            // Physics
+            gravityX: 0,
+            gravityY: -9.81,
+            gravityZ: 0,
+            timestepFPS: 60,
+            velocityIterations: 8,
+            stabilizationIterations: 4,
+            
+            // Spawn
+            objectType: 'tetrahedron',
+            spawnCount: 10,
+            spawnRate: 5,
+            
+            // Debug
+            showColliders: false,
+            showVelocities: false,
+            showSleeping: true,
+            showContactPoints: false,
+            
+            // Performance Tier
+            tierPreset: 'high',
+            
+            // Actions
+            spawnObjects: () => spawnObjects(),
+            reset: () => resetSimulation(),
+            resetCamera: () => resetCamera(),
+            exportConfig: () => exportConfig(),
+            importConfig: () => importConfig(),
+          };
+
+          // Physics Settings folder
+          const physicsFolder = gui.addFolder('Physics Settings');
+          physicsFolder.add(guiState, 'gravityX', -20, 20, 0.1).name('Gravity X').onChange((value) => {
+            physicsWorld.updateConfig({
+              gravity: { x: value, y: guiState.gravityY, z: guiState.gravityZ },
+            });
+          });
+          physicsFolder.add(guiState, 'gravityY', -20, 20, 0.1).name('Gravity Y').onChange((value) => {
+            physicsWorld.updateConfig({
+              gravity: { x: guiState.gravityX, y: value, z: guiState.gravityZ },
+            });
+          });
+          physicsFolder.add(guiState, 'gravityZ', -20, 20, 0.1).name('Gravity Z').onChange((value) => {
+            physicsWorld.updateConfig({
+              gravity: { x: guiState.gravityX, y: guiState.gravityY, z: value },
+            });
+          });
+          physicsFolder.add(guiState, 'timestepFPS', [30, 45, 60, 120]).name('Timestep (FPS)').onChange((value) => {
+            physicsWorld.updateConfig({ timestep: 1 / value });
+          });
+          physicsFolder.add(guiState, 'velocityIterations', 1, 16, 1).name('Velocity Iterations').onChange((value) => {
+            physicsWorld.updateConfig({ velocityIterations: value });
+          });
+          physicsFolder.add(guiState, 'stabilizationIterations', 1, 8, 1).name('Stabilization Iterations').onChange((value) => {
+            physicsWorld.updateConfig({ stabilizationIterations: value });
+          });
+          physicsFolder.open();
+
+          // Spawn Settings folder
+          const spawnFolder = gui.addFolder('Spawn Settings');
+          spawnFolder.add(guiState, 'objectType', ['tetrahedron', 'octahedron', 'dodecahedron', 'coin', 'rock']).name('Object Type').onChange((value) => {
+            spawnState.objectType = value;
+          });
+          spawnFolder.add(guiState, 'spawnCount', 1, 100, 1).name('Spawn Count').onChange((value) => {
+            spawnState.spawnCount = value;
+          });
+          spawnFolder.add(guiState, 'spawnRate', 1, 20, 1).name('Spawn Rate (obj/s)').onChange((value) => {
+            spawnState.spawnRate = value;
+          });
+          spawnFolder.add(guiState, 'spawnObjects').name('Spawn Objects');
+          spawnFolder.open();
+
+          // Location Spawning folder
+          const locationFolder = gui.addFolder('Location Spawning');
+          const locationState = {
+            location: 'rockfall',
+            spawnRockfall: () => spawnLocationObjects('rockfall'),
+            spawnBrightWarrens: () => spawnLocationObjects('bright-warrens'),
+            spawnCrystalCaves: () => spawnLocationObjects('crystal-caves'),
+          };
+          locationFolder.add(locationState, 'location', {
+            'Rockfall (Free)': 'rockfall',
+            'Bright Warrens (Silver-rich)': 'bright-warrens',
+            'Crystal Caves (Gold-rich)': 'crystal-caves',
+          }).name('Location');
+          locationFolder.add(locationState, 'spawnRockfall').name('Spawn Rockfall');
+          locationFolder.add(locationState, 'spawnBrightWarrens').name('Spawn Bright Warrens');
+          locationFolder.add(locationState, 'spawnCrystalCaves').name('Spawn Crystal Caves');
+          locationFolder.open();
+
+          // Debug Settings folder
+          const debugFolder = gui.addFolder('Debug Settings');
+          debugFolder.add(guiState, 'showColliders').name('Collider Wireframes');
+          debugFolder.add(guiState, 'showVelocities').name('Velocity Vectors');
+          debugFolder.add(guiState, 'showSleeping').name('Sleeping Highlight');
+          debugFolder.add(guiState, 'showContactPoints').name('Contact Points');
+
+          // Performance Tier folder
+          const tierFolder = gui.addFolder('Performance Tier');
+          tierFolder.add(guiState, 'tierPreset', ['low', 'medium', 'high', 'custom']).name('Tier Preset').onChange((value) => {
+            if (value !== 'custom') {
+              const preset = tierPresets[value];
+              physicsWorld.updateConfig(preset);
+
+              // Update GUI controls to reflect preset values
+              guiState.timestepFPS = Math.round(1 / preset.timestep);
+              guiState.velocityIterations = preset.velocityIterations;
+              guiState.stabilizationIterations = preset.stabilizationIterations;
+              
+              // Update GUI display
+              gui.updateDisplay();
+
+              console.log(`Applied ${value} tier preset`);
+            }
+          });
+
+          // Actions folder
+          const actionsFolder = gui.addFolder('Actions');
+          actionsFolder.add(guiState, 'reset').name('Reset');
+          actionsFolder.add(guiState, 'resetCamera').name('Reset Camera');
+          actionsFolder.add(guiState, 'exportConfig').name('Export Config');
+          actionsFolder.add(guiState, 'importConfig').name('Import Config');
+          actionsFolder.open();
+
+          console.log('dat.GUI controls created');
+
+          // Hide loading screen
+          document.getElementById('loading').classList.add('hidden');
+
+          // Show stats overlay
+          document.getElementById('stats-overlay').classList.remove('hidden');
+
+          // Start render loop
+          let lastFrameTime = performance.now();
+          let frameCount = 0;
+          let fpsUpdateTime = performance.now();
+
+          function animate() {
+            requestAnimationFrame(animate);
+
+            const currentTime = performance.now();
+            const deltaTime = (currentTime - lastFrameTime) / 1000; // Convert to seconds
+            lastFrameTime = currentTime;
+
+            // Update physics
+            physicsWorld.update(deltaTime);
+
+            // Render scene
+            renderingEngine.render();
+
+            // Update FPS counter
+            frameCount++;
+            if (currentTime - fpsUpdateTime >= 500) {
+              const fps = Math.round(
+                (frameCount * 1000) / (currentTime - fpsUpdateTime)
+              );
+              document.getElementById('fps-value').textContent = fps;
+              frameCount = 0;
+              fpsUpdateTime = currentTime;
+            }
+
+            // Update stats
+            const stats = physicsWorld.getStats();
+            document.getElementById('physics-time-value').textContent =
+              stats.physicsTime.toFixed(2) + 'ms';
+            document.getElementById('object-count-value').textContent =
+              stats.totalBodies;
+            document.getElementById('active-count-value').textContent =
+              stats.activeBodies;
+            document.getElementById('sleeping-count-value').textContent =
+              stats.sleepingBodies;
+          }
+
+          animate();
+
+          console.log('Render loop started');
+          console.log('Initialization complete!');
+        } catch (error) {
+          console.error('Failed to initialize:', error);
+          document.getElementById('loading').innerHTML = `
+          <h2 style="color: #ff4444;">Initialization Failed</h2>
+          <p style="color: #ffaaaa; margin-top: 15px;">
+            ${error.message || 'Unknown error occurred'}
+          </p>
+          <p style="color: #aaaaaa; margin-top: 10px; font-size: 12px;">
+            ${error.stack || 'Check console for details.'}
+          </p>
+        `;
+        }
+      }
+
+      // Initialize when page is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    </script>
+  </body>
+</html>

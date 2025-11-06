@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter \"@gg/*\" build)",
+      "Bash(cat:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm why:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

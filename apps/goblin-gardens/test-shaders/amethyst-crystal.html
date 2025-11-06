@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amethyst Crystal Shader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+        #container { display: flex; height: 100vh; }
+        #canvas-container { flex: 1; position: relative; }
+        canvas { display: block; width: 100%; height: 100%; }
+        #controls {
+            width: 320px;
+            background: white;
+            padding: 24px;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+        }
+        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #191919; }
+        .description { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 500; color: #191919; margin-bottom: 8px; }
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #191919;
+            cursor: pointer;
+        }
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .value-display { display: inline-block; font-size: 12px; color: #666; margin-left: 8px; }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #191919;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        button:hover { background: #333; }
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #999;
+            margin: 24px 0 12px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        <div id="controls">
+            <h1>Amethyst Crystal</h1>
+            <p class="description">Geometric crystalline structure with purple gradients and internal reflections.</p>
+            
+            <div class="section-title">Parameters</div>
+            
+            <div class="control-group">
+                <label>Crystal Complexity</label>
+                <input type="range" id="complexity" min="2" max="8" step="1" value="5">
+                <span class="value-display" id="complexity-value">5</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Rotation Speed</label>
+                <input type="range" id="speed" min="0" max="1" step="0.05" value="0.3">
+                <span class="value-display" id="speed-value">0.3</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Refraction</label>
+                <input type="range" id="refraction" min="0" max="1" step="0.05" value="0.5">
+                <span class="value-display" id="refraction-value">0.5</span>
+            </div>
+            
+            <div class="control-group">
+                <label>Brightness</label>
+                <input type="range" id="brightness" min="0" max="2" step="0.1" value="1.0">
+                <span class="value-display" id="brightness-value">1.0</span>
+            </div>
+            
+            <div class="section-title">Colors</div>
+            
+            <div class="control-group">
+                <label>Dark Purple</label>
+                <input type="color" id="darkColor" value="#4a148c">
+            </div>
+            
+            <div class="control-group">
+                <label>Light Purple</label>
+                <input type="color" id="lightColor" value="#9966cc">
+            </div>
+            
+            <div class="section-title">Actions</div>
+            <button onclick="resetParameters()">Reset to Defaults</button>
+            <button onclick="downloadImage()">Download PNG</button>
+        </div>
+    </div>
+
+    <script>
+        const params = {
+            complexity: 5.0,
+            speed: 0.3,
+            refraction: 0.5,
+            brightness: 1.0,
+            darkColor: new THREE.Color(0x4a148c),
+            lightColor: new THREE.Color(0x9966cc),
+        };
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        
+        const container = document.getElementById('canvas-container');
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                u_time: { value: 0 },
+                u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
+                u_complexity: { value: params.complexity },
+                u_speed: { value: params.speed },
+                u_refraction: { value: params.refraction },
+                u_brightness: { value: params.brightness },
+                u_darkColor: { value: params.darkColor },
+                u_lightColor: { value: params.lightColor },
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float u_time;
+                uniform vec2 u_resolution;
+                uniform float u_complexity;
+                uniform float u_speed;
+                uniform float u_refraction;
+                uniform float u_brightness;
+                uniform vec3 u_darkColor;
+                uniform vec3 u_lightColor;
+                
+                varying vec2 vUv;
+                
+                float random(vec2 st) {
+                    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+                }
+                
+                // Voronoi for crystal cells
+                vec2 voronoi(vec2 uv, float scale) {
+                    vec2 i_uv = floor(uv * scale);
+                    vec2 f_uv = fract(uv * scale);
+                    
+                    float minDist = 1.0;
+                    vec2 minPoint = vec2(0.0);
+                    
+                    for(int y = -1; y <= 1; y++) {
+                        for(int x = -1; x <= 1; x++) {
+                            vec2 neighbor = vec2(float(x), float(y));
+                            vec2 point = random(i_uv + neighbor) * vec2(1.0) + neighbor;
+                            
+                            float dist = length(point - f_uv);
+                            if(dist < minDist) {
+                                minDist = dist;
+                                minPoint = point;
+                            }
+                        }
+                    }
+                    
+                    return vec2(minDist, random(i_uv + floor(minPoint)));
+                }
+                
+                void main() {
+                    vec2 uv = vUv * 2.0 - 1.0;
+                    uv.x *= u_resolution.x / u_resolution.y;
+                    
+                    float t = u_time * u_speed;
+                    
+                    // Rotate UV
+                    float angle = t;
+                    mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+                    uv = rot * uv;
+                    
+                    // Create crystalline structure with Voronoi
+                    vec2 voronoi1 = voronoi(uv + vec2(t * 0.1, 0.0), u_complexity);
+                    vec2 voronoi2 = voronoi(uv * 1.5 - vec2(0.0, t * 0.15), u_complexity * 0.7);
+                    
+                    float cells = voronoi1.x;
+                    float cellId = voronoi1.y;
+                    
+                    // Create facets
+                    float facets = smoothstep(0.0, 0.1, cells);
+                    facets = pow(facets, 2.0);
+                    
+                    // Add secondary layer
+                    float cells2 = voronoi2.x;
+                    facets = mix(facets, cells2, 0.3);
+                    
+                    // Create internal reflections
+                    float reflection = 1.0 - facets;
+                    reflection = pow(reflection, 3.0);
+                    
+                    // Color based on cell depth
+                    vec3 color = mix(u_darkColor, u_lightColor, facets);
+                    
+                    // Add refraction effect
+                    vec2 refractUv = uv + (voronoi1.x - 0.5) * u_refraction * 0.2;
+                    vec2 refractVoronoi = voronoi(refractUv, u_complexity * 1.2);
+                    color = mix(color, u_lightColor, refractVoronoi.x * 0.3);
+                    
+                    // Add highlights on edges
+                    float edges = smoothstep(0.05, 0.1, cells);
+                    edges = 1.0 - edges;
+                    color += vec3(0.8, 0.7, 1.0) * edges * 0.5;
+                    
+                    // Add internal glow
+                    float glow = reflection * (sin(cellId * 10.0 + t * 2.0) * 0.5 + 0.5);
+                    color += u_lightColor * glow * 0.3;
+                    
+                    // Apply brightness
+                    color *= u_brightness;
+                    
+                    // Radial gradient for depth
+                    float dist = length(uv);
+                    color *= 1.0 - dist * 0.3;
+                    
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `
+        });
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+        const plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            material.uniforms.u_time.value = performance.now() / 1000;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            renderer.setSize(width, height);
+            material.uniforms.u_resolution.value.set(width, height);
+        });
+
+        function updateParam(name, value) {
+            params[name] = parseFloat(value);
+            material.uniforms['u_' + name].value = params[name];
+            document.getElementById(name + '-value').textContent = value;
+        }
+
+        function updateColor(name, value) {
+            params[name].setStyle(value);
+            material.uniforms['u_' + name].value = params[name];
+        }
+
+        function resetParameters() {
+            document.getElementById('complexity').value = 5;
+            updateParam('complexity', 5);
+            document.getElementById('speed').value = 0.3;
+            updateParam('speed', 0.3);
+            document.getElementById('refraction').value = 0.5;
+            updateParam('refraction', 0.5);
+            document.getElementById('brightness').value = 1.0;
+            updateParam('brightness', 1.0);
+            document.getElementById('darkColor').value = '#4a148c';
+            updateColor('darkColor', '#4a148c');
+            document.getElementById('lightColor').value = '#9966cc';
+            updateColor('lightColor', '#9966cc');
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'amethyst-crystal.png';
+            link.href = renderer.domElement.toDataURL();
+            link.click();
+        }
+
+        document.getElementById('complexity').addEventListener('input', (e) => updateParam('complexity', e.target.value));
+        document.getElementById('speed').addEventListener('input', (e) => updateParam('speed', e.target.value));
+        document.getElementById('refraction').addEventListener('input', (e) => updateParam('refraction', e.target.value));
+        document.getElementById('brightness').addEventListener('input', (e) => updateParam('brightness', e.target.value));
+        document.getElementById('darkColor').addEventListener('input', (e) => updateColor('darkColor', e.target.value));
+        document.getElementById('lightColor').addEventListener('input', (e) => updateColor('lightColor', e.target.value));
+    </script>
+</body>
+</html>

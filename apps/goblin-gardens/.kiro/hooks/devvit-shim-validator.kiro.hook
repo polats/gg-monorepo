@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Devvit Shim Validator",
+  "description": "Validates that client code using @devvit/client has proper fallbacks in devvit-shim.ts for local development.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/client/**/*.ts",
+      "src/client/**/*.tsx",
+      "src/client/devvit-shim.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Client code has been modified. Check for @devvit/client usage and ensure local development compatibility:\n\n1. **Search for Devvit Imports**:\n   - Look for `import { ... } from '@devvit/client'`\n   - Common functions: navigateTo, useChannel, useForm\n\n2. **Verify Shim Coverage**:\n   - Check if devvit-shim.ts exports all imported functions\n   - Ensure mock implementations are reasonable\n   - Confirm no runtime errors in local mode\n\n3. **Common Devvit Functions**:\n   - navigateTo(url) → Should open in new tab\n   - useChannel() → Should return mock channel\n   - useForm() → Should return mock form handler\n\n4. **Conditional Logic**:\n   - Check if code handles missing Devvit context gracefully\n   - Verify fallbacks for undefined values\n   - Ensure no crashes when Devvit SDK unavailable\n\n5. **Testing Recommendations**:\n   - If new Devvit functions added, suggest testing in local mode\n   - Recommend adding shim implementations if missing\n   - Flag any functions that can't be mocked\n\nIf client code uses Devvit functions not in shim:\n- List the missing functions\n- Suggest mock implementations\n- Explain impact on local development\n\nIf everything is compatible, confirm validation passed."
+  }
+}

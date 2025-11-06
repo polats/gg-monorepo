@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "API Type Synchronization",
+  "description": "Ensures client and server stay in sync when API types or endpoints change. Validates type definitions and suggests updates to both sides.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/shared/types/api.ts",
+      "src/server/index.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "API types or server endpoints have been modified. Please verify client-server synchronization:\n\n1. Check if new types were added to src/shared/types/api.ts:\n   - Are they exported properly?\n   - Do they match the server's implementation?\n   - Are request/response types paired correctly?\n\n2. If server endpoints were modified in src/server/index.ts:\n   - Does the client code use the correct endpoint paths?\n   - Are the request/response types imported from shared/types/api.ts?\n   - Do the TypeScript types match the actual JSON structure?\n\n3. Common sync points to check:\n   - PlayerState type (coins + gems structure)\n   - Gem type (all properties: id, type, rarity, shape, color, etc.)\n   - Trading types (ActiveOffer, ExecuteTradeRequest, etc.)\n   - API response types (InitResponse, SavePlayerStateResponse, etc.)\n\n4. If types changed, search for usage in:\n   - src/client/PileDemo.tsx (main game component)\n   - src/client/utils/*.ts (utility functions)\n   - src/server/index.ts (API handlers)\n\nReport any mismatches or suggest updates needed to keep client and server in sync."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Gem Value Validator",
+  "description": "Validates that gem value calculations match between client and server to prevent trading exploits. Triggers when value calculation logic changes.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/client/utils/gemValue.ts",
+      "src/server/index.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "CRITICAL: Gem value calculation files have been modified. This is a security-sensitive area that can enable trading exploits if client and server calculations don't match.\n\nPlease perform the following validation:\n\n1. Compare the calculateGemValue() function in both files:\n   - src/client/utils/gemValue.ts::calculateGemValue()\n   - src/server/index.ts::calculateGemValue()\n\n2. Verify these constants match exactly:\n   - GEM_TYPE_VALUES (emerald: 10, sapphire: 25, amethyst: 50, ruby: 100, diamond: 200)\n   - SHAPE_MULTIPLIERS (tetrahedron: 1.0, octahedron: 1.5, dodecahedron: 2.0)\n   - RARITY_MULTIPLIERS (common: 1.0, uncommon: 1.5, rare: 2.0, epic: 3.0, legendary: 5.0)\n   - LEVEL_MULTIPLIER (0.1)\n   - SIZE_BASE_MM (100)\n\n3. Verify the formula is identical:\n   value = baseValue × shapeMultiplier × rarityMultiplier × (1 + level × 0.1) × (sizeInMm / 100)\n\n4. Check that both use Math.floor() to round down to whole bronze coins\n\nIf there are ANY discrepancies, flag them immediately and explain the security risk. If they match, confirm the validation passed.\n\nDo NOT proceed with any other changes until this validation is complete."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "gg-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Goblin Gardens monorepo - World and Reddit mini apps",
+  "scripts": {
+    "dev": "pnpm --parallel --stream -r dev",
+    "dev:diamond": "pnpm --filter diamond-hands dev",
+    "dev:goblin": "pnpm --filter goblin-gardens dev:local",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.8.2"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

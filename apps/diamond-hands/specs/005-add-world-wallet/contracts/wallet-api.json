@@ -1,0 +1,286 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "World Wallet Connection API",
+    "version": "1.0.0",
+    "description": "API contract for World Wallet connection and balance operations in Diamond Hands minigame"
+  },
+  "paths": {
+    "/api/wallet/connect": {
+      "post": {
+        "summary": "Initiate wallet connection",
+        "description": "Start the World Wallet authentication flow",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nonce"],
+                "properties": {
+                  "nonce": {
+                    "type": "string",
+                    "description": "Unique nonce for authentication"
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "default": "0"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connection successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletConnection"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/balance": {
+      "get": {
+        "summary": "Get wallet balance",
+        "description": "Retrieve current WLD token balance for connected wallet",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Wallet address"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletBalance"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Wallet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/disconnect": {
+      "post": {
+        "summary": "Disconnect wallet",
+        "description": "End the wallet connection session",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Wallet address to disconnect"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Disconnection successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet/session": {
+      "get": {
+        "summary": "Get session status",
+        "description": "Check current wallet connection session status",
+        "responses": {
+          "200": {
+            "description": "Session status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WalletConnection": {
+        "type": "object",
+        "required": ["address", "isConnected", "connectionTimestamp"],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Wallet address/identifier"
+          },
+          "isConnected": {
+            "type": "boolean",
+            "description": "Connection status"
+          },
+          "connectionTimestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp of connection"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": "string"
+              },
+              "profilePicture": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        }
+      },
+      "WalletBalance": {
+        "type": "object",
+        "required": ["amount", "formatted", "lastUpdated"],
+        "properties": {
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Balance amount in WLD"
+          },
+          "formatted": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]{2} WLD$",
+            "description": "Formatted balance string"
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO timestamp of last update"
+          }
+        }
+      },
+      "SessionStatus": {
+        "type": "object",
+        "required": ["hasSession", "isConnected"],
+        "properties": {
+          "hasSession": {
+            "type": "boolean",
+            "description": "Whether a session exists"
+          },
+          "isConnected": {
+            "type": "boolean",
+            "description": "Whether wallet is currently connected"
+          },
+          "address": {
+            "type": "string",
+            "description": "Connected wallet address if any"
+          },
+          "sessionId": {
+            "type": "string",
+            "description": "Current session ID"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": ["MINIKIT_NOT_INSTALLED", "AUTH_FAILED", "NETWORK_ERROR", "INVALID_REQUEST", "WALLET_NOT_FOUND"],
+            "description": "Error code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @db.VarChar(66)
+  walletAddress    String            @unique @map("wallet_address") @db.VarChar(42)
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastSeen         DateTime          @default(now()) @map("last_seen") @db.Timestamptz(6)
+  isVerified       Boolean           @default(false) @map("is_verified")
+  auditLogs        AuditLog[]        @relation("AuditUser")
+  beneficiaryVotes BeneficiaryVote[] @relation("BeneficiaryVoter")
+  prizeClaims      PrizeClaim[]      @relation("PrizeClaimer")
+  operatedRaffles  Raffle[]          @relation("RaffleOperator")
+  tickets          Ticket[]          @relation("TicketOwner")
+
+  @@index([walletAddress], map: "idx_users_wallet")
+  @@index([isVerified], map: "idx_users_verified")
+  @@map("users")
+}
+
+model Raffle {
+  id                    String              @id @default(uuid()) @db.Uuid
+  operatorId            String              @map("operator_id") @db.VarChar(66)
+  title                 String              @db.VarChar(255)
+  description           String?
+  ticketPrice           Decimal             @map("ticket_price") @db.Decimal(18, 4)
+  maxEntriesPerUser     Int                 @map("max_entries_per_user")
+  numWinners            Int                 @map("num_winners")
+  winnerPercentage      Decimal             @map("winner_percentage") @db.Decimal(5, 2)
+  beneficiaries         String[]            @db.Uuid
+  beneficiaryPercentage Decimal             @map("beneficiary_percentage") @db.Decimal(5, 2)
+  entryStart            DateTime            @map("entry_start") @db.Timestamptz(6)
+  entryEnd              DateTime            @map("entry_end") @db.Timestamptz(6)
+  drawAt                DateTime?           @map("draw_at") @db.Timestamptz(6)
+  status                RaffleStatus        @default(UPCOMING)
+  vaultAddress          String?             @map("vault_address") @db.VarChar(42)
+  randomSeed            String?             @map("random_seed") @db.VarChar(66)
+  createdAt             DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  beneficiaryVotes      BeneficiaryVote[]   @relation("RaffleBeneficiaryVotes")
+  prizeDistributions    PrizeDistribution[] @relation("RafflePrizeDistributions")
+  operator              User                @relation("RaffleOperator", fields: [operatorId], references: [id])
+  tickets               Ticket[]            @relation("RaffleTickets")
+
+  @@index([status], map: "idx_raffles_status")
+  @@index([operatorId], map: "idx_raffles_operator")
+  @@index([entryStart, entryEnd], map: "idx_raffles_entry_period")
+  @@map("raffles")
+}
+
+model Ticket {
+  id                String           @id @db.VarChar(78)
+  raffleId          String           @map("raffle_id") @db.Uuid
+  ownerId           String           @map("owner_id") @db.VarChar(66)
+  beneficiaryVoteId String?          @map("beneficiary_vote_id") @db.Uuid
+  purchasePrice     Decimal          @map("purchase_price") @db.Decimal(18, 4)
+  transactionHash   String           @unique @map("transaction_hash") @db.VarChar(66)
+  purchasedAt       DateTime         @default(now()) @map("purchased_at") @db.Timestamptz(6)
+  isWinningTicket   Boolean          @default(false) @map("is_winning_ticket")
+  prizeAmount       Decimal          @default(0) @map("prize_amount") @db.Decimal(18, 4)
+  prizeClaims       PrizeClaim[]     @relation("TicketPrizeClaims")
+  beneficiaryVote   BeneficiaryVote? @relation("TicketBeneficiaryVote", fields: [beneficiaryVoteId], references: [id])
+  owner             User             @relation("TicketOwner", fields: [ownerId], references: [id])
+  raffle            Raffle           @relation("RaffleTickets", fields: [raffleId], references: [id])
+
+  @@index([raffleId], map: "idx_tickets_raffle")
+  @@index([ownerId], map: "idx_tickets_owner")
+  @@index([isWinningTicket], map: "idx_tickets_winner")
+  @@map("tickets")
+}
+
+model Beneficiary {
+  id                   String              @id @default(uuid()) @db.Uuid
+  name                 String              @db.VarChar(255)
+  description          String?
+  walletAddress        String              @unique @map("wallet_address") @db.VarChar(42)
+  websiteUrl           String?             @map("website_url") @db.VarChar(500)
+  isVerified           Boolean             @default(false) @map("is_verified")
+  createdAt            DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  beneficiaryVotes     BeneficiaryVote[]   @relation("BeneficiaryVotes")
+  winningDistributions PrizeDistribution[] @relation("WinningBeneficiary")
+
+  @@index([isVerified], map: "idx_beneficiaries_verified")
+  @@map("beneficiaries")
+}
+
+model BeneficiaryVote {
+  id            String      @id @default(uuid()) @db.Uuid
+  raffleId      String      @map("raffle_id") @db.Uuid
+  beneficiaryId String      @map("beneficiary_id") @db.Uuid
+  voterId       String      @map("voter_id") @db.VarChar(66)
+  voteWeight    Int         @default(1) @map("vote_weight")
+  votedAt       DateTime    @default(now()) @map("voted_at") @db.Timestamptz(6)
+  beneficiary   Beneficiary @relation("BeneficiaryVotes", fields: [beneficiaryId], references: [id])
+  raffle        Raffle      @relation("RaffleBeneficiaryVotes", fields: [raffleId], references: [id])
+  voter         User        @relation("BeneficiaryVoter", fields: [voterId], references: [id])
+  tickets       Ticket[]    @relation("TicketBeneficiaryVote")
+
+  @@unique([raffleId, voterId], name: "unique_vote_per_user_per_raffle")
+  @@index([raffleId], map: "idx_beneficiary_votes_raffle")
+  @@index([beneficiaryId], map: "idx_beneficiary_votes_beneficiary")
+  @@map("beneficiary_votes")
+}
+
+model PrizeDistribution {
+  id                   String             @id @default(uuid()) @db.Uuid
+  raffleId             String             @map("raffle_id") @db.Uuid
+  totalPool            Decimal            @map("total_pool") @db.Decimal(18, 4)
+  winnerPool           Decimal            @map("winner_pool") @db.Decimal(18, 4)
+  beneficiaryPool      Decimal            @map("beneficiary_pool") @db.Decimal(18, 4)
+  winningBeneficiaryId String?            @map("winning_beneficiary_id") @db.Uuid
+  transactionHash      String?            @map("transaction_hash") @db.VarChar(66)
+  distributedAt        DateTime           @default(now()) @map("distributed_at") @db.Timestamptz(6)
+  status               DistributionStatus @default(PENDING)
+  prizeClaims          PrizeClaim[]       @relation("DistributionPrizeClaims")
+  raffle               Raffle             @relation("RafflePrizeDistributions", fields: [raffleId], references: [id])
+  winningBeneficiary   Beneficiary?       @relation("WinningBeneficiary", fields: [winningBeneficiaryId], references: [id])
+
+  @@index([raffleId], map: "idx_prize_distributions_raffle")
+  @@index([status], map: "idx_prize_distributions_status")
+  @@map("prize_distributions")
+}
+
+model PrizeClaim {
+  id                  String             @id @default(uuid()) @db.Uuid
+  ticketId            String             @map("ticket_id") @db.VarChar(78)
+  claimerId           String             @map("claimer_id") @db.VarChar(66)
+  prizeDistributionId String?            @map("prize_distribution_id") @db.Uuid
+  amount              Decimal            @db.Decimal(18, 4)
+  transactionHash     String?            @map("transaction_hash") @db.VarChar(66)
+  claimedAt           DateTime           @default(now()) @map("claimed_at") @db.Timestamptz(6)
+  status              ClaimStatus        @default(PENDING)
+  claimer             User               @relation("PrizeClaimer", fields: [claimerId], references: [id])
+  prizeDistribution   PrizeDistribution? @relation("DistributionPrizeClaims", fields: [prizeDistributionId], references: [id])
+  ticket              Ticket             @relation("TicketPrizeClaims", fields: [ticketId], references: [id])
+
+  @@index([ticketId], map: "idx_prize_claims_ticket")
+  @@index([claimerId], map: "idx_prize_claims_claimer")
+  @@index([status], map: "idx_prize_claims_status")
+  @@map("prize_claims")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid()) @db.Uuid
+  entityType String      @map("entity_type") @db.VarChar(50)
+  entityId   String      @map("entity_id") @db.VarChar(78)
+  userId     String?     @map("user_id") @db.VarChar(66)
+  action     AuditAction
+  oldValues  Json?       @map("old_values")
+  newValues  Json?       @map("new_values")
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  user       User?       @relation("AuditUser", fields: [userId], references: [id])
+
+  @@index([entityType, entityId], map: "idx_audit_logs_entity")
+  @@index([userId], map: "idx_audit_logs_user")
+  @@index([createdAt], map: "idx_audit_logs_created")
+  @@map("audit_logs")
+}
+
+enum RaffleStatus {
+  UPCOMING
+  ACTIVE
+  DRAWING
+  COMPLETED
+  CANCELLED
+  REFUNDING
+}
+
+enum DistributionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ClaimStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+}

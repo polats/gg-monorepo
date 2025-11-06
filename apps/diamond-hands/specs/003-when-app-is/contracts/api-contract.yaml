@@ -1,0 +1,252 @@
+openapi: 3.0.0
+info:
+  title: Pre-Launch Minigame Mode API
+  description: API contracts for the diamond-hands minigame feature
+  version: 1.0.0
+
+paths:
+  # Note: This is a client-side only feature, no actual API endpoints
+  # This contract documents the interface patterns for clarity
+
+  /api/config/launch-status:
+    get:
+      summary: Get application launch status (conceptual - actually from env var)
+      description: |
+        In practice, this is read from NEXT_PUBLIC_APP_LAUNCHED environment variable.
+        Documented here to show the expected data contract.
+      operationId: getLaunchStatus
+      responses:
+        '200':
+          description: Launch configuration retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchConfiguration'
+
+components:
+  schemas:
+    LaunchConfiguration:
+      type: object
+      required:
+        - isLaunched
+        - configSource
+        - checkedAt
+      properties:
+        isLaunched:
+          type: boolean
+          description: True shows main app, false shows minigame
+          default: false
+        configSource:
+          type: string
+          enum: [env, default]
+          description: Source of configuration value
+        checkedAt:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of configuration check
+
+    GameSession:
+      type: object
+      required:
+        - id
+        - startedAt
+        - currentScreen
+        - depositAmount
+        - currentPrice
+        - priceHistory
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique session identifier
+        startedAt:
+          type: string
+          format: date-time
+        currentScreen:
+          type: string
+          enum: [tutorial, home, deposit, game, result]
+        depositAmount:
+          type: number
+          minimum: 0
+          description: Simulated WLD deposit amount
+        currentPrice:
+          type: number
+          minimum: 0.0001
+          description: Current diamond price in WLD
+        priceHistory:
+          type: array
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/PricePoint'
+        status:
+          type: string
+          enum: [initializing, active, countdown, ended]
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+        finalPrice:
+          type: number
+          minimum: 0
+          nullable: true
+
+    PricePoint:
+      type: object
+      required:
+        - timestamp
+        - price
+        - held
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        price:
+          type: number
+          minimum: 0.0001
+        held:
+          type: boolean
+          description: Whether user held during this period
+
+    GameState:
+      type: object
+      required:
+        - countdownActive
+        - countdownRemaining
+        - lastPriceUpdate
+        - nextPriceUpdate
+        - sparkleEffects
+        - backgroundIntensity
+        - totalHolds
+        - missedHolds
+      properties:
+        countdownActive:
+          type: boolean
+        countdownRemaining:
+          type: number
+          minimum: 0
+          maximum: 5
+          description: Seconds until auto-sell
+        lastPriceUpdate:
+          type: string
+          format: date-time
+        nextPriceUpdate:
+          type: string
+          format: date-time
+        sparkleEffects:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/SparkleEffect'
+        backgroundIntensity:
+          type: number
+          minimum: 0
+          maximum: 1
+        totalHolds:
+          type: integer
+          minimum: 0
+        missedHolds:
+          type: integer
+          minimum: 0
+
+    SparkleEffect:
+      type: object
+      required:
+        - id
+        - x
+        - y
+        - startTime
+        - duration
+      properties:
+        id:
+          type: string
+        x:
+          type: number
+          description: X position in pixels
+        y:
+          type: number
+          description: Y position in pixels
+        startTime:
+          type: string
+          format: date-time
+        duration:
+          type: number
+          description: Animation duration in milliseconds
+
+    TutorialProgress:
+      type: object
+      required:
+        - completed
+        - currentStep
+        - skipped
+      properties:
+        completed:
+          type: boolean
+        currentStep:
+          type: integer
+          minimum: 0
+          maximum: 3
+        skipped:
+          type: boolean
+        viewedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    # Client-side events (for documentation purposes)
+    GameEvent:
+      type: object
+      required:
+        - type
+        - timestamp
+      properties:
+        type:
+          type: string
+          enum:
+            - game_started
+            - tutorial_completed
+            - tutorial_skipped
+            - deposit_made
+            - price_updated
+            - countdown_started
+            - user_held
+            - user_sold
+            - game_ended
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          description: Event-specific data
+
+    PriceUpdateEvent:
+      allOf:
+        - $ref: '#/components/schemas/GameEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                oldPrice:
+                  type: number
+                newPrice:
+                  type: number
+                volatility:
+                  type: number
+                  description: Percentage change
+
+    UserActionEvent:
+      allOf:
+        - $ref: '#/components/schemas/GameEvent'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [tap_to_hold, let_sell, play_again]
+                currentPrice:
+                  type: number
+                countdownRemaining:
+                  type: number
