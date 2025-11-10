@@ -102,12 +102,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const path = req.url || '';
+    // Parse the URL to get clean path without query params
+    const url = new URL(req.url || '', `https://${req.headers.host}`);
+    let path = url.pathname;
+    const method = req.method || 'GET';
+    
+    // Remove /api prefix if present (Vercel adds it)
+    if (path.startsWith('/api/')) {
+      path = path.substring(4); // Remove '/api'
+    }
+    
     const username = getUsername(req);
     const redis = await getRedisClient();
 
+    console.log(`[API] ${method} ${path} (original: ${url.pathname})`);
+
     // Health check
-    if (path.includes('/health')) {
+    if (path === '/health' || path === '/api/health') {
       res.status(200).json({
         status: 'ok',
         environment: 'vercel',
@@ -117,7 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Init endpoint
-    if (path.includes('/init')) {
+    if (path === '/init' && method === 'GET') {
       const countValue = await redis.get('count');
       const count = countValue ? parseInt(countValue.toString()) : 0;
 
@@ -133,7 +144,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Player state - save
-    if (path.includes('/player-state/save') && req.method === 'POST') {
+    if (path === '/player-state/save' && method === 'POST') {
       const { playerState } = req.body as any;
 
       if (!playerState) {
@@ -157,7 +168,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Player state - load
-    if (path.includes('/player-state/load') && req.method === 'GET') {
+    if (path === '/player-state/load' && method === 'GET') {
       const playerStateKey = `playerState:${username}`;
       const playerStateValue = await redis.get(playerStateKey);
 
@@ -183,9 +194,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Get active offers
-    if (path.includes('/api/offers') && req.method === 'GET' && !path.includes('/update') && !path.includes('/remove')) {
-      const cursor = parseInt((req.query?.cursor as string) || '0');
-      const limit = parseInt((req.query?.limit as string) || '10');
+    if (path === '/offers' && method === 'GET') {
+      const cursor = parseInt(url.searchParams.get('cursor') || '0');
+      const limit = parseInt(url.searchParams.get('limit') || '10');
 
       const activeOffersIndex = 'activeOffersIndex';
 
@@ -237,7 +248,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Update offer
-    if (path.includes('/offers/update') && req.method === 'POST') {
+    if (path === '/offers/update' && method === 'POST') {
       const { gems } = req.body as any;
 
       if (!gems || !Array.isArray(gems) || gems.length === 0) {
@@ -292,7 +303,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Remove offer
-    if (path.includes('/offers/remove') && req.method === 'DELETE') {
+    if (path === '/offers/remove' && method === 'DELETE') {
       const offerKey = `activeOffer:${username}`;
       const activeOffersIndex = 'activeOffersIndex';
 
@@ -313,7 +324,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Execute trade
-    if (path.includes('/trade/execute') && req.method === 'POST') {
+    if (path === '/trade/execute' && method === 'POST') {
       const { sellerUsername } = req.body as any;
       const buyerUsername = username;
 
