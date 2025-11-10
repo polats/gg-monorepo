@@ -9,6 +9,7 @@ import {
   UpdateColorMapResponse,
   ColorMap,
 } from '../shared/types/api';
+import { apiGet, apiPost } from './utils/api-client';
 
 const titleElement = document.getElementById('title') as HTMLHeadingElement;
 const counterValueElement = document.getElementById('counter-value') as HTMLSpanElement;
@@ -92,9 +93,7 @@ let currentPostId: string | null = null;
 // Color Grid Functions
 async function fetchColorMap(): Promise<void> {
   try {
-    const response = await fetch('/api/color-map');
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = (await response.json()) as GetColorMapResponse;
+    const data = await apiGet<GetColorMapResponse>('/api/color-map');
     if (data.type === 'getColorMap') {
       currentColorMap = data.colorMap;
       gridTitle.textContent = `${data.username}'s Color Map`;
@@ -125,13 +124,7 @@ function renderColorGrid(): void {
 
 async function handleCellClick(row: number, col: number): Promise<void> {
   try {
-    const response = await fetch('/api/color-map/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ row, col }),
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = (await response.json()) as UpdateColorMapResponse;
+    const data = await apiPost<UpdateColorMapResponse>('/api/color-map/update', { row, col });
 
     if (data.type === 'updateColorMap') {
       currentColorMap = data.colorMap;
@@ -159,9 +152,7 @@ continueButton.addEventListener('click', showMainApp);
 
 async function fetchInitialCount(): Promise<void> {
   try {
-    const response = await fetch('/api/init');
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = (await response.json()) as InitResponse;
+    const data = await apiGet<InitResponse>('/api/init');
     if (data.type === 'init') {
       counterValueElement.textContent = data.count.toString();
       currentPostId = data.postId;
@@ -178,16 +169,10 @@ async function fetchInitialCount(): Promise<void> {
 async function updateCounter(action: 'increment' | 'decrement' | 'increment-by-5'): Promise<void> {
   if (!currentPostId) return;
   try {
-    const response = await fetch(`/api/${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = (await response.json()) as
-      | IncrementResponse
-      | DecrementResponse
-      | IncrementBy5Response;
+    const data = await apiPost<IncrementResponse | DecrementResponse | IncrementBy5Response>(
+      `/api/${action}`,
+      {}
+    );
     counterValueElement.textContent = data.count.toString();
   } catch (err) {
     console.error(`Error ${action}ing count:`, err);
@@ -404,12 +389,9 @@ function animate(): void {
   // Fetch username from API
   let username = 'Guest';
   try {
-    const response = await fetch('/api/init');
-    if (response.ok) {
-      const data = (await response.json()) as InitResponse;
-      if (data.type === 'init') {
-        username = data.username;
-      }
+    const data = await apiGet<InitResponse>('/api/init');
+    if (data.type === 'init') {
+      username = data.username;
     }
   } catch (err) {
     console.error('Error fetching username:', err);

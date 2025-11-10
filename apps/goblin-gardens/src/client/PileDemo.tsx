@@ -46,6 +46,7 @@ import {
   GROWING_GEM_SPAWN_Z,
   GROWING_GEM_SPAWN_RADIUS,
 } from './utils/spawnPositions';
+import { apiGet, apiPost, apiDelete, setApiUsername } from './utils/api-client';
 
 // Import types and constants
 import type {
@@ -56,6 +57,13 @@ import type {
   PlayerState,
   Gem,
 } from './types/game';
+import type {
+  GetActiveOffersResponse,
+  LoadPlayerStateResponse,
+  SavePlayerStateResponse,
+  ExecuteTradeResponse,
+  UpdateOfferResponse,
+} from '../shared/types/api';
 import {
   LEVEL_CONFIGS,
   LOCATION_CONFIGS,
@@ -621,13 +629,16 @@ export const PileDemo = ({
 
     if (!isLocalDev) {
       // Production mode - use username from Reddit API
-      return username!;
+      const prodUsername = username!;
+      setApiUsername(prodUsername);
+      return prodUsername;
     }
 
     // Local dev mode - generate or retrieve session-specific username
     const storedUsername = sessionStorage.getItem('localDevUsername');
     if (storedUsername) {
       console.log(`[LOCAL DEV] Using stored username: ${storedUsername}`);
+      setApiUsername(storedUsername);
       return storedUsername;
     }
 
@@ -636,6 +647,7 @@ export const PileDemo = ({
     const newUsername = `Player_${randomId}`;
     sessionStorage.setItem('localDevUsername', newUsername);
     console.log(`[LOCAL DEV] Generated new username: ${newUsername}`);
+    setApiUsername(newUsername);
     return newUsername;
   });
 
@@ -684,12 +696,9 @@ export const PileDemo = ({
 
     setLoadingUsers(true);
     try {
-      const response = await fetch(`/api/offers?cursor=${cursor || 0}&limit=10`, {
-        headers: { 'X-Username': effectiveUsername },
-      });
-      if (!response.ok) throw new Error('Failed to fetch active offers');
-
-      const data = await response.json();
+      const data = await apiGet<GetActiveOffersResponse>(
+        `/api/offers?cursor=${cursor || 0}&limit=10`
+      );
       if (data.type === 'getActiveOffers') {
         setFollowedUsers((prev) => (cursor === 0 ? data.offers : [...prev, ...data.offers]));
         setFollowedUsersCursor(data.nextCursor);
@@ -739,25 +748,15 @@ export const PileDemo = ({
 
     // 3. Execute trade
     try {
-      const response = await fetch('/api/trade/execute', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Username': effectiveUsername,
-        },
-        body: JSON.stringify({ sellerUsername }),
+      const data = await apiPost<ExecuteTradeResponse>('/api/trade/execute', {
+        sellerUsername,
       });
-
-      const data = await response.json();
 
       if (data.success) {
         console.log('[TRADE] Trade successful:', data.transaction);
 
         // 4. Reload player state
-        const loadResponse = await fetch('/api/player-state/load', {
-          headers: { 'X-Username': effectiveUsername },
-        });
-        const loadData = await loadResponse.json();
+        const loadData = await apiGet<LoadPlayerStateResponse>('/api/player-state/load');
         if (loadData.type === 'loadPlayerState' && loadData.playerState) {
           setPlayerState(loadData.playerState);
         }
@@ -1136,15 +1135,7 @@ export const PileDemo = ({
     const loadPlayerState = async () => {
       try {
         console.log('[LOAD] Fetching player state from server...');
-        const response = await fetch('/api/player-state/load', {
-          headers: { 'X-Username': effectiveUsername },
-        });
-        if (!response.ok) {
-          console.error('[LOAD] Failed to load player state:', response.status);
-          return;
-        }
-
-        const data = await response.json();
+        const data = await apiGet<LoadPlayerStateResponse>('/api/player-state/load');
         if (data.type === 'loadPlayerState' && data.playerState) {
           console.log('[LOAD] Player state loaded successfully:', {
             coins: data.playerState.coins,
@@ -1185,21 +1176,10 @@ export const PileDemo = ({
           offeringGems: playerState.gems.filter((g) => g.isOffering).length,
         });
 
-        const response = await fetch('/api/player-state/save', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Username': effectiveUsername,
-          },
-          body: JSON.stringify({ playerState }),
+        const data = await apiPost<SavePlayerStateResponse>('/api/player-state/save', {
+          playerState,
         });
 
-        if (!response.ok) {
-          console.error('[SAVE] Failed to save player state:', response.status);
-          return;
-        }
-
-        const data = await response.json();
         if (data.type === 'savePlayerState' && data.success) {
           console.log('[SAVE] Player state saved successfully');
         }
@@ -1219,22 +1199,14 @@ export const PileDemo = ({
     const offerUpdateTimeout = setTimeout(() => {
       if (offeringGems.length > 0) {
         // Update offer on server
-        fetch('/api/offers/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Username': effectiveUsername,
-          },
-          body: JSON.stringify({ gems: offeringGems }),
-        }).catch((error) => {
-          console.error('[OFFER SYNC] Failed to update offer:', error);
-        });
+        apiPost<UpdateOfferResponse>('/api/offers/update', { gems: offeringGems }).catch(
+          (error) => {
+            console.error('[OFFER SYNC] Failed to update offer:', error);
+          }
+        );
       } else {
         // Remove offer if no gems
-        fetch('/api/offers/remove', {
-          method: 'DELETE',
-          headers: { 'X-Username': effectiveUsername },
-        }).catch((error) => {
+        apiDelete<UpdateOfferResponse>('/api/offers/remove').catch((error) => {
           console.error('[OFFER SYNC] Failed to remove offer:', error);
         });
       }

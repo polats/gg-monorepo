@@ -124,7 +124,7 @@
   - _Requirements: 6.1, 6.5_
   - ✅ COMPLETED: Typed helpers (apiGet, apiPost, apiDelete) included
 
-- [ ] 7. Update client code to use new API client
+- [x] 7. Update client code to use new API client
   - Find all fetch calls to /api/* endpoints in client code
   - Replace with apiCall helper from api-client.ts
   - Ensure proper TypeScript types are used

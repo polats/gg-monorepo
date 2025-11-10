@@ -9,6 +9,13 @@
  * And uses the appropriate API base URL for each environment.
  */
 
+// Global username for API calls (set by the app)
+let currentUsername: string | null = null;
+
+export function setApiUsername(username: string): void {
+  currentUsername = username;
+}
+
 export function getApiBaseUrl(): string {
   // Check if running on Vercel (production or preview)
   if (typeof window !== 'undefined') {
@@ -45,12 +52,20 @@ export async function apiCall<T>(endpoint: string, options?: RequestInit): Promi
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
   
+  // Build headers with automatic X-Username injection
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string>),
+  };
+  
+  // Add X-Username header if username is set (for local/Vercel environments)
+  if (currentUsername) {
+    headers['X-Username'] = currentUsername;
+  }
+  
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
   
   if (!response.ok) {

@@ -1,8 +1,11 @@
 // Environment detection
-export { Environment, EnvironmentConfig, detectEnvironment, getEnvironmentConfig } from './environment';
+export { Environment, detectEnvironment, getEnvironmentConfig } from './environment';
+export type { EnvironmentConfig } from './environment';
 
 // Redis adapter
-export { RedisAdapter, createRedisAdapter } from './redis-adapter';
+export { createRedisAdapter } from './redis-adapter';
+export type { RedisAdapter } from './redis-adapter';
 
 // Authentication adapter
-export { AuthAdapter, createAuthAdapter } from './auth-adapter';
+export { createAuthAdapter } from './auth-adapter';
+export type { AuthAdapter } from './auth-adapter';
