@@ -1,27 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/client/**",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist/client"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/client/$1"
-    }
-  ],
-  "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 10
-    }
-  }
+  "buildCommand": "npm run build:client",
+  "outputDirectory": "dist/client"
 }

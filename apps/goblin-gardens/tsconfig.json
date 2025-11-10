@@ -1,6 +1,12 @@
 {
-  // Only build references.
-  "files": [],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": ["index.ts"],
   "references": [
     { "path": "./src/devvit" },
     { "path": "./src/client" },
