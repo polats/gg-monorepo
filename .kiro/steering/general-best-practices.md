@@ -63,6 +63,6 @@ When implementing features or components:
 
 ### User-Facing Errors
 
-- **Provide clear error messages**: Show users what went wrong and how to fix it
+- **Provide clear error messages**: Show users what went wrong and how to fix it, document it under the /fixes directory
 - **Handle network failures gracefully**: Reddit API calls may fail, implement proper fallbacks
 - **Validate input where applicable**: When implementing forms or user inputs, check validity and throw clear errors when invalid
