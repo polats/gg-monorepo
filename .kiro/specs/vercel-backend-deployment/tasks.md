@@ -6,14 +6,14 @@
   - Update package.json with Vercel-specific build scripts
   - _Requirements: 2.1, 4.2, 8.1, 8.2_
 
-- [ ] 2. Create adapter layer for environment abstraction
-- [ ] 2.1 Implement environment detection adapter
+- [x] 2. Create adapter layer for environment abstraction
+- [x] 2.1 Implement environment detection adapter
   - Create src/server/adapters/environment.ts with Environment enum and detection logic
   - Implement detectEnvironment() function to identify Vercel, Local, or Reddit
   - Implement getEnvironmentConfig() to return environment-specific configuration
   - _Requirements: 1.1, 1.2, 5.4_
 
-- [ ] 2.2 Implement Redis adapter for multi-environment support
+- [x] 2.2 Implement Redis adapter for multi-environment support
   - Create src/server/adapters/redis-adapter.ts with RedisAdapter interface
   - Implement VercelKVAdapter using @vercel/kv SDK
   - Implement DevvitRedisAdapter wrapping @devvit/web/server redis
@@ -21,7 +21,7 @@
   - Create createRedisAdapter factory function
   - _Requirements: 2.1, 2.2, 2.4, 2.5_
 
-- [ ] 2.3 Implement authentication adapter for multi-environment support
+- [x] 2.3 Implement authentication adapter for multi-environment support
   - Create src/server/adapters/auth-adapter.ts with AuthAdapter interface
   - Implement VercelAuthAdapter using X-Username header
   - Implement DevvitAuthAdapter using reddit.getCurrentUsername()
@@ -29,28 +29,28 @@
   - Create createAuthAdapter factory function
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 2.4 Create adapter index file
+- [x] 2.4 Create adapter index file
   - Create src/server/adapters/index.ts to export all adapters
   - Export environment, redis, and auth adapters
   - _Requirements: 1.2_
 
-- [ ] 3. Extract and centralize Express routes
-- [ ] 3.1 Create centralized routes module
+- [x] 3. Extract and centralize Express routes
+- [x] 3.1 Create centralized routes module
   - Create src/server/core/routes.ts with createRoutes function
   - Define RouteContext interface with redis, auth, and postId
   - Extract all API routes from index.ts to routes.ts
   - Update routes to use RedisAdapter and AuthAdapter instead of direct imports
   - _Requirements: 1.3, 7.3_
 
-- [ ] 3.2 Extract helper functions to routes module
+- [x] 3.2 Extract helper functions to routes module
   - Move calculateGemValue function to routes.ts
   - Move formatLastActive function to routes.ts
   - Move getUserPlayerStateKey function to routes.ts
   - Ensure all helper functions are environment-agnostic
   - _Requirements: 7.4_
 
-- [ ] 4. Create Vercel serverless entry point
-- [ ] 4.1 Implement Vercel server entry
+- [x] 4. Create Vercel serverless entry point
+- [x] 4.1 Implement Vercel server entry
   - Create src/server/vercel.ts with Express app setup
   - Initialize environment detection and adapters
   - Use createRoutes with Vercel-specific context
@@ -58,7 +58,7 @@
   - Export app as default for Vercel
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 4.2 Create Vercel API catch-all route
+- [x] 4.2 Create Vercel API catch-all route
   - Create api/[...path].ts to handle all /api/* requests
   - Import and use Express app from vercel.ts
   - Convert VercelRequest to Express-compatible format
