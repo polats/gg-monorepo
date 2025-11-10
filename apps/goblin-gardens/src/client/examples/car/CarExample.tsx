@@ -1,21 +1,16 @@
-import { Box, Cylinder } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import {
-  RapierRigidBody,
-  RigidBody,
-  useRevoluteJoint,
-  Vector3Tuple
-} from "@react-three/rapier";
-import { createRef, RefObject, useRef } from "react";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Box, Cylinder } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { RapierRigidBody, RigidBody, useRevoluteJoint, Vector3Tuple } from '@react-three/rapier';
+import { createRef, RefObject, useRef } from 'react';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const WheelJoint = ({
   body,
   wheel,
   bodyAnchor,
   wheelAnchor,
-  rotationAxis
+  rotationAxis,
 }: {
   body: RefObject<RapierRigidBody>;
   wheel: RefObject<RapierRigidBody>;
@@ -23,11 +18,7 @@ const WheelJoint = ({
   wheelAnchor: Vector3Tuple;
   rotationAxis: Vector3Tuple;
 }) => {
-  const joint = useRevoluteJoint(body, wheel, [
-    bodyAnchor,
-    wheelAnchor,
-    rotationAxis
-  ]);
+  const joint = useRevoluteJoint(body, wheel, [bodyAnchor, wheelAnchor, rotationAxis]);
 
   useFrame(() => {
     if (joint.current) {
@@ -44,12 +35,10 @@ export const Car: Demo = () => {
     [-3, 0, 2],
     [-3, 0, -2],
     [3, 0, 2],
-    [3, 0, -2]
+    [3, 0, -2],
   ];
   const wheelRefs = useRef(
-    wheelPositions.map(() =>
-      createRef<RapierRigidBody>()
-    ) as RefObject<RapierRigidBody>[]
+    wheelPositions.map(() => createRef<RapierRigidBody>()) as RefObject<RapierRigidBody>[]
   );
 
   useResetOrbitControls(30);
@@ -58,7 +47,7 @@ export const Car: Demo = () => {
     <group>
       <RigidBody colliders="cuboid" ref={bodyRef} type="dynamic">
         <Box scale={[6, 1, 1.9]} castShadow receiveShadow name="chassis">
-          <meshStandardMaterial color={"red"} />
+          <meshStandardMaterial color={'red'} />
         </Box>
       </RigidBody>
       {wheelPositions.map((wheelPosition, index) => (
@@ -69,13 +58,8 @@ export const Car: Demo = () => {
           key={index}
           ref={wheelRefs.current[index]}
         >
-          <Cylinder
-            rotation={[Math.PI / 2, 0, 0]}
-            args={[1, 1, 1, 32]}
-            castShadow
-            receiveShadow
-          >
-            <meshStandardMaterial color={"grey"} />
+          <Cylinder rotation={[Math.PI / 2, 0, 0]} args={[1, 1, 1, 32]} castShadow receiveShadow>
+            <meshStandardMaterial color={'grey'} />
           </Cylinder>
         </RigidBody>
       ))}

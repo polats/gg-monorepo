@@ -17,12 +17,14 @@
 **Independent useFrame Loops (~22 total):**
 
 1. **DragZoneCounter** (1 loop)
+
    - Location: `PileDemo.tsx:138-183`
    - Purpose: Reads `body.translation()` on ALL garden bodies every frame
    - Checks which objects are in drag zone
    - **Status:** Now integrated into MasterPhysicsLoop
 
 2. **PointerForceField** (1 loop)
+
    - Location: `PointerForceField.tsx:352-454`
    - Purpose: Moves picked/dragged body using `setNextKinematicTranslation()`
    - Changes body type (kinematic ↔ dynamic)
@@ -72,8 +74,10 @@ isTransitioningRef.current = false
 ## Attempted Solutions
 
 ### Attempt 1: Component Keys for Remounting
+
 **Date:** Initial attempts
 **Changes:**
+
 - Added `key={`garden-${gardenAction}`}` to PointerForceField
 - Added `key={`drag-zone-${gardenAction}`}` to DragZoneCounter
 
@@ -83,8 +87,10 @@ isTransitioningRef.current = false
 ---
 
 ### Attempt 2: isActive Flags
+
 **Date:** Initial attempts
 **Changes:**
+
 - Added `scroungeObjectsActive` and `gardenObjectsActive` state
 - Passed to FallingObjects as `isActive` prop
 - Checked in useFrame loops
@@ -95,8 +101,10 @@ isTransitioningRef.current = false
 ---
 
 ### Attempt 3: Scene Guards
+
 **Date:** Initial attempts
 **Changes:**
+
 - Added `activeScene` prop to components
 - Checked `if (activeScene !== 'garden') return;` in useFrame
 
@@ -106,8 +114,10 @@ isTransitioningRef.current = false
 ---
 
 ### Attempt 4: Master Physics Loop (Partial)
+
 **Date:** Current attempt
 **Changes:**
+
 - Created `MasterPhysicsLoop` component with single useFrame
 - Added `isTransitioningRef` - synchronous blocker ref
 - Set ref to true BEFORE state changes in handlers
@@ -115,6 +125,7 @@ isTransitioningRef.current = false
 - Added 150ms timeout to clear ref after transition
 
 **Files Modified:**
+
 - `PileDemo.tsx:255-312` - MasterPhysicsLoop component
 - `PileDemo.tsx:589` - isTransitioningRef declaration
 - `PileDemo.tsx:1073-1121` - Updated handleGrowClick/handleOfferClick
@@ -122,6 +133,7 @@ isTransitioningRef.current = false
 
 **Result:** ❌ STILL CRASHING
 **Why:** Only moved ONE of the 22 useFrame loops to master loop. The other 21 loops are still running:
+
 - PointerForceField's useFrame (moving kinematic body)
 - FallingObjects' useFrame loops (×2 per instance, ×10 instances = 20 loops)
 
@@ -152,6 +164,7 @@ Frame N (transition triggered):
 **Rapier's safety guarantee:** Only ONE reference to a body can exist at a time (Rust's borrow checker rules).
 
 **Current reality:** Multiple components hold references and access bodies in the SAME frame:
+
 - PointerForceField: `pickedBodyRef.current.body.setNextKinematicTranslation()`
 - FallingObjects: `api.current[i].translation()`
 - MasterPhysicsLoop: `body.translation()` (now blocked, but others aren't)
@@ -161,20 +174,24 @@ Frame N (transition triggered):
 ## Solution Options
 
 ### Option A: Quick Fix - Add Transition Check to All Loops
+
 **Effort:** Low (30 minutes)
 **Risk:** Low
 **Approach:**
+
 1. Pass `isTransitioningRef` to PointerForceField
 2. Pass `isTransitioningRef` to FallingObjects
 3. Add check at start of each useFrame loop
 4. All loops blocked synchronously during transition
 
 **Pros:**
+
 - Minimal code changes
 - Can test quickly
 - Preserves current architecture
 
 **Cons:**
+
 - Doesn't address root cause (multiple loops)
 - Still have 22 useFrame loops
 - Future bugs possible if we forget to add check
@@ -182,9 +199,11 @@ Frame N (transition triggered):
 ---
 
 ### Option B: Complete Master Loop Refactor
+
 **Effort:** High (4-6 hours)
 **Risk:** Medium
 **Approach:**
+
 1. Move ALL physics access to MasterPhysicsLoop
 2. Phase 1: Dragged body movement (from PointerForceField)
 3. Phase 2: Drag zone counting (✓ DONE)
@@ -193,6 +212,7 @@ Frame N (transition triggered):
 6. Remove all useFrame loops from child components
 
 **Pros:**
+
 - ✅ Solves root cause permanently
 - ✅ Single source of truth for physics
 - ✅ Easier to debug and maintain
@@ -200,6 +220,7 @@ Frame N (transition triggered):
 - ✅ Better performance (no redundant iterations)
 
 **Cons:**
+
 - ❌ Large refactor
 - ❌ More testing required
 - ❌ Temporary complexity during migration
@@ -209,10 +230,13 @@ Frame N (transition triggered):
 ## Recommendation
 
 ### Immediate: Option A (Quick Fix)
+
 Add transition blocker to remaining loops to stop the crash NOW.
 
 ### Long-term: Option B (Refactor)
+
 Continue master loop refactor in phases:
+
 1. ✓ Phase 2: Drag zone counting (DONE)
 2. Phase 1: Dragged body movement
 3. Phase 3: Matrix sync
@@ -223,6 +247,7 @@ Continue master loop refactor in phases:
 ## Next Steps
 
 ### Step 1: Quick Fix Implementation
+
 1. Add `isTransitioningRef` prop to PointerForceField
 2. Check ref at start of PointerForceField's useFrame
 3. Add `isTransitioningRef` prop to FallingObjects
@@ -233,6 +258,7 @@ Continue master loop refactor in phases:
 **Success criteria:** No crash when switching Grow → My Offer after dragging gem
 
 ### Step 2: Continue Refactor (After Quick Fix Works)
+
 1. Move dragged body movement to MasterPhysicsLoop (Phase 1)
 2. Remove useFrame from PointerForceField
 3. Test dragging still works
@@ -248,16 +274,19 @@ Continue master loop refactor in phases:
 ## Lessons Learned
 
 1. **React lifecycle ≠ useFrame timing**
+
    - State updates are async
    - useFrame runs synchronously at 60fps
    - Can't rely on state to coordinate between loops
 
 2. **Refs are the answer for frame-level coordination**
+
    - `useRef` changes are synchronous
    - All useFrame loops can check the same ref
    - Provides immediate blocking mechanism
 
 3. **Rapier's safety is non-negotiable**
+
    - Can't have multiple references to same body
    - Rust's borrow checker rules enforced at runtime
    - Must serialize all physics access
@@ -275,10 +304,12 @@ Continue master loop refactor in phases:
 ### Components with useFrame Loops
 
 1. **PileDemo.tsx**
+
    - Line 138-183: DragZoneCounter → ✓ MIGRATED to MasterPhysicsLoop
    - Line 255-312: MasterPhysicsLoop → ✓ NEW MASTER LOOP
 
 2. **PointerForceField.tsx**
+
    - Line 352-454: Main loop (dragging, push forces) → ❌ NEEDS MIGRATION
 
 3. **FallingObjects.tsx**
@@ -297,6 +328,7 @@ Continue master loop refactor in phases:
 ## Testing Checklist
 
 ### Quick Fix Tests
+
 - [ ] Grow → My Offer (no drag) - should work
 - [ ] Grow → My Offer (after drag) - should NOT crash
 - [ ] My Offer → Grow - should work
@@ -304,6 +336,7 @@ Continue master loop refactor in phases:
 - [ ] Dragging during transition - should release cleanly
 
 ### Full Refactor Tests
+
 - [ ] All above tests pass
 - [ ] Dragging works in both modes
 - [ ] Drag zone counting accurate

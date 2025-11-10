@@ -1,582 +1,665 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chaotic Excavation - Goblin Gardens Splash</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --anthropic-dark: #141413;
-            --anthropic-light: #faf9f5;
-            --anthropic-mid-gray: #b0aea5;
-            --anthropic-light-gray: #e8e6dc;
-            --anthropic-orange: #d97757;
-            --anthropic-blue: #6a9bcc;
-            --anthropic-green: #788c5d;
-        }
+      :root {
+        --anthropic-dark: #141413;
+        --anthropic-light: #faf9f5;
+        --anthropic-mid-gray: #b0aea5;
+        --anthropic-light-gray: #e8e6dc;
+        --anthropic-orange: #d97757;
+        --anthropic-blue: #6a9bcc;
+        --anthropic-green: #788c5d;
+      }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
-            min-height: 100vh;
-            color: var(--anthropic-dark);
-        }
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+        min-height: 100vh;
+        color: var(--anthropic-dark);
+      }
 
+      .container {
+        display: flex;
+        min-height: 100vh;
+        padding: 20px;
+        gap: 20px;
+      }
+
+      .sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .sidebar h1 {
+        font-family: 'Lora', serif;
+        font-size: 24px;
+        font-weight: 500;
+        color: var(--anthropic-dark);
+        margin-bottom: 8px;
+      }
+
+      .sidebar .subtitle {
+        color: var(--anthropic-mid-gray);
+        font-size: 14px;
+        margin-bottom: 32px;
+        line-height: 1.4;
+      }
+
+      .control-section {
+        margin-bottom: 32px;
+      }
+
+      .control-section h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--anthropic-dark);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .control-section h3::before {
+        content: '•';
+        color: var(--anthropic-orange);
+        font-weight: bold;
+      }
+
+      .seed-input {
+        width: 100%;
+        background: var(--anthropic-light);
+        padding: 12px;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        margin-bottom: 12px;
+        border: 1px solid var(--anthropic-light-gray);
+        text-align: center;
+      }
+
+      .seed-input:focus {
+        outline: none;
+        border-color: var(--anthropic-orange);
+        box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
+        background: white;
+      }
+
+      .seed-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--anthropic-dark);
+        margin-bottom: 8px;
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .slider-container input[type='range'] {
+        flex: 1;
+        height: 4px;
+        background: var(--anthropic-light-gray);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      .slider-container input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .slider-container input[type='range']::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        background: #c86641;
+      }
+
+      .slider-container input[type='range']::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: var(--anthropic-orange);
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .value-display {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: var(--anthropic-mid-gray);
+        min-width: 60px;
+        text-align: right;
+      }
+
+      .button {
+        background: var(--anthropic-orange);
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+      }
+
+      .button:hover {
+        background: #c86641;
+        transform: translateY(-1px);
+      }
+
+      .button:active {
+        transform: translateY(0);
+      }
+
+      .button.secondary {
+        background: var(--anthropic-blue);
+      }
+
+      .button.secondary:hover {
+        background: #5a8bb8;
+      }
+
+      .button.tertiary {
+        background: var(--anthropic-green);
+      }
+
+      .button.tertiary:hover {
+        background: #6b7b52;
+      }
+
+      .canvas-area {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      #canvas-container {
+        width: 100%;
+        max-width: 1000px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
+        background: white;
+      }
+
+      #canvas-container canvas {
+        display: block;
+        width: 100% !important;
+        height: auto !important;
+      }
+
+      @media (max-width: 600px) {
         .container {
-            display: flex;
-            min-height: 100vh;
-            padding: 20px;
-            gap: 20px;
+          flex-direction: column;
         }
 
         .sidebar {
-            width: 320px;
-            flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
-            overflow-y: auto;
-            overflow-x: hidden;
+          width: 100%;
         }
-
-        .sidebar h1 {
-            font-family: 'Lora', serif;
-            font-size: 24px;
-            font-weight: 500;
-            color: var(--anthropic-dark);
-            margin-bottom: 8px;
-        }
-
-        .sidebar .subtitle {
-            color: var(--anthropic-mid-gray);
-            font-size: 14px;
-            margin-bottom: 32px;
-            line-height: 1.4;
-        }
-
-        .control-section {
-            margin-bottom: 32px;
-        }
-
-        .control-section h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--anthropic-dark);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .control-section h3::before {
-            content: '•';
-            color: var(--anthropic-orange);
-            font-weight: bold;
-        }
-
-        .seed-input {
-            width: 100%;
-            background: var(--anthropic-light);
-            padding: 12px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            margin-bottom: 12px;
-            border: 1px solid var(--anthropic-light-gray);
-            text-align: center;
-        }
-
-        .seed-input:focus {
-            outline: none;
-            border-color: var(--anthropic-orange);
-            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
-            background: white;
-        }
-
-        .seed-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        .control-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--anthropic-dark);
-            margin-bottom: 8px;
-        }
-
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .slider-container input[type="range"] {
-            flex: 1;
-            height: 4px;
-            background: var(--anthropic-light-gray);
-            border-radius: 2px;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .slider-container input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            background: var(--anthropic-orange);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-            background: #c86641;
-        }
-
-        .slider-container input[type="range"]::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            background: var(--anthropic-orange);
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .value-display {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            color: var(--anthropic-mid-gray);
-            min-width: 60px;
-            text-align: right;
-        }
-
-        .button {
-            background: var(--anthropic-orange);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            width: 100%;
-        }
-
-        .button:hover {
-            background: #c86641;
-            transform: translateY(-1px);
-        }
-
-        .button:active {
-            transform: translateY(0);
-        }
-
-        .button.secondary {
-            background: var(--anthropic-blue);
-        }
-
-        .button.secondary:hover {
-            background: #5a8bb8;
-        }
-
-        .button.tertiary {
-            background: var(--anthropic-green);
-        }
-
-        .button.tertiary:hover {
-            background: #6b7b52;
-        }
-
-        .canvas-area {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 0;
-        }
-
-        #canvas-container {
-            width: 100%;
-            max-width: 1000px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
-            background: white;
-        }
-
-        #canvas-container canvas {
-            display: block;
-            width: 100% !important;
-            height: auto !important;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="sidebar">
-            <h1>Chaotic Excavation</h1>
-            <div class="subtitle">Goblin Gardens Splash Screen #5 – Goblins digging their chaotic warren deeper</div>
-
-            <div class="control-section">
-                <h3>Seed</h3>
-                <input type="number" id="seed-input" class="seed-input" value="666" onchange="updateSeed()">
-                <div class="seed-controls">
-                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
-                    <button class="button secondary" onclick="nextSeed()">Next →</button>
-                </div>
-                <button class="button tertiary" onclick="randomSeedAndUpdate()">↻ Random</button>
-            </div>
-
-            <div class="control-section">
-                <h3>Parameters</h3>
-
-                <div class="control-group">
-                    <label>Digger Count</label>
-                    <div class="slider-container">
-                        <input type="range" id="diggerCount" min="2" max="12" step="1" value="5" oninput="updateParam('diggerCount', this.value)">
-                        <span class="value-display" id="diggerCount-value">5</span>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>Chaos Level</label>
-                    <div class="slider-container">
-                        <input type="range" id="chaos" min="0.1" max="0.9" step="0.1" value="0.5" oninput="updateParam('chaos', this.value)">
-                        <span class="value-display" id="chaos-value">0.5</span>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>Dig Speed</label>
-                    <div class="slider-container">
-                        <input type="range" id="digSpeed" min="1" max="10" step="1" value="5" oninput="updateParam('digSpeed', this.value)">
-                        <span class="value-display" id="digSpeed-value">5</span>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>Chamber Probability</label>
-                    <div class="slider-container">
-                        <input type="range" id="chamberProb" min="0.01" max="0.1" step="0.01" value="0.03" oninput="updateParam('chamberProb', this.value)">
-                        <span class="value-display" id="chamberProb-value">0.03</span>
-                    </div>
-                </div>
-
-                <div class="control-group">
-                    <label>Treasure Count</label>
-                    <div class="slider-container">
-                        <input type="range" id="treasureCount" min="0" max="20" step="2" value="8" oninput="updateParam('treasureCount', this.value)">
-                        <span class="value-display" id="treasureCount-value">8</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="control-section">
-                <h3>Actions</h3>
-                <button class="button" onclick="resetParameters()">Reset</button>
-            </div>
+      <div class="sidebar">
+        <h1>Chaotic Excavation</h1>
+        <div class="subtitle">
+          Goblin Gardens Splash Screen #5 – Goblins digging their chaotic warren deeper
         </div>
 
-        <div class="canvas-area">
-            <div id="canvas-container"></div>
+        <div class="control-section">
+          <h3>Seed</h3>
+          <input
+            type="number"
+            id="seed-input"
+            class="seed-input"
+            value="666"
+            onchange="updateSeed()"
+          />
+          <div class="seed-controls">
+            <button class="button secondary" onclick="previousSeed()">← Prev</button>
+            <button class="button secondary" onclick="nextSeed()">Next →</button>
+          </div>
+          <button class="button tertiary" onclick="randomSeedAndUpdate()">↻ Random</button>
         </div>
+
+        <div class="control-section">
+          <h3>Parameters</h3>
+
+          <div class="control-group">
+            <label>Digger Count</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="diggerCount"
+                min="2"
+                max="12"
+                step="1"
+                value="5"
+                oninput="updateParam('diggerCount', this.value)"
+              />
+              <span class="value-display" id="diggerCount-value">5</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Chaos Level</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="chaos"
+                min="0.1"
+                max="0.9"
+                step="0.1"
+                value="0.5"
+                oninput="updateParam('chaos', this.value)"
+              />
+              <span class="value-display" id="chaos-value">0.5</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Dig Speed</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="digSpeed"
+                min="1"
+                max="10"
+                step="1"
+                value="5"
+                oninput="updateParam('digSpeed', this.value)"
+              />
+              <span class="value-display" id="digSpeed-value">5</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Chamber Probability</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="chamberProb"
+                min="0.01"
+                max="0.1"
+                step="0.01"
+                value="0.03"
+                oninput="updateParam('chamberProb', this.value)"
+              />
+              <span class="value-display" id="chamberProb-value">0.03</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>Treasure Count</label>
+            <div class="slider-container">
+              <input
+                type="range"
+                id="treasureCount"
+                min="0"
+                max="20"
+                step="2"
+                value="8"
+                oninput="updateParam('treasureCount', this.value)"
+              />
+              <span class="value-display" id="treasureCount-value">8</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>Actions</h3>
+          <button class="button" onclick="resetParameters()">Reset</button>
+        </div>
+      </div>
+
+      <div class="canvas-area">
+        <div id="canvas-container"></div>
+      </div>
     </div>
 
     <script>
-        let params = {
-            seed: 666,
-            diggerCount: 5,
-            chaos: 0.5,
-            digSpeed: 5,
-            chamberProb: 0.03,
-            treasureCount: 8
-        };
+      let params = {
+        seed: 666,
+        diggerCount: 5,
+        chaos: 0.5,
+        digSpeed: 5,
+        chamberProb: 0.03,
+        treasureCount: 8,
+      };
 
-        let defaultParams = {...params};
+      let defaultParams = { ...params };
 
-        const CELL_SIZE = 8;
-        let cols, rows;
-        let grid;
-        let diggers = [];
-        let treasures = [];
+      const CELL_SIZE = 8;
+      let cols, rows;
+      let grid;
+      let diggers = [];
+      let treasures = [];
 
-        function setup() {
-            let canvas = createCanvas(1200, 1200);
-            canvas.parent('canvas-container');
+      function setup() {
+        let canvas = createCanvas(1200, 1200);
+        canvas.parent('canvas-container');
 
-            cols = floor(width / CELL_SIZE);
-            rows = floor(height / CELL_SIZE);
+        cols = floor(width / CELL_SIZE);
+        rows = floor(height / CELL_SIZE);
 
-            initializeSystem();
+        initializeSystem();
+      }
+
+      function initializeSystem() {
+        randomSeed(params.seed);
+        noiseSeed(params.seed);
+
+        // Initialize grid (all solid)
+        grid = [];
+        for (let i = 0; i < cols; i++) {
+          grid[i] = [];
+          for (let j = 0; j < rows; j++) {
+            grid[i][j] = {
+              solid: true,
+              age: 0,
+              isChamber: false,
+              isTreasure: false,
+            };
+          }
         }
 
-        function initializeSystem() {
-            randomSeed(params.seed);
-            noiseSeed(params.seed);
-
-            // Initialize grid (all solid)
-            grid = [];
-            for (let i = 0; i < cols; i++) {
-                grid[i] = [];
-                for (let j = 0; j < rows; j++) {
-                    grid[i][j] = {
-                        solid: true,
-                        age: 0,
-                        isChamber: false,
-                        isTreasure: false
-                    };
-                }
-            }
-
-            // Create diggers
-            diggers = [];
-            for (let i = 0; i < params.diggerCount; i++) {
-                diggers.push(new Digger());
-            }
-
-            treasures = [];
+        // Create diggers
+        diggers = [];
+        for (let i = 0; i < params.diggerCount; i++) {
+          diggers.push(new Digger());
         }
 
-        function draw() {
-            background(60, 50, 40);
+        treasures = [];
+      }
 
-            // Dig multiple steps per frame
-            for (let i = 0; i < params.digSpeed; i++) {
-                for (let digger of diggers) {
-                    digger.dig();
-                }
-            }
+      function draw() {
+        background(60, 50, 40);
 
-            // Draw grid
-            for (let i = 0; i < cols; i++) {
-                for (let j = 0; j < rows; j++) {
-                    let cell = grid[i][j];
-
-                    if (cell.solid) {
-                        // Solid earth with stratification
-                        let depth = j / rows;
-                        let r = lerp(70, 50, depth);
-                        let g = lerp(55, 40, depth);
-                        let b = lerp(40, 30, depth);
-
-                        // Add noise texture
-                        let n = noise(i * 0.1, j * 0.1) * 20;
-
-                        noStroke();
-                        fill(r + n, g + n, b + n);
-                        rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    } else {
-                        // Excavated tunnel
-                        let ageFactor = constrain(cell.age / 50, 0, 1);
-                        let darkness = lerp(20, 10, ageFactor);
-
-                        noStroke();
-                        fill(darkness, darkness, darkness);
-                        rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-
-                        // Chamber glow
-                        if (cell.isChamber) {
-                            fill(40, 35, 25, 100);
-                            rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                        }
-
-                        // Treasure
-                        if (cell.isTreasure) {
-                            fill(255, 215, 0, 200);
-                            circle(i * CELL_SIZE + CELL_SIZE/2, j * CELL_SIZE + CELL_SIZE/2, CELL_SIZE * 0.6);
-                            fill(255, 235, 100, 255);
-                            circle(i * CELL_SIZE + CELL_SIZE/2, j * CELL_SIZE + CELL_SIZE/2, CELL_SIZE * 0.3);
-                        }
-                    }
-                }
-            }
-
-            // Draw diggers
-            for (let digger of diggers) {
-                digger.display();
-            }
+        // Dig multiple steps per frame
+        for (let i = 0; i < params.digSpeed; i++) {
+          for (let digger of diggers) {
+            digger.dig();
+          }
         }
 
-        class Digger {
-            constructor() {
-                this.x = floor(random(cols * 0.3, cols * 0.7));
-                this.y = floor(random(rows * 0.2, rows * 0.4));
-                this.dir = floor(random(4)); // 0=right, 1=down, 2=left, 3=up
-                this.steps = 0;
-                this.color = color(random(80, 120), random(100, 140), random(60, 100));
-            }
+        // Draw grid
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < rows; j++) {
+            let cell = grid[i][j];
 
-            dig() {
-                // Carve current position
-                if (this.x >= 0 && this.x < cols && this.y >= 0 && this.y < rows) {
-                    if (grid[this.x][this.y].solid) {
-                        grid[this.x][this.y].solid = false;
-                        grid[this.x][this.y].age = 0;
+            if (cell.solid) {
+              // Solid earth with stratification
+              let depth = j / rows;
+              let r = lerp(70, 50, depth);
+              let g = lerp(55, 40, depth);
+              let b = lerp(40, 30, depth);
 
-                        // Chance to create chamber
-                        if (random() < params.chamberProb) {
-                            this.createChamber();
-                        }
+              // Add noise texture
+              let n = noise(i * 0.1, j * 0.1) * 20;
 
-                        // Chance to place treasure in deep areas
-                        if (this.y > rows * 0.5 && treasures.length < params.treasureCount && random() < 0.005) {
-                            grid[this.x][this.y].isTreasure = true;
-                            treasures.push({x: this.x, y: this.y});
-                        }
-                    }
-                    grid[this.x][this.y].age++;
-                }
-
-                // Movement decision
-                if (random() < params.chaos) {
-                    // Change direction randomly (chaos)
-                    this.dir = floor(random(4));
-                } else if (random() < 0.2) {
-                    // Slight turn
-                    this.dir = (this.dir + (random() < 0.5 ? 1 : -1) + 4) % 4;
-                }
-
-                // Bias towards digging down
-                if (random() < 0.3) {
-                    this.dir = 1; // down
-                }
-
-                // Move
-                if (this.dir === 0) this.x++;
-                else if (this.dir === 1) this.y++;
-                else if (this.dir === 2) this.x--;
-                else if (this.dir === 3) this.y--;
-
-                // Wrap or bounce at edges
-                if (this.x < 1) { this.x = 1; this.dir = 0; }
-                if (this.x >= cols - 1) { this.x = cols - 2; this.dir = 2; }
-                if (this.y < 1) { this.y = 1; this.dir = 1; }
-                if (this.y >= rows - 1) { this.y = rows - 2; this.dir = 3; }
-
-                this.steps++;
-            }
-
-            createChamber() {
-                let radius = floor(random(2, 4));
-                for (let i = -radius; i <= radius; i++) {
-                    for (let j = -radius; j <= radius; j++) {
-                        if (i*i + j*j <= radius*radius) {
-                            let cx = this.x + i;
-                            let cy = this.y + j;
-                            if (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
-                                grid[cx][cy].solid = false;
-                                grid[cx][cy].isChamber = true;
-                            }
-                        }
-                    }
-                }
-            }
-
-            display() {
-                noStroke();
-                fill(this.color);
-                circle(this.x * CELL_SIZE + CELL_SIZE/2, this.y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE * 1.2);
-                fill(red(this.color) + 40, green(this.color) + 40, blue(this.color) + 40);
-                circle(this.x * CELL_SIZE + CELL_SIZE/2, this.y * CELL_SIZE + CELL_SIZE/2, CELL_SIZE * 0.6);
-            }
-        }
-
-        function updateParam(paramName, value) {
-            params[paramName] = parseFloat(value);
-            document.getElementById(paramName + '-value').textContent = value;
-
-            if (paramName === 'diggerCount') {
-                initializeSystem();
-            }
-        }
-
-        function updateSeedDisplay() {
-            document.getElementById('seed-input').value = params.seed;
-        }
-
-        function updateSeed() {
-            let input = document.getElementById('seed-input');
-            let newSeed = parseInt(input.value);
-            if (newSeed && newSeed > 0) {
-                params.seed = newSeed;
-                initializeSystem();
+              noStroke();
+              fill(r + n, g + n, b + n);
+              rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
             } else {
-                updateSeedDisplay();
+              // Excavated tunnel
+              let ageFactor = constrain(cell.age / 50, 0, 1);
+              let darkness = lerp(20, 10, ageFactor);
+
+              noStroke();
+              fill(darkness, darkness, darkness);
+              rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+              // Chamber glow
+              if (cell.isChamber) {
+                fill(40, 35, 25, 100);
+                rect(i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+              }
+
+              // Treasure
+              if (cell.isTreasure) {
+                fill(255, 215, 0, 200);
+                circle(
+                  i * CELL_SIZE + CELL_SIZE / 2,
+                  j * CELL_SIZE + CELL_SIZE / 2,
+                  CELL_SIZE * 0.6
+                );
+                fill(255, 235, 100, 255);
+                circle(
+                  i * CELL_SIZE + CELL_SIZE / 2,
+                  j * CELL_SIZE + CELL_SIZE / 2,
+                  CELL_SIZE * 0.3
+                );
+              }
             }
+          }
         }
 
-        function previousSeed() {
-            params.seed = Math.max(1, params.seed - 1);
-            updateSeedDisplay();
-            initializeSystem();
+        // Draw diggers
+        for (let digger of diggers) {
+          digger.display();
+        }
+      }
+
+      class Digger {
+        constructor() {
+          this.x = floor(random(cols * 0.3, cols * 0.7));
+          this.y = floor(random(rows * 0.2, rows * 0.4));
+          this.dir = floor(random(4)); // 0=right, 1=down, 2=left, 3=up
+          this.steps = 0;
+          this.color = color(random(80, 120), random(100, 140), random(60, 100));
         }
 
-        function nextSeed() {
-            params.seed = params.seed + 1;
-            updateSeedDisplay();
-            initializeSystem();
+        dig() {
+          // Carve current position
+          if (this.x >= 0 && this.x < cols && this.y >= 0 && this.y < rows) {
+            if (grid[this.x][this.y].solid) {
+              grid[this.x][this.y].solid = false;
+              grid[this.x][this.y].age = 0;
+
+              // Chance to create chamber
+              if (random() < params.chamberProb) {
+                this.createChamber();
+              }
+
+              // Chance to place treasure in deep areas
+              if (
+                this.y > rows * 0.5 &&
+                treasures.length < params.treasureCount &&
+                random() < 0.005
+              ) {
+                grid[this.x][this.y].isTreasure = true;
+                treasures.push({ x: this.x, y: this.y });
+              }
+            }
+            grid[this.x][this.y].age++;
+          }
+
+          // Movement decision
+          if (random() < params.chaos) {
+            // Change direction randomly (chaos)
+            this.dir = floor(random(4));
+          } else if (random() < 0.2) {
+            // Slight turn
+            this.dir = (this.dir + (random() < 0.5 ? 1 : -1) + 4) % 4;
+          }
+
+          // Bias towards digging down
+          if (random() < 0.3) {
+            this.dir = 1; // down
+          }
+
+          // Move
+          if (this.dir === 0) this.x++;
+          else if (this.dir === 1) this.y++;
+          else if (this.dir === 2) this.x--;
+          else if (this.dir === 3) this.y--;
+
+          // Wrap or bounce at edges
+          if (this.x < 1) {
+            this.x = 1;
+            this.dir = 0;
+          }
+          if (this.x >= cols - 1) {
+            this.x = cols - 2;
+            this.dir = 2;
+          }
+          if (this.y < 1) {
+            this.y = 1;
+            this.dir = 1;
+          }
+          if (this.y >= rows - 1) {
+            this.y = rows - 2;
+            this.dir = 3;
+          }
+
+          this.steps++;
         }
 
-        function randomSeedAndUpdate() {
-            params.seed = Math.floor(Math.random() * 999999) + 1;
-            updateSeedDisplay();
-            initializeSystem();
+        createChamber() {
+          let radius = floor(random(2, 4));
+          for (let i = -radius; i <= radius; i++) {
+            for (let j = -radius; j <= radius; j++) {
+              if (i * i + j * j <= radius * radius) {
+                let cx = this.x + i;
+                let cy = this.y + j;
+                if (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
+                  grid[cx][cy].solid = false;
+                  grid[cx][cy].isChamber = true;
+                }
+              }
+            }
+          }
         }
 
-        function resetParameters() {
-            params = {...defaultParams};
-
-            document.getElementById('diggerCount').value = params.diggerCount;
-            document.getElementById('diggerCount-value').textContent = params.diggerCount;
-            document.getElementById('chaos').value = params.chaos;
-            document.getElementById('chaos-value').textContent = params.chaos;
-            document.getElementById('digSpeed').value = params.digSpeed;
-            document.getElementById('digSpeed-value').textContent = params.digSpeed;
-            document.getElementById('chamberProb').value = params.chamberProb;
-            document.getElementById('chamberProb-value').textContent = params.chamberProb;
-            document.getElementById('treasureCount').value = params.treasureCount;
-            document.getElementById('treasureCount-value').textContent = params.treasureCount;
-
-            updateSeedDisplay();
-            initializeSystem();
+        display() {
+          noStroke();
+          fill(this.color);
+          circle(
+            this.x * CELL_SIZE + CELL_SIZE / 2,
+            this.y * CELL_SIZE + CELL_SIZE / 2,
+            CELL_SIZE * 1.2
+          );
+          fill(red(this.color) + 40, green(this.color) + 40, blue(this.color) + 40);
+          circle(
+            this.x * CELL_SIZE + CELL_SIZE / 2,
+            this.y * CELL_SIZE + CELL_SIZE / 2,
+            CELL_SIZE * 0.6
+          );
         }
+      }
 
-        window.addEventListener('load', function() {
-            updateSeedDisplay();
-        });
+      function updateParam(paramName, value) {
+        params[paramName] = parseFloat(value);
+        document.getElementById(paramName + '-value').textContent = value;
+
+        if (paramName === 'diggerCount') {
+          initializeSystem();
+        }
+      }
+
+      function updateSeedDisplay() {
+        document.getElementById('seed-input').value = params.seed;
+      }
+
+      function updateSeed() {
+        let input = document.getElementById('seed-input');
+        let newSeed = parseInt(input.value);
+        if (newSeed && newSeed > 0) {
+          params.seed = newSeed;
+          initializeSystem();
+        } else {
+          updateSeedDisplay();
+        }
+      }
+
+      function previousSeed() {
+        params.seed = Math.max(1, params.seed - 1);
+        updateSeedDisplay();
+        initializeSystem();
+      }
+
+      function nextSeed() {
+        params.seed = params.seed + 1;
+        updateSeedDisplay();
+        initializeSystem();
+      }
+
+      function randomSeedAndUpdate() {
+        params.seed = Math.floor(Math.random() * 999999) + 1;
+        updateSeedDisplay();
+        initializeSystem();
+      }
+
+      function resetParameters() {
+        params = { ...defaultParams };
+
+        document.getElementById('diggerCount').value = params.diggerCount;
+        document.getElementById('diggerCount-value').textContent = params.diggerCount;
+        document.getElementById('chaos').value = params.chaos;
+        document.getElementById('chaos-value').textContent = params.chaos;
+        document.getElementById('digSpeed').value = params.digSpeed;
+        document.getElementById('digSpeed-value').textContent = params.digSpeed;
+        document.getElementById('chamberProb').value = params.chamberProb;
+        document.getElementById('chamberProb-value').textContent = params.chamberProb;
+        document.getElementById('treasureCount').value = params.treasureCount;
+        document.getElementById('treasureCount-value').textContent = params.treasureCount;
+
+        updateSeedDisplay();
+        initializeSystem();
+      }
+
+      window.addEventListener('load', function () {
+        updateSeedDisplay();
+      });
     </script>
-</body>
+  </body>
 </html>

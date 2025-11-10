@@ -1,18 +1,18 @@
-import { useGLTF } from "@react-three/drei";
-import { ThreeElements, useFrame } from "@react-three/fiber";
-import { RigidBody, RigidBodyProps } from "@react-three/rapier";
-import { RapierRigidBody } from "@react-three/rapier";
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { Mesh } from "three";
-import { GLTF } from "three-stdlib";
-import { useSuzanne } from "../all-shapes/AllShapesExample";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { useGLTF } from '@react-three/drei';
+import { ThreeElements, useFrame } from '@react-three/fiber';
+import { RigidBody, RigidBodyProps } from '@react-three/rapier';
+import { RapierRigidBody } from '@react-three/rapier';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { Mesh } from 'three';
+import { GLTF } from 'three-stdlib';
+import { useSuzanne } from '../all-shapes/AllShapesExample';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
-type GroupProps = ThreeElements["group"];
+type GroupProps = ThreeElements['group'];
 
 const useBendy = () => {
   return useGLTF(
-    new URL("../../models/bendy.glb", import.meta.url).toString()
+    new URL('../../models/bendy.glb', import.meta.url).toString()
   ) as unknown as GLTF & {
     nodes: {
       BezierCurve: Mesh;
@@ -27,7 +27,7 @@ const Monkae = ({
   onDead: (pos: { x: number; y: number; z: number }) => void;
 }) => {
   const {
-    nodes: { Suzanne }
+    nodes: { Suzanne },
   } = useSuzanne();
 
   const monmon = useRef<RapierRigidBody>(null);
@@ -46,7 +46,7 @@ const Monkae = ({
           transmission={0}
           thickness={0.2}
           roughness={0}
-          color={"orange"}
+          color={'orange'}
         />
       </mesh>
     </RigidBody>
@@ -54,9 +54,9 @@ const Monkae = ({
 };
 
 const Emitter = (props: GroupProps & { time?: number }) => {
-  const [monkaes, setMonkaes] = useState<
-    { key: number; position: [number, number, number] }[]
-  >(() => []);
+  const [monkaes, setMonkaes] = useState<{ key: number; position: [number, number, number] }[]>(
+    () => []
+  );
 
   const removeMonkae = (id: number) => {
     setMonkaes((monkaes) => monkaes.filter((monkae) => monkae.key !== id));
@@ -68,12 +68,8 @@ const Emitter = (props: GroupProps & { time?: number }) => {
         ...monkaes,
         {
           key: Math.random(),
-          position: [
-            Math.random() * 10 - 5,
-            Math.random(),
-            Math.random() * 10 - 5
-          ]
-        }
+          position: [Math.random() * 10 - 5, Math.random(), Math.random() * 10 - 5],
+        },
       ]);
     }, props.time || 1000);
 
@@ -83,11 +79,7 @@ const Emitter = (props: GroupProps & { time?: number }) => {
   return (
     <group {...props}>
       {monkaes.map((m, i) => (
-        <Monkae
-          key={m.key}
-          position={m.position}
-          onDead={() => removeMonkae(m.key)}
-        />
+        <Monkae key={m.key} position={m.position} onDead={() => removeMonkae(m.key)} />
       ))}
     </group>
   );
@@ -98,14 +90,14 @@ const Bendy = (props: GroupProps) => {
 
   return (
     <group {...props}>
-      <RigidBody colliders={"trimesh"} type="fixed">
+      <RigidBody colliders={'trimesh'} type="fixed">
         <mesh geometry={nodes.BezierCurve.geometry} castShadow>
           <meshPhysicalMaterial
             ior={1.5}
             transmission={0.99}
             thickness={2}
             roughness={0}
-            color={"orange"}
+            color={'orange'}
           />
         </mesh>
       </RigidBody>

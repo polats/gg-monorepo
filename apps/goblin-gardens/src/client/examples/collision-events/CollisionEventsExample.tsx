@@ -1,4 +1,4 @@
-import { Box, Sphere } from "@react-three/drei";
+import { Box, Sphere } from '@react-three/drei';
 import {
   CapsuleCollider,
   CollisionEnterHandler,
@@ -6,8 +6,8 @@ import {
   HeightfieldCollider,
   interactionGroups,
   RigidBody,
-  RigidBodyOptions
-} from "@react-three/rapier";
+  RigidBodyOptions,
+} from '@react-three/rapier';
 import {
   createContext,
   Dispatch,
@@ -16,11 +16,11 @@ import {
   SetStateAction,
   useCallback,
   useContext,
-  useState
-} from "react";
-import { PlaneGeometry } from "three";
-import { useSuzanne } from "../all-shapes/AllShapesExample";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  useState,
+} from 'react';
+import { PlaneGeometry } from 'three';
+import { useSuzanne } from '../all-shapes/AllShapesExample';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const Suzanne = ({ color }: { color: string }) => {
   const { nodes: suzanne } = useSuzanne();
@@ -39,7 +39,7 @@ const explosionContext = createContext<{
 const heightFieldHeight = 50;
 const heightFieldWidth = 50;
 const heightField = Array.from({
-  length: heightFieldHeight * heightFieldWidth
+  length: heightFieldHeight * heightFieldWidth,
 }).map((_, index) => {
   return Math.random();
 });
@@ -68,39 +68,36 @@ const Explosion = ({ position }: { position: [number, number, number] }) => {
 };
 
 const Collisioner = (
-  props: Omit<RigidBodyOptions, "children"> & {
+  props: Omit<RigidBodyOptions, 'children'> & {
     children(color: string): ReactNode;
   }
 ) => {
-  const [color, setColor] = useState("blue");
+  const [color, setColor] = useState('blue');
   const { setExplosions } = useContext(explosionContext) as {
     setExplosions: Dispatch<SetStateAction<ReactNode[]>>;
   };
 
   const { children, type, colliders, position } = props;
 
-  const handleCollisionEnter: CollisionEnterHandler = useCallback(
-    ({ manifold, other, target }) => {
-      setColor("red");
+  const handleCollisionEnter: CollisionEnterHandler = useCallback(({ manifold, other, target }) => {
+    setColor('red');
 
-      const contact = manifold?.solverContactPoint(0) as {
-        x: number;
-        y: number;
-        z: number;
-      };
+    const contact = manifold?.solverContactPoint(0) as {
+      x: number;
+      y: number;
+      z: number;
+    };
 
-      if (contact) {
-        setExplosions((curr: ReactNode[]) => [
-          ...curr,
-          <Explosion position={[contact.x, contact.y, contact.z]} />
-        ]);
-      }
-    },
-    []
-  );
+    if (contact) {
+      setExplosions((curr: ReactNode[]) => [
+        ...curr,
+        <Explosion position={[contact.x, contact.y, contact.z]} />,
+      ]);
+    }
+  }, []);
 
   const handleCollsionExit = useCallback(() => {
-    setColor("blue");
+    setColor('blue');
   }, []);
 
   return (
@@ -124,21 +121,21 @@ const heightFieldArgs: HeightfieldArgs = [
   {
     x: heightFieldWidth,
     y: 1,
-    z: heightFieldWidth
-  }
+    z: heightFieldWidth,
+  },
 ];
 
 const Collisioners = memo(() => {
   return (
     <group>
-      <Collisioner position={[1, 4, 0]} colliders={"cuboid"} name={"Box 1"}>
+      <Collisioner position={[1, 4, 0]} colliders={'cuboid'} name={'Box 1'}>
         {(color) => (
           <Box>
             <meshPhysicalMaterial color={color} />
           </Box>
         )}
       </Collisioner>
-      <Collisioner position={[-1, 5, 0]} colliders={"cuboid"} name={"Box 2"}>
+      <Collisioner position={[-1, 5, 0]} colliders={'cuboid'} name={'Box 2'}>
         {(color) => (
           <Box>
             <meshPhysicalMaterial color={color} />
@@ -146,7 +143,7 @@ const Collisioners = memo(() => {
         )}
       </Collisioner>
 
-      <Collisioner colliders="ball" position={[0, 8, 0]} name={"Sphere 1"}>
+      <Collisioner colliders="ball" position={[0, 8, 0]} name={'Sphere 1'}>
         {(color) => (
           <Sphere>
             <meshPhysicalMaterial color={color} />
@@ -154,15 +151,11 @@ const Collisioners = memo(() => {
         )}
       </Collisioner>
 
-      <Collisioner colliders="hull" position={[-4, 2, 0]} name={"Suzanne"}>
+      <Collisioner colliders="hull" position={[-4, 2, 0]} name={'Suzanne'}>
         {(color) => <Suzanne color={color} />}
       </Collisioner>
 
-      <Collisioner
-        colliders={false}
-        collisionGroups={interactionGroups([1])}
-        name={"Capsule 1"}
-      >
+      <Collisioner colliders={false} collisionGroups={interactionGroups([1])} name={'Capsule 1'}>
         {(color) => (
           <>
             <mesh>
@@ -173,22 +166,15 @@ const Collisioners = memo(() => {
               args={[1, 1]}
               collisionGroups={interactionGroups([2])}
               onCollisionEnter={({ collider }) =>
-                console.log("ENTER collider / collider", collider)
+                console.log('ENTER collider / collider', collider)
               }
-              onCollisionExit={({ collider }) =>
-                console.log("EXIT collider / collider", collider)
-              }
+              onCollisionExit={({ collider }) => console.log('EXIT collider / collider', collider)}
             />
           </>
         )}
       </Collisioner>
 
-      <Collisioner
-        type={"fixed"}
-        position={[0, -8, 0]}
-        colliders={false}
-        name={"Floor"}
-      >
+      <Collisioner type={'fixed'} position={[0, -8, 0]} colliders={false} name={'Floor'}>
         {(color) => (
           <>
             <mesh geometry={heightFieldGeometry} receiveShadow>

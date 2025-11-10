@@ -11,6 +11,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 ## 🎨 The Collection
 
 ### 1. **Cascading Gravity**
+
 **File:** `splash-1-cascading-gravity.html`
 **Philosophy:** `philosophy-1-cascading-gravity.md`
 **Seed:** 42
@@ -20,6 +21,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 **Visual:** Light background with colorful particle trails (green/blue/orange) flowing toward gravity wells.
 
 **Parameters:**
+
 - Particle Count (20-150)
 - Gravity Wells (2-12)
 - Well Strength (0.5-5.0)
@@ -31,6 +33,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 ---
 
 ### 2. **Shiny Hoarder's Delight**
+
 **File:** `splash-2-shiny-hoarders-delight.html`
 **Philosophy:** `philosophy-2-shiny-hoarders-delight.md`
 **Seed:** 777
@@ -40,6 +43,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 **Visual:** Dark cave background with glowing metallic particles accumulating into golden piles.
 
 **Parameters:**
+
 - Hoard Piles (1-6)
 - Shiny Spawn Rate (1-8)
 - Shiny Size (3-12)
@@ -51,6 +55,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 ---
 
 ### 3. **Swarm Intelligence**
+
 **File:** `splash-3-swarm-intelligence.html`
 **Philosophy:** `philosophy-3-swarm-intelligence.md`
 **Seed:** 1337
@@ -60,6 +65,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 **Visual:** Dark forest floor with green-yellow glowing creatures clustering and flowing, with golden loot points appearing and disappearing.
 
 **Parameters:**
+
 - Goblin Count (50-300)
 - Cohesion (0.1-2.0)
 - Separation (0.5-3.0)
@@ -72,6 +78,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 ---
 
 ### 4. **Mycelium Network**
+
 **File:** `splash-4-mycelium-network.html`
 **Philosophy:** `philosophy-4-mycelium-network.md`
 **Seed:** 420
@@ -81,6 +88,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 **Visual:** Dark soil background with pale green-white fungal threads growing recursively, brown older growth, floating spores.
 
 **Parameters:**
+
 - Growth Speed (1-10)
 - Branch Probability (0.01-0.15)
 - Branch Angle (10-60°)
@@ -92,6 +100,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 ---
 
 ### 5. **Chaotic Excavation**
+
 **File:** `splash-5-chaotic-excavation.html`
 **Philosophy:** `philosophy-5-chaotic-excavation.md`
 **Seed:** 666
@@ -101,6 +110,7 @@ These splash screens were created using the **algorithmic art skill** with p5.js
 **Visual:** Cross-section view of brown earth being carved into black voids by colorful goblin diggers, with golden treasure in deep chambers.
 
 **Parameters:**
+
 - Digger Count (2-12)
 - Chaos Level (0.1-0.9)
 - Dig Speed (1-10)
@@ -123,6 +133,7 @@ Each splash screen is a **self-contained HTML file** that can be:
 ### Seed Navigation
 
 Every splash screen uses **seeded randomness** (like Art Blocks):
+
 - Same seed = identical output every time
 - Use Prev/Next to explore sequential variations
 - Use Random to discover new patterns
@@ -176,13 +187,13 @@ splash-screens/
 
 ## 🎯 Thematic Connections
 
-| Splash Screen | Goblin Trait | Goblincore Element | Game Mechanic |
-|---------------|--------------|-------------------|---------------|
-| Cascading Gravity | Chaos | Physics play | Core physics engine |
-| Shiny Hoarder's Delight | Greed | Collecting shinies | Resource gathering |
-| Swarm Intelligence | Swarms | Community | Multiplayer coordination |
-| Mycelium Network | Nature | Mushrooms, decay | Interconnected systems |
-| Chaotic Excavation | Digging | Dark, dungeons | Exploration, discovery |
+| Splash Screen           | Goblin Trait | Goblincore Element | Game Mechanic            |
+| ----------------------- | ------------ | ------------------ | ------------------------ |
+| Cascading Gravity       | Chaos        | Physics play       | Core physics engine      |
+| Shiny Hoarder's Delight | Greed        | Collecting shinies | Resource gathering       |
+| Swarm Intelligence      | Swarms       | Community          | Multiplayer coordination |
+| Mycelium Network        | Nature       | Mushrooms, decay   | Interconnected systems   |
+| Chaotic Excavation      | Digging      | Dark, dungeons     | Exploration, discovery   |
 
 ---
 
@@ -191,6 +202,7 @@ splash-screens/
 Created using the **/algorithmic-art** skill for Goblin Gardens, a Dwarves vs. Goblins community game built on Reddit's Devvit platform.
 
 **Techniques Used:**
+
 - Particle systems & physics simulation
 - Boids flocking algorithms
 - L-system branching
@@ -198,6 +210,7 @@ Created using the **/algorithmic-art** skill for Goblin Gardens, a Dwarves vs. G
 - Procedural generation
 
 **Inspired by:**
+
 - Goblincore aesthetic movement
 - Art Blocks generative NFTs
 - Classic generative artists (Craig Reynolds, Karl Sims)
@@ -205,4 +218,4 @@ Created using the **/algorithmic-art** skill for Goblin Gardens, a Dwarves vs. G
 
 ---
 
-*Each splash screen is a love letter to computational art and goblin mischief.* 🧙‍♂️✨
+_Each splash screen is a love letter to computational art and goblin mischief._ 🧙‍♂️✨

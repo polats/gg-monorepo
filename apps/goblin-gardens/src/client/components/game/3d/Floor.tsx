@@ -2,11 +2,7 @@ import { RigidBody, CuboidCollider } from '@react-three/rapier';
 
 export function ShadowPlane({ isGarden = false }: { isGarden?: boolean }) {
   return (
-    <mesh
-      rotation={[-Math.PI / 2, 0, 0]}
-      position={[0, isGarden ? -0.03 : 0, 0]}
-      receiveShadow
-    >
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, isGarden ? -0.03 : 0, 0]} receiveShadow>
       <planeGeometry args={[10, 10]} />
       {isGarden ? (
         <meshStandardMaterial

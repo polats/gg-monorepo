@@ -1,18 +1,14 @@
-import React, { FC, memo, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useEffect, useRef, useState } from 'react';
 
-import { Box, Html, Sphere, useGLTF } from "@react-three/drei";
-import {
-  CylinderCollider,
-  RigidBody,
-  RapierRigidBody
-} from "@react-three/rapier";
-import Plinko from "./Plinko";
-import { Mesh, Vector3 } from "three";
-import { useControls, button } from "leva";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
-import DraggableRigidBody from "../../components/DraggableRigidBody";
+import { Box, Html, Sphere, useGLTF } from '@react-three/drei';
+import { CylinderCollider, RigidBody, RapierRigidBody } from '@react-three/rapier';
+import Plinko from './Plinko';
+import { Mesh, Vector3 } from 'three';
+import { useControls, button } from 'leva';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
+import DraggableRigidBody from '../../components/DraggableRigidBody';
 
-const colors = ["red", "green", "blue", "yellow", "orange", "purple"];
+const colors = ['red', 'green', 'blue', 'yellow', 'orange', 'purple'];
 const randomColor = () => colors[Math.floor(Math.random() * colors.length)];
 const useRandomColor = () => {
   const [color] = useState(randomColor());
@@ -24,22 +20,22 @@ const Label = ({ label }: { label: string }) => {
     <Html>
       <div
         style={{
-          position: "absolute",
-          background: "#fff",
-          border: "2px solid #000",
+          position: 'absolute',
+          background: '#fff',
+          border: '2px solid #000',
           padding: 8,
-          transform: "translate(100%, -100%)"
+          transform: 'translate(100%, -100%)',
         }}
       >
         <span
           style={{
-            position: "absolute",
+            position: 'absolute',
             width: 0,
             height: 40,
-            top: "calc(100% - 5px)",
+            top: 'calc(100% - 5px)',
             left: -16,
-            borderLeft: "2px solid black",
-            transform: "rotate(45deg)"
+            borderLeft: '2px solid black',
+            transform: 'rotate(45deg)',
           }}
         ></span>
         {label}
@@ -54,8 +50,8 @@ const RigidBox = memo(() => {
   return (
     <DraggableRigidBody
       rigidBodyProps={{
-        colliders: "cuboid",
-        position: [-4 + Math.random() * 8, 10, 0]
+        colliders: 'cuboid',
+        position: [-4 + Math.random() * 8, 10, 0],
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -74,7 +70,7 @@ const RigidCylinder = memo(() => {
     <DraggableRigidBody
       rigidBodyProps={{
         colliders: false,
-        position: [-4 + Math.random() * 8, 10, 0]
+        position: [-4 + Math.random() * 8, 10, 0],
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -93,9 +89,9 @@ const RigidBall = memo(() => {
   return (
     <DraggableRigidBody
       rigidBodyProps={{
-        colliders: "ball",
+        colliders: 'ball',
         position: new Vector3(-4 + Math.random() * 8, 10, 0),
-        scale: 1
+        scale: 1,
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -107,13 +103,11 @@ const RigidBall = memo(() => {
   );
 });
 
-useGLTF.preload(
-  new URL("../../models/objects.glb", import.meta.url).toString()
-);
+useGLTF.preload(new URL('../../models/objects.glb', import.meta.url).toString());
 
 const HullPear = memo(() => {
   const { nodes } = useGLTF(
-    new URL("../../models/objects.glb", import.meta.url).toString()
+    new URL('../../models/objects.glb', import.meta.url).toString()
   ) as unknown as {
     nodes: {
       pear: Mesh;
@@ -123,8 +117,8 @@ const HullPear = memo(() => {
   return (
     <DraggableRigidBody
       rigidBodyProps={{
-        colliders: "hull",
-        position: [-4 + Math.random() * 8, 10, 0]
+        colliders: 'hull',
+        position: [-4 + Math.random() * 8, 10, 0],
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -142,7 +136,7 @@ const HullPear = memo(() => {
 
 const MeshBoat = memo(() => {
   const { nodes } = useGLTF(
-    new URL("../../models/objects.glb", import.meta.url).toString()
+    new URL('../../models/objects.glb', import.meta.url).toString()
   ) as unknown as {
     nodes: {
       boat: Mesh;
@@ -153,8 +147,8 @@ const MeshBoat = memo(() => {
     <DraggableRigidBody
       groupProps={{ scale: 0.3 }}
       rigidBodyProps={{
-        colliders: "hull",
-        position: [-4 + Math.random() * 8, 10, 0]
+        colliders: 'hull',
+        position: [-4 + Math.random() * 8, 10, 0],
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -175,7 +169,7 @@ const itemMap: Record<string, FC> = {
   cylinder: RigidCylinder,
   ball: RigidBall,
   convexHull: HullPear,
-  convexMesh: MeshBoat
+  convexMesh: MeshBoat,
 };
 
 const randomItem = () => {
@@ -192,11 +186,11 @@ const Scene: FC = () => {
   const [items, setItems] = useState<string[]>([]);
 
   useControls({
-    box: button(() => addItem("box")),
-    cylinder: button(() => addItem("cylinder")),
-    ball: button(() => addItem("ball")),
-    convexHull: button(() => addItem("convexHull")),
-    convexMesh: button(() => addItem("convexMesh"))
+    box: button(() => addItem('box')),
+    cylinder: button(() => addItem('cylinder')),
+    ball: button(() => addItem('ball')),
+    convexHull: button(() => addItem('convexHull')),
+    convexMesh: button(() => addItem('convexMesh')),
   });
 
   useEffect(() => {

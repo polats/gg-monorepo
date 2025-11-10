@@ -1,24 +1,22 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 
-import { Html, useGLTF } from "@react-three/drei";
+import { Html, useGLTF } from '@react-three/drei';
 import {
   BallCollider,
   ConeCollider,
   ConvexHullCollider,
   CuboidCollider,
   RigidBody,
-  TrimeshCollider
-} from "@react-three/rapier";
+  TrimeshCollider,
+} from '@react-three/rapier';
 
-import { Demo } from "../../DemoApp";
-import { Mesh } from "three";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Demo } from '../../DemoApp';
+import { Mesh } from 'three';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 export const useSuzanne = () => {
   // @ts-ignore
-  return useGLTF(
-    new URL("../../models/susanne.glb", import.meta.url).toString()
-  ) as {
+  return useGLTF(new URL('../../models/susanne.glb', import.meta.url).toString()) as {
     nodes: {
       Suzanne: Mesh;
     };
@@ -27,9 +25,7 @@ export const useSuzanne = () => {
 
 const useOffsetTorus = () => {
   // @ts-ignore
-  return useGLTF(
-    new URL("../../models/offset-torus.glb", import.meta.url).toString()
-  ) as {
+  return useGLTF(new URL('../../models/offset-torus.glb', import.meta.url).toString()) as {
     nodes: {
       Torus: Mesh;
     };
@@ -39,25 +35,13 @@ const useOffsetTorus = () => {
 const Suzanne = () => {
   const { nodes } = useSuzanne();
 
-  return (
-    <mesh
-      castShadow
-      geometry={nodes.Suzanne.geometry}
-      material={nodes.Suzanne.material}
-    />
-  );
+  return <mesh castShadow geometry={nodes.Suzanne.geometry} material={nodes.Suzanne.material} />;
 };
 
 const OffsetTorus = () => {
   const { nodes } = useOffsetTorus();
 
-  return (
-    <mesh
-      castShadow
-      geometry={nodes.Torus.geometry}
-      material={nodes.Torus.material}
-    />
-  );
+  return <mesh castShadow geometry={nodes.Torus.geometry} material={nodes.Torus.material} />;
 };
 
 export const AllShapesExample: Demo = () => {
@@ -110,7 +94,7 @@ export const AllShapesExample: Demo = () => {
           <TrimeshCollider
             args={[
               nodes.Suzanne.geometry.attributes.position.array,
-              nodes.Suzanne.geometry.index?.array || []
+              nodes.Suzanne.geometry.index?.array || [],
             ]}
             mass={1}
           />
@@ -119,9 +103,7 @@ export const AllShapesExample: Demo = () => {
 
         <RigidBody colliders={false} position={[0, 8, 0]}>
           <Suzanne />
-          <ConvexHullCollider
-            args={[nodes.Suzanne.geometry.attributes.position.array]}
-          />
+          <ConvexHullCollider args={[nodes.Suzanne.geometry.attributes.position.array]} />
           <Html>Custom TrimeshCollider</Html>
         </RigidBody>
 
@@ -133,7 +115,7 @@ export const AllShapesExample: Demo = () => {
           <BallCollider args={[0.5]} position={[-1, -1, 1]} />
         </RigidBody>
 
-        <RigidBody colliders={"ball"} position={[4, 10, 0]}>
+        <RigidBody colliders={'ball'} position={[4, 10, 0]}>
           <Suzanne />
           <Html>Auto and Custom Combound shape</Html>
 

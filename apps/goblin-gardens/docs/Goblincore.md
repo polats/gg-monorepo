@@ -3,24 +3,19 @@ Goblincore is an online aesthetic and subculture that celebrates nature, often 
 Core elements
 
 - **Nature:** 
-    
-    Focuses on aspects of nature not traditionally considered beautiful, such as moss, frogs, toads, rats, snails, and fungi. It often celebrates "gnarly forests" and chaotic animals rather than just pretty, sunlit fields. 
-    
+
+  Focuses on aspects of nature not traditionally considered beautiful, such as moss, frogs, toads, rats, snails, and fungi. It often celebrates "gnarly forests" and chaotic animals rather than just pretty, sunlit fields. 
 
 - **Hoarding:** 
-    
-    A core part of the aesthetic is collecting and appreciating small, "treasure-like" items, which can include found objects like coins, interesting rocks, or other second-hand items. 
-    
+
+  A core part of the aesthetic is collecting and appreciating small, "treasure-like" items, which can include found objects like coins, interesting rocks, or other second-hand items. 
 
 - **Fashion:** 
-    
-    Clothing is often comfortable and practical for exploring nature, with an emphasis on earthy tones like moss green, brown, and umber. Outfits may feature layered, oversized, or mismatched items, and are often thrifted or worn-out, as getting dirty is not a concern. 
-    
+
+  Clothing is often comfortable and practical for exploring nature, with an emphasis on earthy tones like moss green, brown, and umber. Outfits may feature layered, oversized, or mismatched items, and are often thrifted or worn-out, as getting dirty is not a concern. 
 
 - **DIY and craft:** 
-    
-    Many people create their own goblincore-inspired items, such as pendants or jewelry featuring pressed flowers, moss, or other natural elements. 
-    
+  Many people create their own goblincore-inspired items, such as pendants or jewelry featuring pressed flowers, moss, or other natural elements. 
 
 Who it appeals to
 

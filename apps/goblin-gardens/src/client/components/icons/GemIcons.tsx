@@ -213,7 +213,12 @@ export function TetrahedronIcon({ size = 12, color = '#ffffff', className }: Gem
 /**
  * Get the appropriate gem icon component for a given shape
  */
-export function GemIcon({ shape, size = 12, color = '#ffffff', className }: GemIconProps & { shape: GemShape }) {
+export function GemIcon({
+  shape,
+  size = 12,
+  color = '#ffffff',
+  className,
+}: GemIconProps & { shape: GemShape }) {
   const props = { size, color, ...(className ? { className } : {}) };
 
   switch (shape) {
@@ -233,13 +238,7 @@ export function GemIcon({ shape, size = 12, color = '#ffffff', className }: GemI
  */
 export function CombinedGemsIcon({ size = 24 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      style={{ flexShrink: 0 }}
-    >
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
       {/* Octahedron (diamond) - top left */}
       <path
         d="M7 4 L11 8 L7 8 Z"

@@ -1,9 +1,19 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Physics, RigidBody, CuboidCollider, InstancedRigidBodies, RapierRigidBody } from '@react-three/rapier';
+import {
+  Physics,
+  RigidBody,
+  CuboidCollider,
+  InstancedRigidBodies,
+  RapierRigidBody,
+} from '@react-three/rapier';
 import { OrbitControls, Stats, Line } from '@react-three/drei';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { detectPerformance, scaleObjectCount, type PerformanceTier } from './utils/performanceDetection';
+import {
+  detectPerformance,
+  scaleObjectCount,
+  type PerformanceTier,
+} from './utils/performanceDetection';
 
 // Import extracted 3D components
 import { CanvasText } from './components/game/3d/CanvasText';
@@ -24,14 +34,49 @@ import { GemList } from './components/game/ui/GemList';
 // Import utilities
 import { getCoinColor, getCrystalColor, getGemIconStyle } from './utils/colorUtils';
 import { createMobileFriendlyHandlers, mobileFriendlyButtonStyles } from './utils/mobileHandlers';
-import { isInDragZone, COIN_SPAWN_X, COIN_SPAWN_Z, COIN_SPAWN_RADIUS, GEM_SPAWN_X, GEM_SPAWN_Z, GEM_SPAWN_RADIUS, GROWING_GEM_SPAWN_X, GROWING_GEM_SPAWN_Z, GROWING_GEM_SPAWN_RADIUS } from './utils/spawnPositions';
+import {
+  isInDragZone,
+  COIN_SPAWN_X,
+  COIN_SPAWN_Z,
+  COIN_SPAWN_RADIUS,
+  GEM_SPAWN_X,
+  GEM_SPAWN_Z,
+  GEM_SPAWN_RADIUS,
+  GROWING_GEM_SPAWN_X,
+  GROWING_GEM_SPAWN_Z,
+  GROWING_GEM_SPAWN_RADIUS,
+} from './utils/spawnPositions';
 
 // Import types and constants
-import type { LevelConfig, ObjectTypeConfig, FaucetConfig, TouchConfig, PlayerState, Gem } from './types/game';
-import { LEVEL_CONFIGS, LOCATION_CONFIGS, ROCK_COLORS, DEFAULT_FAUCET_CONFIG, DEFAULT_TOUCH_CONFIG, GARDEN_FAUCET_CONFIGS } from './constants/game';
+import type {
+  LevelConfig,
+  ObjectTypeConfig,
+  FaucetConfig,
+  TouchConfig,
+  PlayerState,
+  Gem,
+} from './types/game';
+import {
+  LEVEL_CONFIGS,
+  LOCATION_CONFIGS,
+  ROCK_COLORS,
+  DEFAULT_FAUCET_CONFIG,
+  DEFAULT_TOUCH_CONFIG,
+  GARDEN_FAUCET_CONFIGS,
+} from './constants/game';
 import { generateObjectTypes } from './utils/objectGeneration';
-import { createGem, getGemDisplayName, getRarityColor, GEM_TYPE_NAMES } from './utils/gemGeneration';
-import { calculateTotalGemValue, calculateGemValue, formatValueAsCoins, convertToCoins } from './utils/gemValue';
+import {
+  createGem,
+  getGemDisplayName,
+  getRarityColor,
+  GEM_TYPE_NAMES,
+} from './utils/gemGeneration';
+import {
+  calculateTotalGemValue,
+  calculateGemValue,
+  formatValueAsCoins,
+  convertToCoins,
+} from './utils/gemValue';
 
 // ============================================================================
 // Garden Initial Spawn Positions
@@ -112,8 +157,8 @@ function DragZoneCounter({
 
     // CRITICAL: Check if any refs have been cleared (scene switching)
     // Skip processing if refs are being cleaned up
-    const hasEmptyRefs = gardenApiRefs.some(ref =>
-      ref.current && Array.isArray(ref.current) && ref.current.length === 0
+    const hasEmptyRefs = gardenApiRefs.some(
+      (ref) => ref.current && Array.isArray(ref.current) && ref.current.length === 0
     );
 
     if (hasEmptyRefs) {
@@ -136,11 +181,15 @@ function DragZoneCounter({
                 count++;
                 // Track instance key for highlighting
                 // For garden objects, use 'garden-{index}' format
-                const meshId = meshIndex < 3 ? `garden-${meshIndex}` : `garden-gem-${meshIndex - 3}`;
+                const meshId =
+                  meshIndex < 3 ? `garden-${meshIndex}` : `garden-gem-${meshIndex - 3}`;
                 instancesInZone.add(`${meshId}:${instanceIndex}`);
               }
             } catch (error) {
-              console.error('[DRAG ZONE COUNTER] Error accessing body:', error, { meshIndex, instanceIndex });
+              console.error('[DRAG ZONE COUNTER] Error accessing body:', error, {
+                meshIndex,
+                instanceIndex,
+              });
             }
           }
         });
@@ -167,17 +216,9 @@ function DragZoneDebugBox({ visible }: { visible: boolean }) {
   const zoneDepth = 0.75;
 
   return (
-    <mesh
-      position={[zoneX, zoneY, zoneZ]}
-      rotation={[0, zoneRotation, 0]}
-    >
+    <mesh position={[zoneX, zoneY, zoneZ]} rotation={[0, zoneRotation, 0]}>
       <boxGeometry args={[zoneWidth, zoneHeight, zoneDepth]} />
-      <meshBasicMaterial
-        color="#ff0000"
-        wireframe={true}
-        transparent={true}
-        opacity={0.5}
-      />
+      <meshBasicMaterial color="#ff0000" wireframe={true} transparent={true} opacity={0.5} />
     </mesh>
   );
 }
@@ -223,12 +264,14 @@ export const CoinValueDisplay = ({
   const parts: JSX.Element[] = [];
 
   const actualFontSize = fontSize || size;
-  const formatAmount = (amount: number) => amount >= 1000 ? amount.toLocaleString() : amount.toString();
+  const formatAmount = (amount: number) =>
+    amount >= 1000 ? amount.toLocaleString() : amount.toString();
 
   const coinOrder = reverse ? ['bronze', 'silver', 'gold'] : ['gold', 'silver', 'bronze'];
 
   coinOrder.forEach((coinType) => {
-    const amount = coinType === 'gold' ? coins.gold : coinType === 'silver' ? coins.silver : coins.bronze;
+    const amount =
+      coinType === 'gold' ? coins.gold : coinType === 'silver' ? coins.silver : coins.bronze;
 
     if (amount > 0 || (showZero && amount === 0)) {
       parts.push(
@@ -305,9 +348,9 @@ function MasterPhysicsLoop({
     // ========================================================================
     // Phase 1: Matrix Synchronization (Consolidated from FallingObjects)
     // ========================================================================
-    const apiRefs = activeScene === 'garden' ? gardenApiRefs : (scroungeApiRefs || []);
-    const meshRefs = activeScene === 'garden' ? gardenMeshRefs : (scroungeMeshRefs || []);
-    const objectTypes = activeScene === 'garden' ? gardenObjectTypes : (scroungeObjectTypes || []);
+    const apiRefs = activeScene === 'garden' ? gardenApiRefs : scroungeApiRefs || [];
+    const meshRefs = activeScene === 'garden' ? gardenMeshRefs : scroungeMeshRefs || [];
+    const objectTypes = activeScene === 'garden' ? gardenObjectTypes : scroungeObjectTypes || [];
 
     apiRefs.forEach((apiRef, meshIndex) => {
       if (!apiRef.current) return;
@@ -326,9 +369,12 @@ function MasterPhysicsLoop({
       const scale = new THREE.Vector3();
 
       // Generate mesh ID for tracking (match FallingObjects naming convention)
-      const meshId = activeScene === 'garden'
-        ? (meshIndex < 3 ? `garden-${meshIndex}` : `garden-gem-${meshIndex - 3}`)
-        : `scrounge-${meshIndex}`;
+      const meshId =
+        activeScene === 'garden'
+          ? meshIndex < 3
+            ? `garden-${meshIndex}`
+            : `garden-gem-${meshIndex - 3}`
+          : `scrounge-${meshIndex}`;
 
       for (let i = 0; i < objectType.count; i++) {
         try {
@@ -383,7 +429,7 @@ function MasterPhysicsLoop({
         let currentMeshRefs: React.RefObject<THREE.InstancedMesh | null>[];
 
         if (meshId.startsWith('garden-gem-')) {
-          const coinCount = GARDEN_OBJECT_TYPES.filter(t => t.materialType === 'coin').length;
+          const coinCount = GARDEN_OBJECT_TYPES.filter((t) => t.materialType === 'coin').length;
           meshIndex = parseInt(meshId.replace('garden-gem-', '')) + coinCount;
           currentApiRefs = gardenApiRefs;
           currentMeshRefs = gardenMeshRefs;
@@ -555,7 +601,15 @@ const GARDEN_ITEM_TYPES = {
   ],
 } as const;
 
-export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void; level?: number; username?: string }) => {
+export const PileDemo = ({
+  onClose,
+  level = 1,
+  username,
+}: {
+  onClose: () => void;
+  level?: number;
+  username?: string;
+}) => {
   // Debug mode - for testing garden features
   const [debugMode, setDebugMode] = useState(false);
 
@@ -586,8 +640,12 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   });
 
   // Debug gem conversion controls
-  const [debugGemType, setDebugGemType] = useState<'diamond' | 'emerald' | 'ruby' | 'sapphire' | 'amethyst'>('diamond');
-  const [debugGemShape, setDebugGemShape] = useState<'tetrahedron' | 'octahedron' | 'dodecahedron'>('octahedron');
+  const [debugGemType, setDebugGemType] = useState<
+    'diamond' | 'emerald' | 'ruby' | 'sapphire' | 'amethyst'
+  >('diamond');
+  const [debugGemShape, setDebugGemShape] = useState<'tetrahedron' | 'octahedron' | 'dodecahedron'>(
+    'octahedron'
+  );
 
   // Performance detection state
   const [performanceTier, setPerformanceTier] = useState<PerformanceTier | null>(null);
@@ -595,7 +653,23 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   const [manualPerformanceTier, setManualPerformanceTier] = useState<PerformanceTier | null>(null); // Use device detection by default
 
   // Followed users state
-  const [followedUsers, setFollowedUsers] = useState<Array<{username: string; lastActive: string; level: number; itemCount: number; offer?: {gems: Array<{name: string; rarity: string; shape: 'tetrahedron' | 'octahedron' | 'dodecahedron'; color: string}>; totalValue: number}}>>([]);
+  const [followedUsers, setFollowedUsers] = useState<
+    Array<{
+      username: string;
+      lastActive: string;
+      level: number;
+      itemCount: number;
+      offer?: {
+        gems: Array<{
+          name: string;
+          rarity: string;
+          shape: 'tetrahedron' | 'octahedron' | 'dodecahedron';
+          color: string;
+        }>;
+        totalValue: number;
+      };
+    }>
+  >([]);
   const [followedUsersCursor, setFollowedUsersCursor] = useState<number | null>(0);
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -617,7 +691,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
       const data = await response.json();
       if (data.type === 'getActiveOffers') {
-        setFollowedUsers(prev => cursor === 0 ? data.offers : [...prev, ...data.offers]);
+        setFollowedUsers((prev) => (cursor === 0 ? data.offers : [...prev, ...data.offers]));
         setFollowedUsersCursor(data.nextCursor);
         setHasMoreUsers(data.hasMore);
       }
@@ -637,9 +711,8 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   // Trade handler function
   const handleTrade = async (sellerUsername: string, totalValue: number) => {
     // 1. Confirm dialog
-    const playerBronzeTotal = playerState.coins.bronze +
-                               playerState.coins.silver * 100 +
-                               playerState.coins.gold * 10000;
+    const playerBronzeTotal =
+      playerState.coins.bronze + playerState.coins.silver * 100 + playerState.coins.gold * 10000;
 
     const coins = {
       gold: Math.floor(totalValue / 10000),
@@ -651,16 +724,16 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       coins.bronze > 0 ? `${coins.bronze} bronze` : '',
       coins.silver > 0 ? `${coins.silver} silver` : '',
       coins.gold > 0 ? `${coins.gold} gold` : '',
-    ].filter(Boolean).join(', ');
+    ]
+      .filter(Boolean)
+      .join(', ');
 
-    const confirmed = window.confirm(
-      `Purchase gems from ${sellerUsername} for ${coinText}?`
-    );
+    const confirmed = window.confirm(`Purchase gems from ${sellerUsername} for ${coinText}?`);
     if (!confirmed) return;
 
     // 2. Validate buyer has enough coins
     if (playerBronzeTotal < totalValue) {
-      alert("Not enough coins!");
+      alert('Not enough coins!');
       return;
     }
 
@@ -694,16 +767,19 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
         // 6. Show success toast
         const toastId = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prevToasts => [...prevToasts, {
-          id: toastId,
-          type: 'bought',
-          timestamp: Date.now(),
-          boughtCount: data.transaction?.gems.length || 0,
-          boughtValue: data.transaction?.coinsSpent || 0,
-        }]);
+        setToasts((prevToasts) => [
+          ...prevToasts,
+          {
+            id: toastId,
+            type: 'bought',
+            timestamp: Date.now(),
+            boughtCount: data.transaction?.gems.length || 0,
+            boughtValue: data.transaction?.coinsSpent || 0,
+          },
+        ]);
 
         setTimeout(() => {
-          setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
+          setToasts((prevToasts) => prevToasts.filter((t) => t.id !== toastId));
         }, 3000);
       } else {
         alert(data.message || 'Trade failed');
@@ -715,7 +791,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   };
 
   // Touch position tracker for tap detection
-  const touchStartPos = useRef<{x: number, y: number} | null>(null);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
 
   // Helper function for mobile-friendly button handlers
   const createMobileFriendlyHandlers = (action: () => void) => ({
@@ -786,13 +862,13 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     const MAX_GEM_SIZE = 0.2; // 200mm maximum size
 
     const intervalId = setInterval(() => {
-      setPlayerState(prev => {
+      setPlayerState((prev) => {
         // Check if any gems are growing
-        const hasGrowingGems = prev.gems.some(g => g.isGrowing);
+        const hasGrowingGems = prev.gems.some((g) => g.isGrowing);
         if (!hasGrowingGems) return prev; // No changes if no growing gems
 
         // Update all growing gems
-        const updatedGems = prev.gems.map(gem => {
+        const updatedGems = prev.gems.map((gem) => {
           if (!gem.isGrowing) return gem; // Skip non-growing gems
 
           // Check if gem has reached maximum size
@@ -818,9 +894,13 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
             if (newSize > MAX_GEM_SIZE) {
               newSize = MAX_GEM_SIZE;
               newGrowth = 100; // Set to 100 to show full progress bar
-              console.log(`[GROWTH] 🏆 Gem ${gem.id} reached MAX SIZE! ${(MAX_GEM_SIZE * 1000).toFixed(0)}mm`);
+              console.log(
+                `[GROWTH] 🏆 Gem ${gem.id} reached MAX SIZE! ${(MAX_GEM_SIZE * 1000).toFixed(0)}mm`
+              );
             } else {
-              console.log(`[GROWTH] 🌱 Gem ${gem.id} grew! Size: ${(gem.size * 1000).toFixed(1)}mm → ${(newSize * 1000).toFixed(1)}mm`);
+              console.log(
+                `[GROWTH] 🌱 Gem ${gem.id} grew! Size: ${(gem.size * 1000).toFixed(1)}mm → ${(newSize * 1000).toFixed(1)}mm`
+              );
             }
           }
 
@@ -878,31 +958,51 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   const [selectedLocation, setSelectedLocation] = useState<string>('rockfall'); // Selected scrounge location
   const [selectedInstances, setSelectedInstances] = useState<Set<string>>(new Set());
   const [draggedInstance, setDraggedInstance] = useState<string | null>(null);
-  const [collectedItems, setCollectedItems] = useState<Array<{ name: string; materialType: string; emoji: string }>>([]);
+  const [collectedItems, setCollectedItems] = useState<
+    Array<{ name: string; materialType: string; emoji: string }>
+  >([]);
   const [showDebugInfo, setShowDebugInfo] = useState(false); // Toggle for device info and FPS
-  const [explosions, setExplosions] = useState<Array<{ id: string; position: [number, number, number]; color: string }>>([]);
-  const [collectingItems, setCollectingItems] = useState<Map<string, { startTime: number; meshId: string; instanceId: number }>>(new Map());
+  const [explosions, setExplosions] = useState<
+    Array<{ id: string; position: [number, number, number]; color: string }>
+  >([]);
+  const [collectingItems, setCollectingItems] = useState<
+    Map<string, { startTime: number; meshId: string; instanceId: number }>
+  >(new Map());
 
   // Toast notifications for collected items and growing/offering status
-  const [toasts, setToasts] = useState<Array<{
-    id: string;
-    type: 'coin' | 'gem' | 'growing' | 'offering' | 'insufficient_coins' | 'scrounge_location' | 'sold' | 'bought';
-    coinType?: string;
-    gem?: Gem;
-    timestamp: number;
-    growingStatus?: 'started' | 'stopped'; // For 'growing' type toasts
-    offeringStatus?: 'started' | 'stopped'; // For 'offering' type toasts
-    message?: string; // For 'insufficient_coins' type toasts
-    locationName?: string; // For 'scrounge_location' type toasts
-    locationYields?: Array<{ type: 'coin' | 'gem'; color: string; shape?: string }>; // For 'scrounge_location' type toasts
-    soldCount?: number; // For 'sold' type toasts - number of gems sold
-    soldValue?: number; // For 'sold' type toasts - total bronze value
-    boughtCount?: number; // For 'bought' type toasts - number of gems bought
-    boughtValue?: number; // For 'bought' type toasts - total bronze value spent
-  }>>([]);
+  const [toasts, setToasts] = useState<
+    Array<{
+      id: string;
+      type:
+        | 'coin'
+        | 'gem'
+        | 'growing'
+        | 'offering'
+        | 'insufficient_coins'
+        | 'scrounge_location'
+        | 'sold'
+        | 'bought';
+      coinType?: string;
+      gem?: Gem;
+      timestamp: number;
+      growingStatus?: 'started' | 'stopped'; // For 'growing' type toasts
+      offeringStatus?: 'started' | 'stopped'; // For 'offering' type toasts
+      message?: string; // For 'insufficient_coins' type toasts
+      locationName?: string; // For 'scrounge_location' type toasts
+      locationYields?: Array<{ type: 'coin' | 'gem'; color: string; shape?: string }>; // For 'scrounge_location' type toasts
+      soldCount?: number; // For 'sold' type toasts - number of gems sold
+      soldValue?: number; // For 'sold' type toasts - total bronze value
+      boughtCount?: number; // For 'bought' type toasts - number of gems bought
+      boughtValue?: number; // For 'bought' type toasts - total bronze value spent
+    }>
+  >([]);
 
   // Get dragged object details in garden mode
-  const getDraggedObjectDetails = (): { type: 'coin' | 'gem'; coinType?: string; gem?: Gem } | null => {
+  const getDraggedObjectDetails = (): {
+    type: 'coin' | 'gem';
+    coinType?: string;
+    gem?: Gem;
+  } | null => {
     if (!draggedInstance || activeScene !== 'garden') {
       console.log('[DEBUG] No drag or not garden:', { draggedInstance, activeScene });
       return null;
@@ -912,7 +1012,11 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     const [meshIdStr, instanceIdStr] = draggedInstance.split(':');
     const meshIndex = parseInt(meshIdStr);
     const instanceId = parseInt(instanceIdStr);
-    console.log('[DEBUG] Parsed:', { meshIndex, instanceId, totalGardenTypes: GARDEN_OBJECT_TYPES.length });
+    console.log('[DEBUG] Parsed:', {
+      meshIndex,
+      instanceId,
+      totalGardenTypes: GARDEN_OBJECT_TYPES.length,
+    });
 
     // In garden mode, meshIndex directly maps to GARDEN_OBJECT_TYPES
     const objectType = GARDEN_OBJECT_TYPES[meshIndex];
@@ -922,7 +1026,10 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       return null;
     }
 
-    console.log('[DEBUG] Found objectType:', { name: objectType.name, materialType: objectType.materialType });
+    console.log('[DEBUG] Found objectType:', {
+      name: objectType.name,
+      materialType: objectType.materialType,
+    });
 
     // Check if it's a coin
     if (objectType.materialType === 'coin') {
@@ -948,23 +1055,29 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       // Find the specific gem from the grouped gems
       // IMPORTANT: Must match the grouping logic in GARDEN_OBJECT_TYPES
       // Sort by ID to ensure stable order
-      const sortedGems = [...playerState.gems].sort((a, b) =>
-        a.id.localeCompare(b.id)
-      );
+      const sortedGems = [...playerState.gems].sort((a, b) => a.id.localeCompare(b.id));
 
       // Group by type and shape (includes both inventory and growing gems)
       const key = `${gemType}_${gemShape}`;
-      const gemsByTypeAndShape = sortedGems.reduce((acc, gem) => {
-        const k = `${gem.type}_${gem.shape}`;
-        if (!acc[k]) {
-          acc[k] = [];
-        }
-        acc[k].push(gem);
-        return acc;
-      }, {} as Record<string, Gem[]>);
+      const gemsByTypeAndShape = sortedGems.reduce(
+        (acc, gem) => {
+          const k = `${gem.type}_${gem.shape}`;
+          if (!acc[k]) {
+            acc[k] = [];
+          }
+          acc[k].push(gem);
+          return acc;
+        },
+        {} as Record<string, Gem[]>
+      );
 
       const gems = gemsByTypeAndShape[key];
-      console.log('[DEBUG] Gem lookup by key:', { key, gemsForKey: gems?.length, instanceId, foundGem: !!gems?.[instanceId] });
+      console.log('[DEBUG] Gem lookup by key:', {
+        key,
+        gemsForKey: gems?.length,
+        instanceId,
+        foundGem: !!gems?.[instanceId],
+      });
       if (gems && gems[instanceId]) {
         console.log('[DEBUG] Returning gem:', gems[instanceId]);
         return { type: 'gem', gem: gems[instanceId] };
@@ -1054,8 +1167,12 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   // Save player state to server whenever it changes (debounced)
   useEffect(() => {
     // Don't save on initial mount (when state is empty)
-    if (playerState.coins.gold === 0 && playerState.coins.silver === 0 &&
-        playerState.coins.bronze === 0 && playerState.gems.length === 0) {
+    if (
+      playerState.coins.gold === 0 &&
+      playerState.coins.silver === 0 &&
+      playerState.coins.bronze === 0 &&
+      playerState.gems.length === 0
+    ) {
       return;
     }
 
@@ -1064,8 +1181,8 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
         console.log('[SAVE] Saving player state to server...', {
           coins: playerState.coins,
           gemCount: playerState.gems.length,
-          growingGems: playerState.gems.filter(g => g.isGrowing).length,
-          offeringGems: playerState.gems.filter(g => g.isOffering).length,
+          growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+          offeringGems: playerState.gems.filter((g) => g.isOffering).length,
         });
 
         const response = await fetch('/api/player-state/save', {
@@ -1096,7 +1213,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
   // Auto-sync player's offer when offering gems change
   useEffect(() => {
-    const offeringGems = playerState.gems.filter(g => g.isOffering);
+    const offeringGems = playerState.gems.filter((g) => g.isOffering);
 
     // Debounce offer updates to avoid spamming the server
     const offerUpdateTimeout = setTimeout(() => {
@@ -1109,7 +1226,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
             'X-Username': effectiveUsername,
           },
           body: JSON.stringify({ gems: offeringGems }),
-        }).catch(error => {
+        }).catch((error) => {
           console.error('[OFFER SYNC] Failed to update offer:', error);
         });
       } else {
@@ -1117,7 +1234,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
         fetch('/api/offers/remove', {
           method: 'DELETE',
           headers: { 'X-Username': effectiveUsername },
-        }).catch(error => {
+        }).catch((error) => {
           console.error('[OFFER SYNC] Failed to remove offer:', error);
         });
       }
@@ -1126,8 +1243,11 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     return () => clearTimeout(offerUpdateTimeout);
   }, [
     // Only trigger when the list of offering gem IDs changes, not on every gem property change
-    playerState.gems.filter(g => g.isOffering).map(g => g.id).join(','),
-    effectiveUsername
+    playerState.gems
+      .filter((g) => g.isOffering)
+      .map((g) => g.id)
+      .join(','),
+    effectiveUsername,
   ]);
 
   // Track count of objects in drag zone
@@ -1140,8 +1260,8 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   // In garden mode: use standard level config
   const baseLevelConfig = useMemo(() => {
     return activeScene === 'scrounge'
-      ? (LOCATION_CONFIGS[selectedLocation] || LOCATION_CONFIGS['rockfall']!)
-      : (LEVEL_CONFIGS[level] || LEVEL_CONFIGS[1]!);
+      ? LOCATION_CONFIGS[selectedLocation] || LOCATION_CONFIGS['rockfall']!
+      : LEVEL_CONFIGS[level] || LEVEL_CONFIGS[1]!;
   }, [activeScene, selectedLocation, level]);
 
   // Use manual override if set, otherwise use detected tier
@@ -1152,7 +1272,10 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
   // Generate object types based on level (always at full count)
   const OBJECT_TYPES = useMemo(() => generateObjectTypes(levelConfig), [levelConfig]);
-  const TOTAL_OBJECTS = useMemo(() => OBJECT_TYPES.reduce((sum, type) => sum + type.count, 0), [OBJECT_TYPES]);
+  const TOTAL_OBJECTS = useMemo(
+    () => OBJECT_TYPES.reduce((sum, type) => sum + type.count, 0),
+    [OBJECT_TYPES]
+  );
 
   // Flag to enable/disable garden faucet (for troubleshooting)
   const GARDEN_FAUCET_ENABLED = true;
@@ -1164,10 +1287,14 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
   // Create a stable key that only tracks gem IDs (not their properties)
   // This prevents reinitialization when gem properties like isGrowing change
-  const gemIdsKey = useMemo(() =>
-    playerState.gems.map(g => g.id).sort().join(','),
+  const gemIdsKey = useMemo(
+    () =>
+      playerState.gems
+        .map((g) => g.id)
+        .sort()
+        .join(','),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [playerState.gems.length, ...playerState.gems.map(g => g.id)]
+    [playerState.gems.length, ...playerState.gems.map((g) => g.id)]
   );
 
   const GARDEN_OBJECT_TYPES = useMemo((): ObjectTypeConfig[] => {
@@ -1216,7 +1343,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     // In "My Offer" mode: include both inventory and offering gems (filter out growing gems)
     // In other modes: only include inventory gems (filter out both growing and offering gems)
     const sortedGems = [...playerState.gems]
-      .filter(gem => {
+      .filter((gem) => {
         if (gardenAction === 'grow') {
           // In Grow mode: show inventory and growing gems, hide offering gems
           return !gem.isOffering;
@@ -1231,14 +1358,17 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       .sort((a, b) => a.id.localeCompare(b.id));
 
     // Group gems by both type AND shape to render efficiently
-    const gemsByTypeAndShape = sortedGems.reduce((acc, gem) => {
-      const key = `${gem.type}_${gem.shape}`;
-      if (!acc[key]) {
-        acc[key] = [];
-      }
-      acc[key].push(gem);
-      return acc;
-    }, {} as Record<string, Gem[]>);
+    const gemsByTypeAndShape = sortedGems.reduce(
+      (acc, gem) => {
+        const key = `${gem.type}_${gem.shape}`;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(gem);
+        return acc;
+      },
+      {} as Record<string, Gem[]>
+    );
 
     // Add gem objects for each type-shape combination
     // Use instanceSpawnZones to indicate which zone each gem should spawn in
@@ -1269,8 +1399,8 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
         }
 
         // Determine which faucet to use based on whether ANY gem in this group is growing
-        const hasGrowingGems = gems.some(g => g.isGrowing);
-        const hasInventoryGems = gems.some(g => !g.isGrowing);
+        const hasGrowingGems = gems.some((g) => g.isGrowing);
+        const hasInventoryGems = gems.some((g) => !g.isGrowing);
 
         // Use 'gem-faucet' if there are inventory gems, otherwise 'growing-gem-faucet'
         const faucetId = hasInventoryGems ? 'gem-faucet' : 'growing-gem-faucet';
@@ -1286,33 +1416,48 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
           materialType: 'gem',
           spawnHeight: 'bottom', // Default spawn height (overridden by liveInstanceSpawnZones prop)
           faucetId,
-          instanceScales: gems.map(gem => gem.size / baseSize), // Scale = actual size / geometry base size
+          instanceScales: gems.map((gem) => gem.size / baseSize), // Scale = actual size / geometry base size
           // Note: instanceSpawnZones removed - we use liveInstanceSpawnZones prop instead for reactive updates
         });
       }
     });
 
-    console.log('[DEBUG] GARDEN_OBJECT_TYPES computed:', objects.map(o => ({ name: o.name, count: o.count, materialType: o.materialType })));
+    console.log(
+      '[DEBUG] GARDEN_OBJECT_TYPES computed:',
+      objects.map((o) => ({ name: o.name, count: o.count, materialType: o.materialType }))
+    );
 
     // Log gem IDs being rendered in garden
-    const gemObjects = objects.filter(o => o.materialType === 'gem');
-    gemObjects.forEach(obj => {
+    const gemObjects = objects.filter((o) => o.materialType === 'gem');
+    gemObjects.forEach((obj) => {
       const nameWithoutPrefix = obj.name.replace('garden_', '');
       const [gemType, gemShape] = nameWithoutPrefix.split('_');
-      const gemsForThisType = sortedGems.filter(g => g.type === gemType && g.shape === gemShape);
-      console.log(`[GARDEN RENDER] 🏡 Rendering ${gemsForThisType.length} ${obj.name} gems:`,
-        gemsForThisType.map(g => ({ id: g.id, isGrowing: g.isGrowing, isOffering: g.isOffering, source: g.id.startsWith('DEBUG_') ? 'TEST' : 'SCROUNGE' }))
+      const gemsForThisType = sortedGems.filter((g) => g.type === gemType && g.shape === gemShape);
+      console.log(
+        `[GARDEN RENDER] 🏡 Rendering ${gemsForThisType.length} ${obj.name} gems:`,
+        gemsForThisType.map((g) => ({
+          id: g.id,
+          isGrowing: g.isGrowing,
+          isOffering: g.isOffering,
+          source: g.id.startsWith('DEBUG_') ? 'TEST' : 'SCROUNGE',
+        }))
       );
     });
 
     return objects;
-  // Recalculate when:
-  // - Coins change
-  // - Gems are added/removed (gemIdsKey changes)
-  // - Garden action changes (to show/hide growing gems and trigger respawn)
-  // NOT when isGrowing changes (handled by liveInstanceSpawnZones)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerState.coins.gold, playerState.coins.silver, playerState.coins.bronze, gemIdsKey, gardenAction]);
+    // Recalculate when:
+    // - Coins change
+    // - Gems are added/removed (gemIdsKey changes)
+    // - Garden action changes (to show/hide growing gems and trigger respawn)
+    // NOT when isGrowing changes (handled by liveInstanceSpawnZones)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    playerState.coins.gold,
+    playerState.coins.silver,
+    playerState.coins.bronze,
+    gemIdsKey,
+    gardenAction,
+  ]);
 
   // Create refs for each object type (scrounge mode)
   const objectApiRefs = useRef<React.RefObject<RapierRigidBody[]>[]>([]);
@@ -1361,21 +1506,24 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
   // Helper function to show scrounge location toast
   const showScroungeLocationToast = (locationId?: string) => {
     const locId = locationId || selectedLocation;
-    const location = SCROUNGE_LOCATIONS.find(loc => loc.id === locId);
+    const location = SCROUNGE_LOCATIONS.find((loc) => loc.id === locId);
     if (!location) return;
 
     const toastId = `toast-${Date.now()}-${Math.random()}`;
-    setToasts(prev => [...prev, {
-      id: toastId,
-      type: 'scrounge_location',
-      locationName: location.name,
-      locationYields: location.yields,
-      timestamp: Date.now(),
-    }]);
+    setToasts((prev) => [
+      ...prev,
+      {
+        id: toastId,
+        type: 'scrounge_location',
+        locationName: location.name,
+        locationYields: location.yields,
+        timestamp: Date.now(),
+      },
+    ]);
 
     // Auto-remove toast after 3 seconds
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== toastId));
+      setToasts((prev) => prev.filter((t) => t.id !== toastId));
     }, 3000);
   };
 
@@ -1409,19 +1557,21 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       // Log garden refs status before cleanup
       console.log('[MODE SWITCH] Garden refs before cleanup:', {
         gardenRefsCount: gardenApiRefs.current.length,
-        gardenRefsWithBodies: gardenApiRefs.current.filter(ref => ref.current && ref.current.length > 0).length,
+        gardenRefsWithBodies: gardenApiRefs.current.filter(
+          (ref) => ref.current && ref.current.length > 0
+        ).length,
       });
 
       // Switching from garden, refresh the scene
       // Clear physics refs to prevent race conditions with old bodies
-      objectApiRefs.current.forEach(ref => {
+      objectApiRefs.current.forEach((ref) => {
         if (ref.current) {
           ref.current = [];
         }
       });
 
       // CRITICAL FIX: Also clear garden refs when switching away
-      gardenApiRefs.current.forEach(ref => {
+      gardenApiRefs.current.forEach((ref) => {
         if (ref.current) {
           ref.current = [];
         }
@@ -1429,7 +1579,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       console.log('[MODE SWITCH] Cleared both objectApiRefs and gardenApiRefs');
 
       // React 18 batches these updates into a single render
-      setSceneKey(prev => prev + 1);
+      setSceneKey((prev) => prev + 1);
     }
 
     setActiveScene('scrounge');
@@ -1464,11 +1614,13 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       // Log scrounge refs status before cleanup
       console.log('[MODE SWITCH] Scrounge refs before cleanup:', {
         objectRefsCount: objectApiRefs.current.length,
-        objectRefsWithBodies: objectApiRefs.current.filter(ref => ref.current && ref.current.length > 0).length,
+        objectRefsWithBodies: objectApiRefs.current.filter(
+          (ref) => ref.current && ref.current.length > 0
+        ).length,
       });
 
       // Clear scrounge physics refs when switching to garden
-      objectApiRefs.current.forEach(ref => {
+      objectApiRefs.current.forEach((ref) => {
         if (ref.current) {
           ref.current = [];
         }
@@ -1496,12 +1648,12 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     setDragZoneInstances(new Set());
 
     // Clear garden refs to prevent race conditions with old bodies
-    gardenApiRefs.current.forEach(ref => {
+    gardenApiRefs.current.forEach((ref) => {
       if (ref.current) {
         ref.current = [];
       }
     });
-    gardenMeshRefs.current.forEach(ref => {
+    gardenMeshRefs.current.forEach((ref) => {
       if (ref.current) {
         ref.current = null;
       }
@@ -1509,7 +1661,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     console.log('[GARDEN ACTION] Cleared garden refs');
 
     // Increment sceneKey to force full remount (like scene switches)
-    setSceneKey(prev => prev + 1);
+    setSceneKey((prev) => prev + 1);
 
     // Change garden action
     setGardenAction('grow');
@@ -1530,12 +1682,12 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     setDragZoneInstances(new Set());
 
     // Clear garden refs to prevent race conditions with old bodies
-    gardenApiRefs.current.forEach(ref => {
+    gardenApiRefs.current.forEach((ref) => {
       if (ref.current) {
         ref.current = [];
       }
     });
-    gardenMeshRefs.current.forEach(ref => {
+    gardenMeshRefs.current.forEach((ref) => {
       if (ref.current) {
         ref.current = null;
       }
@@ -1543,7 +1695,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     console.log('[GARDEN ACTION] Cleared garden refs');
 
     // Increment sceneKey to force full remount (like scene switches)
-    setSceneKey(prev => prev + 1);
+    setSceneKey((prev) => prev + 1);
 
     // Change garden action
     setGardenAction('my-offer');
@@ -1576,22 +1728,27 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     body.setAngvel({ x: 0, y: 0, z: 0 }, true);
 
     // Start the scale animation (using a ref to get current clock time will be handled in useFrame)
-    setCollectingItems(prev => new Map(prev).set(instanceKey, {
-      startTime: Date.now() / 1000, // Use Date.now for consistency
-      meshId,
-      instanceId,
-    }));
+    setCollectingItems((prev) =>
+      new Map(prev).set(instanceKey, {
+        startTime: Date.now() / 1000, // Use Date.now for consistency
+        meshId,
+        instanceId,
+      })
+    );
 
     const bodyPos = body.translation();
     const explosionPosition: [number, number, number] = [bodyPos.x, bodyPos.y, bodyPos.z];
 
     // Create explosion (always golden color)
     const explosionId = `${meshId}-${instanceId}-${Date.now()}`;
-    setExplosions(prev => [...prev, {
-      id: explosionId,
-      position: explosionPosition,
-      color: '#FFD700',
-    }]);
+    setExplosions((prev) => [
+      ...prev,
+      {
+        id: explosionId,
+        position: explosionPosition,
+        color: '#FFD700',
+      },
+    ]);
 
     // Determine emoji based on material type and name
     let emoji = '💎';
@@ -1603,14 +1760,17 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     }
 
     // Add to collected items
-    setCollectedItems(prev => [...prev, {
-      name: objectType.name,
-      materialType: objectType.materialType || 'unknown',
-      emoji,
-    }]);
+    setCollectedItems((prev) => [
+      ...prev,
+      {
+        name: objectType.name,
+        materialType: objectType.materialType || 'unknown',
+        emoji,
+      },
+    ]);
 
     // Update player state with collected item
-    setPlayerState(prev => {
+    setPlayerState((prev) => {
       const newState = { ...prev };
 
       if (objectType.materialType === 'coin') {
@@ -1629,16 +1789,19 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
         // Show toast for coin collection
         const toastId = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prev => [...prev, {
-          id: toastId,
-          type: 'coin',
-          coinType,
-          timestamp: Date.now(),
-        }]);
+        setToasts((prev) => [
+          ...prev,
+          {
+            id: toastId,
+            type: 'coin',
+            coinType,
+            timestamp: Date.now(),
+          },
+        ]);
 
         // Auto-remove toast after 1 second
         setTimeout(() => {
-          setToasts(prev => prev.filter(t => t.id !== toastId));
+          setToasts((prev) => prev.filter((t) => t.id !== toastId));
         }, 1000);
       } else if (objectType.materialType === 'gem') {
         // Create a unique gem with random rarity and specific type/shape based on collected object
@@ -1682,16 +1845,19 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
         // Show toast for gem collection
         const toastId = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prev => [...prev, {
-          id: toastId,
-          type: 'gem',
-          gem: newGem,
-          timestamp: Date.now(),
-        }]);
+        setToasts((prev) => [
+          ...prev,
+          {
+            id: toastId,
+            type: 'gem',
+            gem: newGem,
+            timestamp: Date.now(),
+          },
+        ]);
 
         // Auto-remove toast after 1 second
         setTimeout(() => {
-          setToasts(prev => prev.filter(t => t.id !== toastId));
+          setToasts((prev) => prev.filter((t) => t.id !== toastId));
         }, 1000);
       }
 
@@ -1708,7 +1874,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       }
 
       // Remove from collecting items
-      setCollectingItems(prev => {
+      setCollectingItems((prev) => {
         const newMap = new Map(prev);
         newMap.delete(instanceKey);
         return newMap;
@@ -1718,7 +1884,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
   // Remove completed explosion
   const removeExplosion = (id: string) => {
-    setExplosions(prev => prev.filter(exp => exp.id !== id));
+    setExplosions((prev) => prev.filter((exp) => exp.id !== id));
   };
 
   // Handle dropping items in garden mode
@@ -1811,77 +1977,99 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
     // Handle based on garden action
     if (gardenAction === 'grow') {
       // Toggle isGrowing flag based on whether gem is in drag zone
-      setPlayerState(prev => {
+      setPlayerState((prev) => {
         const targetGrowingState = inDragZone;
 
         // If the gem is already in the desired state, no change needed
         if (gem.isGrowing === targetGrowingState) {
-          console.log('[GARDEN DROP] Gem already in correct state:', targetGrowingState ? 'growing' : 'inventory');
+          console.log(
+            '[GARDEN DROP] Gem already in correct state:',
+            targetGrowingState ? 'growing' : 'inventory'
+          );
           return prev;
         }
 
-        console.log('[GARDEN DROP] Toggling gem state:', gem.id, 'isGrowing:', gem.isGrowing, '->', targetGrowingState);
+        console.log(
+          '[GARDEN DROP] Toggling gem state:',
+          gem.id,
+          'isGrowing:',
+          gem.isGrowing,
+          '->',
+          targetGrowingState
+        );
 
         // Show toast notification for growing status change
         const toastId = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prevToasts => [...prevToasts, {
-          id: toastId,
-          type: 'growing',
-          gem: gem,
-          timestamp: Date.now(),
-          growingStatus: targetGrowingState ? 'started' : 'stopped',
-        }]);
+        setToasts((prevToasts) => [
+          ...prevToasts,
+          {
+            id: toastId,
+            type: 'growing',
+            gem: gem,
+            timestamp: Date.now(),
+            growingStatus: targetGrowingState ? 'started' : 'stopped',
+          },
+        ]);
 
         // Auto-remove toast after 1 second
         setTimeout(() => {
-          setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
+          setToasts((prevToasts) => prevToasts.filter((t) => t.id !== toastId));
         }, 1000);
 
         // Update the gem's isGrowing flag
         return {
           ...prev,
-          gems: prev.gems.map(g =>
-            g.id === gem.id
-              ? { ...g, isGrowing: targetGrowingState }
-              : g
+          gems: prev.gems.map((g) =>
+            g.id === gem.id ? { ...g, isGrowing: targetGrowingState } : g
           ),
         };
       });
     } else if (gardenAction === 'my-offer') {
       // Toggle isOffering flag based on whether gem is in drag zone
-      setPlayerState(prev => {
+      setPlayerState((prev) => {
         const targetOfferingState = inDragZone;
 
         // If the gem is already in the desired state, no change needed
         if (gem.isOffering === targetOfferingState) {
-          console.log('[GARDEN DROP] Gem already in correct state:', targetOfferingState ? 'offering' : 'inventory');
+          console.log(
+            '[GARDEN DROP] Gem already in correct state:',
+            targetOfferingState ? 'offering' : 'inventory'
+          );
           return prev;
         }
 
-        console.log('[GARDEN DROP] Toggling gem state:', gem.id, 'isOffering:', gem.isOffering, '->', targetOfferingState);
+        console.log(
+          '[GARDEN DROP] Toggling gem state:',
+          gem.id,
+          'isOffering:',
+          gem.isOffering,
+          '->',
+          targetOfferingState
+        );
 
         // Show toast notification for offering status change
         const toastId = `toast-${Date.now()}-${Math.random()}`;
-        setToasts(prevToasts => [...prevToasts, {
-          id: toastId,
-          type: 'offering',
-          gem: gem,
-          timestamp: Date.now(),
-          offeringStatus: targetOfferingState ? 'started' : 'stopped',
-        }]);
+        setToasts((prevToasts) => [
+          ...prevToasts,
+          {
+            id: toastId,
+            type: 'offering',
+            gem: gem,
+            timestamp: Date.now(),
+            offeringStatus: targetOfferingState ? 'started' : 'stopped',
+          },
+        ]);
 
         // Auto-remove toast after 1 second
         setTimeout(() => {
-          setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
+          setToasts((prevToasts) => prevToasts.filter((t) => t.id !== toastId));
         }, 1000);
 
         // Update the gem's isOffering flag
         return {
           ...prev,
-          gems: prev.gems.map(g =>
-            g.id === gem.id
-              ? { ...g, isOffering: targetOfferingState }
-              : g
+          gems: prev.gems.map((g) =>
+            g.id === gem.id ? { ...g, isOffering: targetOfferingState } : g
           ),
         };
       });
@@ -1890,11 +2078,9 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
   // Debug: Convert all gems to selected type and shape
   const convertAllGemsToType = () => {
-    setPlayerState(prev => ({
+    setPlayerState((prev) => ({
       ...prev,
-      gems: prev.gems.map(gem =>
-        createGem(debugGemType, gem.rarity, debugGemShape)
-      ),
+      gems: prev.gems.map((gem) => createGem(debugGemType, gem.rarity, debugGemShape)),
     }));
   };
 
@@ -1967,35 +2153,40 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
 
       {/* Toast Notifications - Slide from top */}
       {toasts.length > 0 && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 2000,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          pointerEvents: 'none',
-          width: '90%',
-          maxWidth: 400,
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 2000,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            pointerEvents: 'none',
+            width: '90%',
+            maxWidth: 400,
+          }}
+        >
           {toasts.map((toast, index) => {
             // Determine background color for growing/offering toasts
             let background = 'rgba(0, 0, 0, 0.9)';
-            let border = toast.type === 'gem'
-              ? `2px solid ${toast.gem?.color || '#FFD700'}`
-              : `2px solid ${getCoinColor(toast.coinType || 'bronze')}`;
+            let border =
+              toast.type === 'gem'
+                ? `2px solid ${toast.gem?.color || '#FFD700'}`
+                : `2px solid ${getCoinColor(toast.coinType || 'bronze')}`;
 
             if (toast.type === 'growing') {
-              background = toast.growingStatus === 'started'
-                ? 'rgba(0, 150, 0, 0.9)' // Green background for "Now growing"
-                : 'rgba(180, 0, 0, 0.9)'; // Red background for "Stopped growing"
+              background =
+                toast.growingStatus === 'started'
+                  ? 'rgba(0, 150, 0, 0.9)' // Green background for "Now growing"
+                  : 'rgba(180, 0, 0, 0.9)'; // Red background for "Stopped growing"
               border = `2px solid ${toast.gem?.color || '#FFD700'}`;
             } else if (toast.type === 'offering') {
-              background = toast.offeringStatus === 'started'
-                ? 'rgba(0, 100, 200, 0.9)' // Blue background for "Now offering"
-                : 'rgba(180, 0, 0, 0.9)'; // Red background for "Stopped offering"
+              background =
+                toast.offeringStatus === 'started'
+                  ? 'rgba(0, 100, 200, 0.9)' // Blue background for "Now offering"
+                  : 'rgba(180, 0, 0, 0.9)'; // Red background for "Stopped offering"
               border = `2px solid ${toast.gem?.color || '#FFD700'}`;
             } else if (toast.type === 'insufficient_coins') {
               background = 'rgba(180, 0, 0, 0.9)'; // Red background for error
@@ -2030,29 +2221,26 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
               >
                 {toast.type === 'gem' && toast.gem && (
                   <>
-                    <GemIcon
-                      shape={toast.gem.shape}
-                      size={24}
-                      color={toast.gem.color}
-                    />
+                    <GemIcon shape={toast.gem.shape} size={24} color={toast.gem.color} />
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         <span style={{ color: getRarityColor(toast.gem.rarity) }}>
                           {toast.gem.rarity.charAt(0).toUpperCase() + toast.gem.rarity.slice(1)}
-                        </span>
-                        {' '}
-                        <span style={{ color: 'white' }}>
-                          {GEM_TYPE_NAMES[toast.gem.type]}
-                        </span>
+                        </span>{' '}
+                        <span style={{ color: 'white' }}>{GEM_TYPE_NAMES[toast.gem.type]}</span>
                       </span>
-                      <span style={{
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: 10,
-                        fontFamily: 'monospace',
-                      }}>
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        }}
+                      >
                         {toast.gem.growthRate}x growth • {(toast.gem.size * 1000).toFixed(0)}mm
                       </span>
                     </div>
@@ -2060,49 +2248,44 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
                 )}
                 {toast.type === 'coin' && toast.coinType && (
                   <>
-                    <CoinIcon
-                      color={getCoinColor(toast.coinType)}
-                      size={24}
-                    />
-                    <span style={{
-                      color: getCoinColor(toast.coinType),
-                      fontSize: 14,
-                      fontWeight: 'bold',
-                      flex: 1,
-                    }}>
+                    <CoinIcon color={getCoinColor(toast.coinType)} size={24} />
+                    <span
+                      style={{
+                        color: getCoinColor(toast.coinType),
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        flex: 1,
+                      }}
+                    >
                       {toast.coinType.charAt(0).toUpperCase() + toast.coinType.slice(1)} Coin
                     </span>
                   </>
                 )}
                 {toast.type === 'growing' && toast.gem && (
                   <>
-                    <GemIcon
-                      shape={toast.gem.shape}
-                      size={24}
-                      color={toast.gem.color}
-                    />
+                    <GemIcon shape={toast.gem.shape} size={24} color={toast.gem.color} />
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         <span style={{ color: 'white' }}>
                           {toast.growingStatus === 'started' ? 'Now growing' : 'Stopped growing'}
-                        </span>
-                        {' '}
+                        </span>{' '}
                         <span style={{ color: getRarityColor(toast.gem.rarity) }}>
                           {toast.gem.rarity.charAt(0).toUpperCase() + toast.gem.rarity.slice(1)}
-                        </span>
-                        {' '}
-                        <span style={{ color: 'white' }}>
-                          {GEM_TYPE_NAMES[toast.gem.type]}
-                        </span>
+                        </span>{' '}
+                        <span style={{ color: 'white' }}>{GEM_TYPE_NAMES[toast.gem.type]}</span>
                       </span>
-                      <span style={{
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: 10,
-                        fontFamily: 'monospace',
-                      }}>
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        }}
+                      >
                         {toast.gem.growthRate}x growth • {(toast.gem.size * 1000).toFixed(0)}mm
                       </span>
                     </div>
@@ -2110,33 +2293,29 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
                 )}
                 {toast.type === 'offering' && toast.gem && (
                   <>
-                    <GemIcon
-                      shape={toast.gem.shape}
-                      size={24}
-                      color={toast.gem.color}
-                    />
+                    <GemIcon shape={toast.gem.shape} size={24} color={toast.gem.color} />
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <span style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         <span style={{ color: 'white' }}>
                           {toast.offeringStatus === 'started' ? 'Now offering' : 'Stopped offering'}
-                        </span>
-                        {' '}
+                        </span>{' '}
                         <span style={{ color: getRarityColor(toast.gem.rarity) }}>
                           {toast.gem.rarity.charAt(0).toUpperCase() + toast.gem.rarity.slice(1)}
-                        </span>
-                        {' '}
-                        <span style={{ color: 'white' }}>
-                          {GEM_TYPE_NAMES[toast.gem.type]}
-                        </span>
+                        </span>{' '}
+                        <span style={{ color: 'white' }}>{GEM_TYPE_NAMES[toast.gem.type]}</span>
                       </span>
-                      <span style={{
-                        color: 'rgba(255, 255, 255, 0.6)',
-                        fontSize: 10,
-                        fontFamily: 'monospace',
-                      }}>
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        }}
+                      >
                         {toast.gem.growthRate}x growth • {(toast.gem.size * 1000).toFixed(0)}mm
                       </span>
                     </div>
@@ -2144,103 +2323,135 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
                 )}
                 {toast.type === 'insufficient_coins' && (
                   <>
-                    <div style={{
-                      fontSize: 20,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 20,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       ⚠️
                     </div>
-                    <span style={{
-                      color: 'white',
-                      fontSize: 14,
-                      fontWeight: 'bold',
-                      flex: 1,
-                    }}>
+                    <span
+                      style={{
+                        color: 'white',
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        flex: 1,
+                      }}
+                    >
                       {toast.message || 'Not enough coins'}
                     </span>
                   </>
                 )}
                 {toast.type === 'sold' && (
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                    flex: 1,
-                  }}>
-                    <div style={{
+                  <div
+                    style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}>
+                      flexDirection: 'column',
+                      gap: 4,
+                      flex: 1,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
                       <span style={{ fontSize: 16 }}>💰</span>
-                      <span style={{
-                        color: 'white',
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          color: 'white',
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Sold {toast.soldCount} {toast.soldCount === 1 ? 'gem' : 'gems'} for{' '}
-                        <CoinValueDisplay bronzeValue={toast.soldValue || 0} size={14} reverse={true} />
+                        <CoinValueDisplay
+                          bronzeValue={toast.soldValue || 0}
+                          size={14}
+                          reverse={true}
+                        />
                       </span>
                     </div>
                   </div>
                 )}
                 {toast.type === 'bought' && (
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 4,
-                    flex: 1,
-                  }}>
-                    <div style={{
+                  <div
+                    style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}>
+                      flexDirection: 'column',
+                      gap: 4,
+                      flex: 1,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
                       <span style={{ fontSize: 16 }}>💎</span>
-                      <span style={{
-                        color: 'white',
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          color: 'white',
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Bought {toast.boughtCount} {toast.boughtCount === 1 ? 'gem' : 'gems'} for{' '}
-                        <CoinValueDisplay bronzeValue={toast.boughtValue || 0} size={14} reverse={true} />
+                        <CoinValueDisplay
+                          bronzeValue={toast.boughtValue || 0}
+                          size={14}
+                          reverse={true}
+                        />
                       </span>
                     </div>
                   </div>
                 )}
                 {toast.type === 'scrounge_location' && toast.locationName && (
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 8,
-                    flex: 1,
-                  }}>
-                    {/* Location Name */}
-                    <div style={{
+                  <div
+                    style={{
                       display: 'flex',
-                      alignItems: 'center',
+                      flexDirection: 'column',
                       gap: 8,
-                    }}>
+                      flex: 1,
+                    }}
+                  >
+                    {/* Location Name */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
                       <span style={{ fontSize: 16 }}>⛏️</span>
-                      <span style={{
-                        color: 'white',
-                        fontSize: 14,
-                        fontWeight: 'bold',
-                      }}>
+                      <span
+                        style={{
+                          color: 'white',
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Now scrounging at {toast.locationName}
                       </span>
                     </div>
 
                     {/* Yield Icons */}
                     {toast.locationYields && toast.locationYields.length > 0 && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 6,
-                        flexWrap: 'wrap',
-                      }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          flexWrap: 'wrap',
+                        }}
+                      >
                         {toast.locationYields.map((yieldItem, idx) => (
                           <div key={idx}>
                             {yieldItem.type === 'coin' ? (
@@ -2258,12 +2469,14 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
                     )}
 
                     {/* Instructions */}
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: 10,
-                      fontStyle: 'italic',
-                      lineHeight: 1.3,
-                    }}>
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: 10,
+                        fontStyle: 'italic',
+                        lineHeight: 1.3,
+                      }}
+                    >
                       Swipe across screen to scrounge. Tap or drag found objects to pick them up
                     </div>
                   </div>
@@ -2289,88 +2502,94 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
       `}</style>
 
       {/* Dragged Object Details - Garden Mode */}
-      {activeScene === 'garden' && draggedInstance && (() => {
-        console.log('[DEBUG] Rendering dragged object UI, activeScene:', activeScene, 'draggedInstance:', draggedInstance);
-        const details = getDraggedObjectDetails();
-        console.log('[DEBUG] getDraggedObjectDetails returned:', details);
-        if (!details) return null;
+      {activeScene === 'garden' &&
+        draggedInstance &&
+        (() => {
+          console.log(
+            '[DEBUG] Rendering dragged object UI, activeScene:',
+            activeScene,
+            'draggedInstance:',
+            draggedInstance
+          );
+          const details = getDraggedObjectDetails();
+          console.log('[DEBUG] getDraggedObjectDetails returned:', details);
+          if (!details) return null;
 
-        return (
-          <div style={{
-            position: 'absolute',
-            top: 20,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 2000,
-            pointerEvents: 'none',
-            width: '90%',
-            maxWidth: 400,
-          }}>
+          return (
             <div
               style={{
-                background: 'rgba(0, 0, 0, 0.9)',
-                border: details.type === 'gem'
-                  ? `2px solid ${details.gem?.color || '#FFD700'}`
-                  : `2px solid ${getCoinColor(details.coinType || 'bronze')}`,
-                borderRadius: 12,
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                backdropFilter: 'blur(10px)',
+                position: 'absolute',
+                top: 20,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 2000,
+                pointerEvents: 'none',
+                width: '90%',
+                maxWidth: 400,
               }}
             >
-              {details.type === 'gem' && details.gem && (
-                <>
-                  <GemIcon
-                    shape={details.gem.shape}
-                    size={24}
-                    color={details.gem.color}
-                  />
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span style={{
-                      fontSize: 12,
-                      fontWeight: 'bold',
-                    }}>
-                      <span style={{ color: getRarityColor(details.gem.rarity) }}>
-                        {details.gem.rarity.charAt(0).toUpperCase() + details.gem.rarity.slice(1)}
+              <div
+                style={{
+                  background: 'rgba(0, 0, 0, 0.9)',
+                  border:
+                    details.type === 'gem'
+                      ? `2px solid ${details.gem?.color || '#FFD700'}`
+                      : `2px solid ${getCoinColor(details.coinType || 'bronze')}`,
+                  borderRadius: 12,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                {details.type === 'gem' && details.gem && (
+                  <>
+                    <GemIcon shape={details.gem.shape} size={24} color={details.gem.color} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        <span style={{ color: getRarityColor(details.gem.rarity) }}>
+                          {details.gem.rarity.charAt(0).toUpperCase() + details.gem.rarity.slice(1)}
+                        </span>{' '}
+                        <span style={{ color: 'white' }}>{GEM_TYPE_NAMES[details.gem.type]}</span>
                       </span>
-                      {' '}
-                      <span style={{ color: 'white' }}>
-                        {GEM_TYPE_NAMES[details.gem.type]}
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {details.gem.growthRate}x growth • {(details.gem.size * 1000).toFixed(0)}mm
                       </span>
+                    </div>
+                  </>
+                )}
+                {details.type === 'coin' && details.coinType && (
+                  <>
+                    <CoinIcon color={getCoinColor(details.coinType)} size={24} />
+                    <span
+                      style={{
+                        color: getCoinColor(details.coinType),
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        flex: 1,
+                      }}
+                    >
+                      {details.coinType.charAt(0).toUpperCase() + details.coinType.slice(1)} Coin
                     </span>
-                    <span style={{
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      fontSize: 10,
-                      fontFamily: 'monospace',
-                    }}>
-                      {details.gem.growthRate}x growth • {(details.gem.size * 1000).toFixed(0)}mm
-                    </span>
-                  </div>
-                </>
-              )}
-              {details.type === 'coin' && details.coinType && (
-                <>
-                  <CoinIcon
-                    color={getCoinColor(details.coinType)}
-                    size={24}
-                  />
-                  <span style={{
-                    color: getCoinColor(details.coinType),
-                    fontSize: 14,
-                    fontWeight: 'bold',
-                    flex: 1,
-                  }}>
-                    {details.coinType.charAt(0).toUpperCase() + details.coinType.slice(1)} Coin
-                  </span>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Sidebar Toggle Button */}
       <button
@@ -2412,48 +2631,347 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
           display: 'flex',
           flexDirection: 'column',
           boxShadow: sidebarOpen ? '2px 0 12px rgba(0,0,0,0.5)' : 'none',
-        }}>
-        <div style={{
-          padding: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 15,
-          flex: 1,
-          minHeight: 0,
-        }}>
-              {/* Tab Content Area */}
-              <div style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                padding: 10,
-                gap: 10,
-                minHeight: 0,
-                overflow: 'hidden',
-              }}>
-                {/* Scrounge Tab */}
-                {gameTab === 'scrounge' && (
-                  <div style={{
+        }}
+      >
+        <div
+          style={{
+            padding: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 15,
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {/* Tab Content Area */}
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: 10,
+              gap: 10,
+              minHeight: 0,
+              overflow: 'hidden',
+            }}
+          >
+            {/* Scrounge Tab */}
+            {gameTab === 'scrounge' && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  flex: 1,
+                  minHeight: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    paddingBottom: 8,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                    flexShrink: 0,
+                  }}
+                >
+                  ⛏️ Scrounge Locations
+                </div>
+
+                {/* Coins Indicator */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 10,
+                    justifyContent: 'space-around',
+                    alignItems: 'center',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    flexShrink: 0,
+                  }}
+                >
+                  <CoinBalance
+                    coins={playerState.coins}
+                    size={14}
+                    fontSize={11}
+                    fontFamily="monospace"
+                    gap={10}
+                    showZero
+                  />
+                </div>
+
+                {/* Helper Text */}
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    fontSize: 7,
+                    fontStyle: 'italic',
+                    textAlign: 'center',
+                    paddingBottom: 4,
+                    flexShrink: 0,
+                  }}
+                >
+                  Tap the same location to retry
+                </div>
+
+                {/* Scrollable Locations List */}
+                <div
+                  className="hide-scrollbar"
+                  style={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 10,
-                    flex: 1,
+                    gap: 8,
+                    paddingRight: 4,
+                    WebkitOverflowScrolling: 'touch',
                     minHeight: 0,
-                    overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: 10,
-                      fontWeight: 'bold',
-                      paddingBottom: 8,
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                      flexShrink: 0,
-                    }}>
-                      ⛏️ Scrounge Locations
-                    </div>
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                  }}
+                >
+                  {SCROUNGE_LOCATIONS.map((location) => {
+                    // Check if player can afford this location (or debug mode is on)
+                    const canAfford =
+                      debugMode ||
+                      (playerState.coins.bronze >= location.cost.bronze &&
+                        playerState.coins.silver >= location.cost.silver &&
+                        playerState.coins.gold >= location.cost.gold);
+                    const isDisabled = location.comingSoon || !canAfford;
 
-                    {/* Coins Indicator */}
-                    <div style={{
+                    return (
+                      <button
+                        key={location.id}
+                        disabled={isDisabled}
+                        {...createMobileFriendlyHandlers(() => {
+                          // Check if location is coming soon
+                          if (location.comingSoon) return;
+
+                          // Check if player can't afford this location
+                          if (!canAfford) {
+                            // Show toast notification for insufficient coins
+                            const toastId = `toast-${Date.now()}-${Math.random()}`;
+                            setToasts((prev) => [
+                              ...prev,
+                              {
+                                id: toastId,
+                                type: 'insufficient_coins',
+                                message: 'Not enough coins',
+                                timestamp: Date.now(),
+                              },
+                            ]);
+
+                            // Auto-remove toast after 2 seconds
+                            setTimeout(() => {
+                              setToasts((prev) => prev.filter((t) => t.id !== toastId));
+                            }, 2000);
+                            return;
+                          }
+
+                          // If switching to a different location, pay the cost (unless debug mode)
+                          if (selectedLocation !== location.id) {
+                            if (!debugMode) {
+                              setPlayerState((prev) => ({
+                                ...prev,
+                                coins: {
+                                  bronze: prev.coins.bronze - location.cost.bronze,
+                                  silver: prev.coins.silver - location.cost.silver,
+                                  gold: prev.coins.gold - location.cost.gold,
+                                },
+                              }));
+                            }
+
+                            // Show toast notification for new location
+                            showScroungeLocationToast(location.id);
+                          }
+
+                          setSelectedLocation(location.id);
+                          setSceneKey((prev) => prev + 1); // Refresh scene with new location
+                        })}
+                        style={{
+                          ...localMobileFriendlyButtonStyles,
+                          background:
+                            selectedLocation === location.id
+                              ? '#8b6f47'
+                              : 'rgba(255, 255, 255, 0.1)',
+                          border:
+                            selectedLocation === location.id
+                              ? '2px solid #d4a574'
+                              : '2px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: 8,
+                          padding: '14px 12px',
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          opacity: isDisabled ? 0.5 : 1,
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          gap: 8,
+                          minHeight: location.minHeight,
+                        }}
+                      >
+                        <span
+                          style={{
+                            color:
+                              selectedLocation === location.id
+                                ? '#ffffff'
+                                : 'rgba(255, 255, 255, 0.6)',
+                            fontSize: 10,
+                            fontWeight: 'bold',
+                            lineHeight: '12px',
+                          }}
+                        >
+                          {location.name}
+                        </span>
+                        <span
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            fontSize: 7,
+                            fontStyle: 'italic',
+                            lineHeight: '10px',
+                          }}
+                        >
+                          {location.description}
+                        </span>
+                        {location.comingSoon ? (
+                          <span
+                            style={{
+                              color: '#ffffff',
+                              fontSize: 10,
+                              fontStyle: 'italic',
+                              marginTop: 4,
+                              alignSelf: 'center',
+                            }}
+                          >
+                            Coming soon
+                          </span>
+                        ) : (
+                          <>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                marginTop: 2,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color: 'rgba(255, 255, 255, 0.4)',
+                                  fontSize: 6,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.3px',
+                                }}
+                              >
+                                Yields:
+                              </span>
+                              {location.yields.map((item, idx) =>
+                                item.type === 'gem' && 'shape' in item ? (
+                                  <GemIcon
+                                    key={idx}
+                                    shape={item.shape as import('./types/game').GemShape}
+                                    size={10}
+                                    color={item.color}
+                                  />
+                                ) : item.type === 'coin' ? (
+                                  <CoinIcon key={idx} color={item.color} size={10} />
+                                ) : null
+                              )}
+                            </div>
+                            {/* Cost Display */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color: 'rgba(255, 255, 255, 0.5)',
+                                  fontSize: 7,
+                                  fontWeight: 'bold',
+                                }}
+                              >
+                                Cost:
+                              </span>
+                              <CoinCost
+                                cost={location.cost as Coins}
+                                playerCoins={playerState.coins}
+                                size={8}
+                                fontSize={7}
+                              />
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* My Garden Tab */}
+            {gameTab === 'garden' && (
+              <div
+                className="hide-scrollbar"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 12,
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    paddingBottom: 8,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <CombinedGemsIcon size={16} />
+                  <span>My Garden</span>
+                </div>
+
+                {/* Coins Section */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: 8,
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Coins
+                  </div>
+
+                  <div
+                    style={{
                       display: 'flex',
                       gap: 10,
                       justifyContent: 'space-around',
@@ -2462,1488 +2980,1419 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
                       padding: '8px 10px',
                       borderRadius: 6,
                       border: '1px solid rgba(255, 255, 255, 0.15)',
-                      flexShrink: 0,
-                    }}>
-                      <CoinBalance
-                        coins={playerState.coins}
-                        size={14}
-                        fontSize={11}
-                        fontFamily="monospace"
-                        gap={10}
-                        showZero
-                      />
-                    </div>
-
-                    {/* Helper Text */}
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      fontSize: 7,
-                      fontStyle: 'italic',
-                      textAlign: 'center',
-                      paddingBottom: 4,
-                      flexShrink: 0,
-                    }}>
-                      Tap the same location to retry
-                    </div>
-
-                    {/* Scrollable Locations List */}
-                    <div
-                      className="hide-scrollbar"
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        overflowX: 'hidden',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        paddingRight: 4,
-                        WebkitOverflowScrolling: 'touch',
-                        minHeight: 0,
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none',
-                      }}>
-                      {SCROUNGE_LOCATIONS.map((location) => {
-                        // Check if player can afford this location (or debug mode is on)
-                        const canAfford = debugMode || (playerState.coins.bronze >= location.cost.bronze &&
-                                         playerState.coins.silver >= location.cost.silver &&
-                                         playerState.coins.gold >= location.cost.gold);
-                        const isDisabled = location.comingSoon || !canAfford;
-
-                        return (
-                          <button
-                            key={location.id}
-                            disabled={isDisabled}
-                            {...createMobileFriendlyHandlers(() => {
-                              // Check if location is coming soon
-                              if (location.comingSoon) return;
-
-                              // Check if player can't afford this location
-                              if (!canAfford) {
-                                // Show toast notification for insufficient coins
-                                const toastId = `toast-${Date.now()}-${Math.random()}`;
-                                setToasts(prev => [...prev, {
-                                  id: toastId,
-                                  type: 'insufficient_coins',
-                                  message: 'Not enough coins',
-                                  timestamp: Date.now(),
-                                }]);
-
-                                // Auto-remove toast after 2 seconds
-                                setTimeout(() => {
-                                  setToasts(prev => prev.filter(t => t.id !== toastId));
-                                }, 2000);
-                                return;
-                              }
-
-                              // If switching to a different location, pay the cost (unless debug mode)
-                              if (selectedLocation !== location.id) {
-                                if (!debugMode) {
-                                  setPlayerState(prev => ({
-                                    ...prev,
-                                    coins: {
-                                      bronze: prev.coins.bronze - location.cost.bronze,
-                                      silver: prev.coins.silver - location.cost.silver,
-                                      gold: prev.coins.gold - location.cost.gold,
-                                    },
-                                  }));
-                                }
-
-                                // Show toast notification for new location
-                                showScroungeLocationToast(location.id);
-                              }
-
-                              setSelectedLocation(location.id);
-                              setSceneKey(prev => prev + 1); // Refresh scene with new location
-                            })}
-                            style={{
-                              ...localMobileFriendlyButtonStyles,
-                              background: selectedLocation === location.id ? '#8b6f47' : 'rgba(255, 255, 255, 0.1)',
-                              border: selectedLocation === location.id ? '2px solid #d4a574' : '2px solid rgba(255, 255, 255, 0.2)',
-                              borderRadius: 8,
-                              padding: '14px 12px',
-                              cursor: isDisabled ? 'not-allowed' : 'pointer',
-                              opacity: isDisabled ? 0.5 : 1,
-                              transition: 'all 0.2s ease',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'flex-start',
-                              gap: 8,
-                              minHeight: location.minHeight,
-                            }}
-                          >
-                          <span style={{
-                            color: selectedLocation === location.id ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
-                            fontSize: 10,
-                            fontWeight: 'bold',
-                            lineHeight: '12px',
-                          }}>
-                            {location.name}
-                          </span>
-                          <span style={{
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: 7,
-                            fontStyle: 'italic',
-                            lineHeight: '10px',
-                          }}>
-                            {location.description}
-                          </span>
-                          {location.comingSoon ? (
-                            <span style={{
-                              color: '#ffffff',
-                              fontSize: 10,
-                              fontStyle: 'italic',
-                              marginTop: 4,
-                              alignSelf: 'center',
-                            }}>
-                              Coming soon
-                            </span>
-                          ) : (
-                            <>
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                marginTop: 2,
-                              }}>
-                                <span style={{
-                                  color: 'rgba(255, 255, 255, 0.4)',
-                                  fontSize: 6,
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.3px',
-                                }}>
-                                  Yields:
-                                </span>
-                                {location.yields.map((item, idx) => (
-                                  item.type === 'gem' && 'shape' in item ? (
-                                    <GemIcon
-                                      key={idx}
-                                      shape={item.shape as import('./types/game').GemShape}
-                                      size={10}
-                                      color={item.color}
-                                    />
-                                  ) : item.type === 'coin' ? (
-                                    <CoinIcon
-                                      key={idx}
-                                      color={item.color}
-                                      size={10}
-                                    />
-                                  ) : null
-                                ))}
-                              </div>
-                              {/* Cost Display */}
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                flexWrap: 'wrap',
-                              }}>
-                                <span style={{
-                                  color: 'rgba(255, 255, 255, 0.5)',
-                                  fontSize: 7,
-                                  fontWeight: 'bold',
-                                }}>
-                                  Cost:
-                                </span>
-                                <CoinCost
-                                  cost={location.cost as Coins}
-                                  playerCoins={playerState.coins}
-                                  size={8}
-                                  fontSize={7}
-                                />
-                              </div>
-                            </>
-                          )}
-                        </button>
-                        );
-                      })}
-                    </div>
+                    }}
+                  >
+                    <CoinBalance
+                      coins={playerState.coins}
+                      size={14}
+                      fontSize={11}
+                      fontFamily="monospace"
+                      gap={10}
+                      showZero
+                    />
                   </div>
-                )}
+                </div>
 
-                {/* My Garden Tab */}
-                {gameTab === 'garden' && (
+                {/* Gems Section */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
                   <div
-                    className="hide-scrollbar"
                     style={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: 12,
-                      flex: 1,
-                      minHeight: 0,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      WebkitOverflowScrolling: 'touch',
-                      scrollbarWidth: 'none',
-                      msOverflowStyle: 'none',
-                    }}>
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: 10,
-                      fontWeight: 'bold',
-                      paddingBottom: 8,
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                      display: 'flex',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      gap: 6,
-                    }}>
-                      <CombinedGemsIcon size={16} />
-                      <span>My Garden</span>
-                    </div>
-
-                    {/* Coins Section */}
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                    }}>
-                      <div style={{
+                    }}
+                  >
+                    <span
+                      style={{
                         color: 'rgba(255, 255, 255, 0.7)',
                         fontSize: 8,
                         fontWeight: 'bold',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
-                      }}>
-                        Coins
-                      </div>
-
-                      <div style={{
-                        display: 'flex',
-                        gap: 10,
-                        justifyContent: 'space-around',
-                        alignItems: 'center',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        padding: '8px 10px',
-                        borderRadius: 6,
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                      }}>
-                        <CoinBalance
-                          coins={playerState.coins}
-                          size={14}
-                          fontSize={11}
-                          fontFamily="monospace"
-                          gap={10}
-                          showZero
-                        />
-                      </div>
-                    </div>
-
-                    {/* Gems Section */}
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 8,
-                          fontWeight: 'bold',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}>
-                          Gems
-                        </span>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: 8,
-                          fontFamily: 'monospace',
-                        }}>
-                          {playerState.gems.filter(g => !g.isGrowing && !g.isOffering).length}
-                        </span>
-                      </div>
-
-                      <GemList
-                        gems={playerState.gems}
-                        filter={(g) => !g.isGrowing && !g.isOffering}
-                        emptyMessage="No gems yet"
-                      />
-                    </div>
-
-                    {/* Growing Gems Section */}
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 8,
-                          fontWeight: 'bold',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}>
-                          Growing Gems
-                        </span>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: 8,
-                          fontFamily: 'monospace',
-                        }}>
-                          {playerState.gems.filter(g => g.isGrowing).length}
-                        </span>
-                      </div>
-
-                      <GemList
-                        gems={playerState.gems}
-                        filter={(g) => g.isGrowing}
-                        emptyMessage="No gems growing"
-                      />
-                    </div>
-
-                    {/* Offering Gems Section */}
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.7)',
-                          fontSize: 8,
-                          fontWeight: 'bold',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
-                        }}>
-                          Offering Gems
-                        </span>
-                        <span style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: 8,
-                          fontFamily: 'monospace',
-                        }}>
-                          {playerState.gems.filter(g => g.isOffering).length}
-                        </span>
-                      </div>
-
-                      <GemList
-                        gems={playerState.gems}
-                        filter={(g) => g.isOffering}
-                        emptyMessage="No gems being offered"
-                      />
-                    </div>
-
-                    {/* Debug Controls for Garden */}
-                    {debugMode && (
-                      <>
-                        {/* Faucet Controls */}
-                        <div style={{
-                          marginTop: 12,
-                          padding: 10,
-                          background: 'rgba(255, 100, 100, 0.1)',
-                          border: '1px solid rgba(255, 100, 100, 0.3)',
-                          borderRadius: 6,
-                        }}>
-                          <div style={{
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            fontSize: 8,
-                            fontWeight: 'bold',
-                            marginBottom: 8,
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                          }}>
-                            🔧 Debug: Garden Faucets
-                          </div>
-
-                          {/* Coin Faucet Toggle */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            marginBottom: 8,
-                          }}>
-                            <span style={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              fontSize: 8,
-                            }}>
-                              Coin Faucet 🪙
-                            </span>
-                            <button
-                              {...createMobileFriendlyHandlers(() => {
-                                setFaucetConfigs(prev => {
-                                  const coinConfig = prev['coin-faucet'] || GARDEN_FAUCET_CONFIGS['coin-faucet'];
-                                  return {
-                                    ...prev,
-                                    'coin-faucet': {
-                                      ...coinConfig,
-                                      enabled: !coinConfig?.enabled,
-                                    }
-                                  };
-                                });
-                              })}
-                              style={{
-                                background: faucetConfigs['coin-faucet']?.enabled ? '#4caf50' : '#666',
-                                color: 'white',
-                                border: 'none',
-                                padding: '4px 10px',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                fontSize: 8,
-                                fontWeight: 'bold',
-                                ...mobileFriendlyButtonStyles,
-                              }}
-                            >
-                              {faucetConfigs['coin-faucet']?.enabled ? 'ON' : 'OFF'}
-                            </button>
-                          </div>
-
-                          {/* Gem Faucet Toggle */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}>
-                            <span style={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              fontSize: 8,
-                            }}>
-                              Gem Faucet 💎
-                            </span>
-                            <button
-                              {...createMobileFriendlyHandlers(() => {
-                                setFaucetConfigs(prev => {
-                                  const gemConfig = prev['gem-faucet'] || GARDEN_FAUCET_CONFIGS['gem-faucet'];
-                                  return {
-                                    ...prev,
-                                    'gem-faucet': {
-                                      ...gemConfig,
-                                      enabled: !gemConfig?.enabled,
-                                    }
-                                  };
-                                });
-                              })}
-                              style={{
-                                background: faucetConfigs['gem-faucet']?.enabled ? '#4caf50' : '#666',
-                                color: 'white',
-                                border: 'none',
-                                padding: '4px 10px',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                fontSize: 8,
-                                fontWeight: 'bold',
-                                ...mobileFriendlyButtonStyles,
-                              }}
-                            >
-                              {faucetConfigs['gem-faucet']?.enabled ? 'ON' : 'OFF'}
-                            </button>
-                          </div>
-
-                          {/* Growing Gem Faucet Toggle */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}>
-                            <span style={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              fontSize: 8,
-                            }}>
-                              Growing Gem Faucet 🌱
-                            </span>
-                            <button
-                              {...createMobileFriendlyHandlers(() => {
-                                setFaucetConfigs(prev => {
-                                  const growingGemConfig = prev['growing-gem-faucet'] || GARDEN_FAUCET_CONFIGS['growing-gem-faucet'];
-                                  return {
-                                    ...prev,
-                                    'growing-gem-faucet': {
-                                      ...growingGemConfig,
-                                      enabled: !growingGemConfig?.enabled,
-                                    }
-                                  };
-                                });
-                              })}
-                              style={{
-                                background: faucetConfigs['growing-gem-faucet']?.enabled ? '#4caf50' : '#666',
-                                color: 'white',
-                                border: 'none',
-                                padding: '4px 10px',
-                                borderRadius: 4,
-                                cursor: 'pointer',
-                                fontSize: 8,
-                                fontWeight: 'bold',
-                                ...mobileFriendlyButtonStyles,
-                              }}
-                            >
-                              {faucetConfigs['growing-gem-faucet']?.enabled ? 'ON' : 'OFF'}
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Gem Conversion Controls */}
-                        <div style={{
-                          marginTop: 8,
-                          padding: 10,
-                          background: 'rgba(100, 100, 255, 0.1)',
-                          border: '1px solid rgba(100, 100, 255, 0.3)',
-                          borderRadius: 6,
-                        }}>
-                          <div style={{
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            fontSize: 8,
-                            fontWeight: 'bold',
-                            marginBottom: 8,
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                          }}>
-                            💎 Debug: Convert All Gems
-                          </div>
-
-                          {/* Gem Type Selection */}
-                          <div style={{
-                            marginBottom: 8,
-                          }}>
-                            <label style={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              fontSize: 7,
-                              display: 'block',
-                              marginBottom: 4,
-                            }}>
-                              Gem Type:
-                            </label>
-                            <select
-                              value={debugGemType}
-                              onChange={(e) => setDebugGemType(e.target.value as any)}
-                              style={{
-                                width: '100%',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: 'white',
-                                border: '1px solid rgba(255, 255, 255, 0.3)',
-                                borderRadius: 4,
-                                padding: '6px 8px',
-                                fontSize: 8,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <option value="diamond" style={{ background: '#1a1510' }}>💎 Diamond (Clear)</option>
-                              <option value="emerald" style={{ background: '#1a1510' }}>💚 Emerald (Green)</option>
-                              <option value="ruby" style={{ background: '#1a1510' }}>❤️ Ruby (Red)</option>
-                              <option value="sapphire" style={{ background: '#1a1510' }}>💙 Sapphire (Blue)</option>
-                              <option value="amethyst" style={{ background: '#1a1510' }}>💜 Amethyst (Purple)</option>
-                            </select>
-                          </div>
-
-                          {/* Gem Shape Selection */}
-                          <div style={{
-                            marginBottom: 8,
-                          }}>
-                            <label style={{
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              fontSize: 7,
-                              display: 'block',
-                              marginBottom: 4,
-                            }}>
-                              Gem Shape:
-                            </label>
-                            <select
-                              value={debugGemShape}
-                              onChange={(e) => setDebugGemShape(e.target.value as any)}
-                              style={{
-                                width: '100%',
-                                background: 'rgba(255, 255, 255, 0.1)',
-                                color: 'white',
-                                border: '1px solid rgba(255, 255, 255, 0.3)',
-                                borderRadius: 4,
-                                padding: '6px 8px',
-                                fontSize: 8,
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <option value="tetrahedron" style={{ background: '#1a1510' }}>△ Tetrahedron (Pyramid)</option>
-                              <option value="octahedron" style={{ background: '#1a1510' }}>◆ Octahedron (Diamond)</option>
-                              <option value="dodecahedron" style={{ background: '#1a1510' }}>⬟ Dodecahedron (Pentagon)</option>
-                            </select>
-                          </div>
-
-                          {/* Convert Button */}
-                          <button
-                            {...createMobileFriendlyHandlers(convertAllGemsToType)}
-                            style={{
-                              width: '100%',
-                              background: '#6666ff',
-                              color: 'white',
-                              border: 'none',
-                              padding: '8px 12px',
-                              borderRadius: 4,
-                              cursor: 'pointer',
-                              fontSize: 8,
-                              fontWeight: 'bold',
-                              ...mobileFriendlyButtonStyles,
-                            }}
-                          >
-                            Convert All Gems
-                          </button>
-                        </div>
-                      </>
-                    )}
+                      }}
+                    >
+                      Gems
+                    </span>
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: 8,
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {playerState.gems.filter((g) => !g.isGrowing && !g.isOffering).length}
+                    </span>
                   </div>
-                )}
 
-                {/* Trade Tab */}
-                {gameTab === 'hoard' && (
+                  <GemList
+                    gems={playerState.gems}
+                    filter={(g) => !g.isGrowing && !g.isOffering}
+                    emptyMessage="No gems yet"
+                  />
+                </div>
+
+                {/* Growing Gems Section */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
                   <div
                     style={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      gap: 10,
-                      flex: 1,
-                      minHeight: 0,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      WebkitOverflowScrolling: 'touch',
-                      scrollbarWidth: 'none',
-                      msOverflowStyle: 'none',
-                    }}
-                    className="hide-scrollbar"
-                    onScroll={(e) => {
-                      const target = e.target as HTMLDivElement;
-                      const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-                      if (bottom && hasMoreUsers && !loadingUsers) {
-                        fetchActiveOffers(followedUsersCursor);
-                      }
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                     }}
                   >
-                    <style>{`
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: 8,
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Growing Gems
+                    </span>
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: 8,
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {playerState.gems.filter((g) => g.isGrowing).length}
+                    </span>
+                  </div>
+
+                  <GemList
+                    gems={playerState.gems}
+                    filter={(g) => g.isGrowing}
+                    emptyMessage="No gems growing"
+                  />
+                </div>
+
+                {/* Offering Gems Section */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.7)',
+                        fontSize: 8,
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                      }}
+                    >
+                      Offering Gems
+                    </span>
+                    <span
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: 8,
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {playerState.gems.filter((g) => g.isOffering).length}
+                    </span>
+                  </div>
+
+                  <GemList
+                    gems={playerState.gems}
+                    filter={(g) => g.isOffering}
+                    emptyMessage="No gems being offered"
+                  />
+                </div>
+
+                {/* Debug Controls for Garden */}
+                {debugMode && (
+                  <>
+                    {/* Faucet Controls */}
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: 10,
+                        background: 'rgba(255, 100, 100, 0.1)',
+                        border: '1px solid rgba(255, 100, 100, 0.3)',
+                        borderRadius: 6,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: 8,
+                          fontWeight: 'bold',
+                          marginBottom: 8,
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        🔧 Debug: Garden Faucets
+                      </div>
+
+                      {/* Coin Faucet Toggle */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: 8,
+                          }}
+                        >
+                          Coin Faucet 🪙
+                        </span>
+                        <button
+                          {...createMobileFriendlyHandlers(() => {
+                            setFaucetConfigs((prev) => {
+                              const coinConfig =
+                                prev['coin-faucet'] || GARDEN_FAUCET_CONFIGS['coin-faucet'];
+                              return {
+                                ...prev,
+                                'coin-faucet': {
+                                  ...coinConfig,
+                                  enabled: !coinConfig?.enabled,
+                                },
+                              };
+                            });
+                          })}
+                          style={{
+                            background: faucetConfigs['coin-faucet']?.enabled ? '#4caf50' : '#666',
+                            color: 'white',
+                            border: 'none',
+                            padding: '4px 10px',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            fontSize: 8,
+                            fontWeight: 'bold',
+                            ...mobileFriendlyButtonStyles,
+                          }}
+                        >
+                          {faucetConfigs['coin-faucet']?.enabled ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+
+                      {/* Gem Faucet Toggle */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: 8,
+                          }}
+                        >
+                          Gem Faucet 💎
+                        </span>
+                        <button
+                          {...createMobileFriendlyHandlers(() => {
+                            setFaucetConfigs((prev) => {
+                              const gemConfig =
+                                prev['gem-faucet'] || GARDEN_FAUCET_CONFIGS['gem-faucet'];
+                              return {
+                                ...prev,
+                                'gem-faucet': {
+                                  ...gemConfig,
+                                  enabled: !gemConfig?.enabled,
+                                },
+                              };
+                            });
+                          })}
+                          style={{
+                            background: faucetConfigs['gem-faucet']?.enabled ? '#4caf50' : '#666',
+                            color: 'white',
+                            border: 'none',
+                            padding: '4px 10px',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            fontSize: 8,
+                            fontWeight: 'bold',
+                            ...mobileFriendlyButtonStyles,
+                          }}
+                        >
+                          {faucetConfigs['gem-faucet']?.enabled ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+
+                      {/* Growing Gem Faucet Toggle */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: 8,
+                          }}
+                        >
+                          Growing Gem Faucet 🌱
+                        </span>
+                        <button
+                          {...createMobileFriendlyHandlers(() => {
+                            setFaucetConfigs((prev) => {
+                              const growingGemConfig =
+                                prev['growing-gem-faucet'] ||
+                                GARDEN_FAUCET_CONFIGS['growing-gem-faucet'];
+                              return {
+                                ...prev,
+                                'growing-gem-faucet': {
+                                  ...growingGemConfig,
+                                  enabled: !growingGemConfig?.enabled,
+                                },
+                              };
+                            });
+                          })}
+                          style={{
+                            background: faucetConfigs['growing-gem-faucet']?.enabled
+                              ? '#4caf50'
+                              : '#666',
+                            color: 'white',
+                            border: 'none',
+                            padding: '4px 10px',
+                            borderRadius: 4,
+                            cursor: 'pointer',
+                            fontSize: 8,
+                            fontWeight: 'bold',
+                            ...mobileFriendlyButtonStyles,
+                          }}
+                        >
+                          {faucetConfigs['growing-gem-faucet']?.enabled ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Gem Conversion Controls */}
+                    <div
+                      style={{
+                        marginTop: 8,
+                        padding: 10,
+                        background: 'rgba(100, 100, 255, 0.1)',
+                        border: '1px solid rgba(100, 100, 255, 0.3)',
+                        borderRadius: 6,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: 8,
+                          fontWeight: 'bold',
+                          marginBottom: 8,
+                          textAlign: 'center',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px',
+                        }}
+                      >
+                        💎 Debug: Convert All Gems
+                      </div>
+
+                      {/* Gem Type Selection */}
+                      <div
+                        style={{
+                          marginBottom: 8,
+                        }}
+                      >
+                        <label
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: 7,
+                            display: 'block',
+                            marginBottom: 4,
+                          }}
+                        >
+                          Gem Type:
+                        </label>
+                        <select
+                          value={debugGemType}
+                          onChange={(e) => setDebugGemType(e.target.value as any)}
+                          style={{
+                            width: '100%',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: 4,
+                            padding: '6px 8px',
+                            fontSize: 8,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="diamond" style={{ background: '#1a1510' }}>
+                            💎 Diamond (Clear)
+                          </option>
+                          <option value="emerald" style={{ background: '#1a1510' }}>
+                            💚 Emerald (Green)
+                          </option>
+                          <option value="ruby" style={{ background: '#1a1510' }}>
+                            ❤️ Ruby (Red)
+                          </option>
+                          <option value="sapphire" style={{ background: '#1a1510' }}>
+                            💙 Sapphire (Blue)
+                          </option>
+                          <option value="amethyst" style={{ background: '#1a1510' }}>
+                            💜 Amethyst (Purple)
+                          </option>
+                        </select>
+                      </div>
+
+                      {/* Gem Shape Selection */}
+                      <div
+                        style={{
+                          marginBottom: 8,
+                        }}
+                      >
+                        <label
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            fontSize: 7,
+                            display: 'block',
+                            marginBottom: 4,
+                          }}
+                        >
+                          Gem Shape:
+                        </label>
+                        <select
+                          value={debugGemShape}
+                          onChange={(e) => setDebugGemShape(e.target.value as any)}
+                          style={{
+                            width: '100%',
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            borderRadius: 4,
+                            padding: '6px 8px',
+                            fontSize: 8,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="tetrahedron" style={{ background: '#1a1510' }}>
+                            △ Tetrahedron (Pyramid)
+                          </option>
+                          <option value="octahedron" style={{ background: '#1a1510' }}>
+                            ◆ Octahedron (Diamond)
+                          </option>
+                          <option value="dodecahedron" style={{ background: '#1a1510' }}>
+                            ⬟ Dodecahedron (Pentagon)
+                          </option>
+                        </select>
+                      </div>
+
+                      {/* Convert Button */}
+                      <button
+                        {...createMobileFriendlyHandlers(convertAllGemsToType)}
+                        style={{
+                          width: '100%',
+                          background: '#6666ff',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 12px',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 8,
+                          fontWeight: 'bold',
+                          ...mobileFriendlyButtonStyles,
+                        }}
+                      >
+                        Convert All Gems
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Trade Tab */}
+            {gameTab === 'hoard' && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+                className="hide-scrollbar"
+                onScroll={(e) => {
+                  const target = e.target as HTMLDivElement;
+                  const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
+                  if (bottom && hasMoreUsers && !loadingUsers) {
+                    fetchActiveOffers(followedUsersCursor);
+                  }
+                }}
+              >
+                <style>{`
                       .hide-scrollbar::-webkit-scrollbar {
                         display: none;
                       }
                     `}</style>
 
-                    {/* Your Offer Section */}
-                    {(() => {
-                      const offeringGems = playerState.gems.filter(g => g.isOffering);
-                      const totalValue = calculateTotalGemValue(offeringGems);
-                      const twoXValue = totalValue * 2;
-                      const displayGems = offeringGems.slice(0, 5);
-                      const hasMore = offeringGems.length > 5;
+                {/* Your Offer Section */}
+                {(() => {
+                  const offeringGems = playerState.gems.filter((g) => g.isOffering);
+                  const totalValue = calculateTotalGemValue(offeringGems);
+                  const twoXValue = totalValue * 2;
+                  const displayGems = offeringGems.slice(0, 5);
+                  const hasMore = offeringGems.length > 5;
 
-                      return (
-                        <div style={{
+                  return (
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: 8,
+                        padding: 10,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      {/* Header */}
+                      <div
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: 9,
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        Your Offer:
+                      </div>
+
+                      {/* Gem Icons Row */}
+                      {offeringGems.length > 0 ? (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {displayGems.map((gem) => (
+                            <div
+                              key={gem.id}
+                              style={{
+                                width: 16,
+                                height: 16,
+                                background: gem.color,
+                                border: `1px solid ${getRarityColor(gem.rarity)}`,
+                                boxShadow: `0 0 4px ${gem.color}40`,
+                                flexShrink: 0,
+                                ...getGemIconStyle(gem.shape),
+                              }}
+                            />
+                          ))}
+                          {hasMore && (
+                            <span
+                              style={{
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                fontSize: 10,
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              ...
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            color: 'rgba(255, 255, 255, 0.4)',
+                            fontSize: 8,
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          No gems offered
+                        </div>
+                      )}
+
+                      {/* Total Value (2x) */}
+                      {offeringGems.length > 0 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            paddingTop: 4,
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: 'rgba(255, 255, 255, 0.6)',
+                              fontSize: 7,
+                            }}
+                          >
+                            Total Value (2x):
+                          </span>
+                          <CoinValueDisplay bronzeValue={twoXValue} size={8} reverse={true} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    paddingBottom: 8,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  📜 Other Gobs
+                </div>
+
+                {/* Search Bar */}
+                <input
+                  type="text"
+                  placeholder="🔍 Search"
+                  value={traderSearchQuery}
+                  onChange={(e) => setTraderSearchQuery(e.target.value)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: 6,
+                    padding: '8px 10px',
+                    color: 'white',
+                    fontSize: 9,
+                    outline: 'none',
+                    width: '100%',
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(212, 165, 116, 0.5)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                />
+
+                {followedUsers
+                  .filter((user) =>
+                    user.username.toLowerCase().includes(traderSearchQuery.toLowerCase())
+                  )
+                  .map((user, index) => {
+                    const playerBronzeTotal =
+                      playerState.coins.bronze +
+                      playerState.coins.silver * 100 +
+                      playerState.coins.gold * 10000;
+                    const canAfford = user.offer
+                      ? playerBronzeTotal >= user.offer.totalValue
+                      : false;
+                    const isCurrentUser = user.username === effectiveUsername;
+
+                    return (
+                      <div
+                        key={`${user.username}-${index}`}
+                        style={{
                           background: 'rgba(255, 255, 255, 0.05)',
                           border: '1px solid rgba(255, 255, 255, 0.15)',
                           borderRadius: 8,
-                          padding: 10,
+                          padding: '10px 12px',
                           display: 'flex',
                           flexDirection: 'column',
+                          alignItems: 'stretch',
                           gap: 8,
-                        }}>
-                          {/* Header */}
-                          <div style={{
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            fontSize: 9,
+                        }}
+                      >
+                        {/* Username */}
+                        <div
+                          style={{
+                            color: '#d4a574',
+                            fontSize: 10,
                             fontWeight: 'bold',
-                          }}>
-                            Your Offer:
-                          </div>
+                            userSelect: 'text',
+                            WebkitUserSelect: 'text',
+                          }}
+                        >
+                          {user.username.length > 15
+                            ? user.username.slice(0, 15) + '...'
+                            : user.username}
+                          {isCurrentUser && (
+                            <span
+                              style={{
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                fontSize: 7,
+                                marginLeft: 4,
+                                fontWeight: 'normal',
+                              }}
+                            >
+                              (You)
+                            </span>
+                          )}
+                        </div>
 
-                          {/* Gem Icons Row */}
-                          {offeringGems.length > 0 ? (
-                            <div style={{
+                        {/* Offer Section */}
+                        {user.offer ? (
+                          <div
+                            style={{
                               display: 'flex',
-                              alignItems: 'center',
+                              flexDirection: 'column',
                               gap: 6,
-                              flexWrap: 'wrap',
-                            }}>
-                              {displayGems.map((gem) => (
+                            }}
+                          >
+                            {/* Offer Label */}
+                            <div
+                              style={{
+                                color: 'rgba(255, 255, 255, 0.6)',
+                                fontSize: 8,
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              Their Offer:
+                            </div>
+
+                            {/* Gem Icons Row */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              {user.offer.gems.slice(0, 5).map((gem, gemIdx) => (
                                 <div
-                                  key={gem.id}
+                                  key={gemIdx}
                                   style={{
                                     width: 16,
                                     height: 16,
                                     background: gem.color,
-                                    border: `1px solid ${getRarityColor(gem.rarity)}`,
+                                    border: `1px solid ${gem.color}`,
                                     boxShadow: `0 0 4px ${gem.color}40`,
                                     flexShrink: 0,
                                     ...getGemIconStyle(gem.shape),
                                   }}
                                 />
                               ))}
-                              {hasMore && (
-                                <span style={{
-                                  color: 'rgba(255, 255, 255, 0.5)',
-                                  fontSize: 10,
-                                  fontWeight: 'bold',
-                                }}>
+                              {user.offer.gems.length > 5 && (
+                                <span
+                                  style={{
+                                    color: 'rgba(255, 255, 255, 0.5)',
+                                    fontSize: 10,
+                                    fontWeight: 'bold',
+                                  }}
+                                >
                                   ...
                                 </span>
                               )}
                             </div>
-                          ) : (
-                            <div style={{
+
+                            {/* Total Value (2x) */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                paddingTop: 4,
+                                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  color: 'rgba(255, 255, 255, 0.6)',
+                                  fontSize: 7,
+                                }}
+                              >
+                                Total Value (2x):
+                              </span>
+                              <CoinValueDisplay
+                                bronzeValue={user.offer.totalValue}
+                                size={8}
+                                reverse={true}
+                              />
+                            </div>
+
+                            {/* Purchase Button */}
+                            {!isCurrentUser && (
+                              <button
+                                {...createMobileFriendlyHandlers(() => {
+                                  handleTrade(user.username, user.offer!.totalValue);
+                                })}
+                                disabled={!canAfford}
+                                style={{
+                                  ...mobileFriendlyButtonStyles,
+                                  background: canAfford ? '#4CAF50' : '#666',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: 6,
+                                  padding: '8px 12px',
+                                  fontSize: 9,
+                                  fontWeight: 'bold',
+                                  cursor: canAfford ? 'pointer' : 'not-allowed',
+                                  opacity: canAfford ? 1 : 0.5,
+                                  marginTop: 4,
+                                }}
+                              >
+                                {canAfford ? 'Purchase' : 'Insufficient Coins'}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div
+                            style={{
                               color: 'rgba(255, 255, 255, 0.4)',
                               fontSize: 8,
                               fontStyle: 'italic',
-                            }}>
-                              No gems offered
-                            </div>
-                          )}
-
-                          {/* Total Value (2x) */}
-                          {offeringGems.length > 0 && (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              paddingTop: 4,
-                              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                            }}>
-                              <span style={{
-                                color: 'rgba(255, 255, 255, 0.6)',
-                                fontSize: 7,
-                              }}>
-                                Total Value (2x):
-                              </span>
-                              <CoinValueDisplay bronzeValue={twoXValue} size={8} reverse={true} />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: 10,
-                      fontWeight: 'bold',
-                      paddingBottom: 8,
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                    }}>
-                      📜 Other Gobs
-                    </div>
-
-                    {/* Search Bar */}
-                    <input
-                      type="text"
-                      placeholder="🔍 Search"
-                      value={traderSearchQuery}
-                      onChange={(e) => setTraderSearchQuery(e.target.value)}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: 6,
-                        padding: '8px 10px',
-                        color: 'white',
-                        fontSize: 9,
-                        outline: 'none',
-                        width: '100%',
-                      }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = 'rgba(212, 165, 116, 0.5)';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                      }}
-                    />
-
-                    {followedUsers
-                      .filter(user =>
-                        user.username.toLowerCase().includes(traderSearchQuery.toLowerCase())
-                      )
-                      .map((user, index) => {
-                        const playerBronzeTotal = playerState.coins.bronze +
-                                                   playerState.coins.silver * 100 +
-                                                   playerState.coins.gold * 10000;
-                        const canAfford = user.offer ? playerBronzeTotal >= user.offer.totalValue : false;
-                        const isCurrentUser = user.username === effectiveUsername;
-
-                        return (
-                          <div
-                            key={`${user.username}-${index}`}
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.15)',
-                              borderRadius: 8,
-                              padding: '10px 12px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'stretch',
-                              gap: 8,
                             }}
                           >
-                            {/* Username */}
-                            <div style={{
-                              color: '#d4a574',
-                              fontSize: 10,
-                              fontWeight: 'bold',
-                              userSelect: 'text',
-                              WebkitUserSelect: 'text',
-                            }}>
-                              {user.username.length > 15 ? user.username.slice(0, 15) + '...' : user.username}
-                              {isCurrentUser && (
-                                <span style={{
-                                  color: 'rgba(255, 255, 255, 0.5)',
-                                  fontSize: 7,
-                                  marginLeft: 4,
-                                  fontWeight: 'normal',
-                                }}>
-                                  (You)
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Offer Section */}
-                            {user.offer ? (
-                              <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 6,
-                              }}>
-                                {/* Offer Label */}
-                                <div style={{
-                                  color: 'rgba(255, 255, 255, 0.6)',
-                                  fontSize: 8,
-                                  fontWeight: 'bold',
-                                }}>
-                                  Their Offer:
-                                </div>
-
-                                {/* Gem Icons Row */}
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 6,
-                                  flexWrap: 'wrap',
-                                }}>
-                                  {user.offer.gems.slice(0, 5).map((gem, gemIdx) => (
-                                    <div
-                                      key={gemIdx}
-                                      style={{
-                                        width: 16,
-                                        height: 16,
-                                        background: gem.color,
-                                        border: `1px solid ${gem.color}`,
-                                        boxShadow: `0 0 4px ${gem.color}40`,
-                                        flexShrink: 0,
-                                        ...getGemIconStyle(gem.shape),
-                                      }}
-                                    />
-                                  ))}
-                                  {user.offer.gems.length > 5 && (
-                                    <span style={{
-                                      color: 'rgba(255, 255, 255, 0.5)',
-                                      fontSize: 10,
-                                      fontWeight: 'bold',
-                                    }}>
-                                      ...
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Total Value (2x) */}
-                                <div style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  paddingTop: 4,
-                                  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                                }}>
-                                  <span style={{
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    fontSize: 7,
-                                  }}>
-                                    Total Value (2x):
-                                  </span>
-                                  <CoinValueDisplay bronzeValue={user.offer.totalValue} size={8} reverse={true} />
-                                </div>
-
-                                {/* Purchase Button */}
-                                {!isCurrentUser && (
-                                  <button
-                                    {...createMobileFriendlyHandlers(() => {
-                                      handleTrade(user.username, user.offer!.totalValue);
-                                    })}
-                                    disabled={!canAfford}
-                                    style={{
-                                      ...mobileFriendlyButtonStyles,
-                                      background: canAfford ? '#4CAF50' : '#666',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: 6,
-                                      padding: '8px 12px',
-                                      fontSize: 9,
-                                      fontWeight: 'bold',
-                                      cursor: canAfford ? 'pointer' : 'not-allowed',
-                                      opacity: canAfford ? 1 : 0.5,
-                                      marginTop: 4,
-                                    }}
-                                  >
-                                    {canAfford ? 'Purchase' : 'Insufficient Coins'}
-                                  </button>
-                                )}
-                              </div>
-                            ) : (
-                              <div style={{
-                                color: 'rgba(255, 255, 255, 0.4)',
-                                fontSize: 8,
-                                fontStyle: 'italic',
-                              }}>
-                                No offer available
-                              </div>
-                            )}
+                            No offer available
                           </div>
-                        );
-                      })}
-
-                    {/* Loading Indicator */}
-                    {loadingUsers && (
-                      <div style={{
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        fontSize: 8,
-                        textAlign: 'center',
-                        padding: '10px',
-                      }}>
-                        Loading more...
+                        )}
                       </div>
-                    )}
+                    );
+                  })}
 
-                    {/* No More Users */}
-                    {!hasMoreUsers && followedUsers.length > 0 && (
-                      <div style={{
-                        color: 'rgba(255, 255, 255, 0.3)',
-                        fontSize: 7,
-                        textAlign: 'center',
-                        padding: '10px',
-                        fontStyle: 'italic',
-                      }}>
-                        No more gobs to show
-                      </div>
-                    )}
-
-                    {/* Empty State */}
-                    {followedUsers.length === 0 && !loadingUsers && (
-                      <div style={{
-                        color: 'rgba(255, 255, 255, 0.4)',
-                        fontSize: 9,
-                        textAlign: 'center',
-                        padding: '20px',
-                      }}>
-                        No other gobs yet
-                      </div>
-                    )}
+                {/* Loading Indicator */}
+                {loadingUsers && (
+                  <div
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontSize: 8,
+                      textAlign: 'center',
+                      padding: '10px',
+                    }}
+                  >
+                    Loading more...
                   </div>
                 )}
 
-                {/* Profile Tab */}
-                {gameTab === 'settings' && (
+                {/* No More Users */}
+                {!hasMoreUsers && followedUsers.length > 0 && (
                   <div
-                    className="hide-scrollbar"
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.3)',
+                      fontSize: 7,
+                      textAlign: 'center',
+                      padding: '10px',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    No more gobs to show
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {followedUsers.length === 0 && !loadingUsers && (
+                  <div
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      fontSize: 9,
+                      textAlign: 'center',
+                      padding: '20px',
+                    }}
+                  >
+                    No other gobs yet
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Profile Tab */}
+            {gameTab === 'settings' && (
+              <div
+                className="hide-scrollbar"
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 15,
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                }}
+              >
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    paddingBottom: 8,
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+                  }}
+                >
+                  🧌 Profile
+                </div>
+
+                {/* Player Name */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    padding: 10,
+                    borderRadius: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontSize: 7,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Username
+                  </span>
+                  <span
+                    style={{
+                      color: '#d4a574',
+                      fontSize: 11,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {effectiveUsername}
+                  </span>
+                </div>
+
+                {/* Debug Mode Toggle - Hidden */}
+                {false && (
+                  <div
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 15,
-                      flex: 1,
-                      minHeight: 0,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      WebkitOverflowScrolling: 'touch',
-                      scrollbarWidth: 'none',
-                      msOverflowStyle: 'none',
-                    }}>
-                    <div style={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: 10,
-                      fontWeight: 'bold',
-                      paddingBottom: 8,
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                    }}>
-                      🧌 Profile
+                      gap: 8,
+                      background: 'rgba(255, 100, 100, 0.1)',
+                      border: '1px solid rgba(255, 100, 100, 0.3)',
+                      padding: 10,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          fontSize: 9,
+                        }}
+                      >
+                        Debug Mode
+                      </span>
+                      <button
+                        {...createMobileFriendlyHandlers(() => setDebugMode(!debugMode))}
+                        style={{
+                          background: debugMode ? '#ff6b6b' : '#666',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 10,
+                          fontWeight: 'bold',
+                          ...mobileFriendlyButtonStyles,
+                        }}
+                      >
+                        {debugMode ? 'ON' : 'OFF'}
+                      </button>
                     </div>
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: 7,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      Enable debug controls for testing garden faucets
+                    </div>
+                  </div>
+                )}
 
-                    {/* Player Name */}
-                    <div style={{
+                {/* Debug Info Toggle - Hidden */}
+                {false && (
+                  <div
+                    style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 6,
+                      gap: 8,
                       background: 'rgba(255, 255, 255, 0.05)',
                       padding: 10,
                       borderRadius: 6,
-                    }}>
-                      <span style={{
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          fontSize: 9,
+                        }}
+                      >
+                        Show Debug Info
+                      </span>
+                      <button
+                        {...createMobileFriendlyHandlers(() => setShowDebugInfo(!showDebugInfo))}
+                        style={{
+                          background: showDebugInfo ? '#4caf50' : '#666',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          fontSize: 10,
+                          fontWeight: 'bold',
+                          ...mobileFriendlyButtonStyles,
+                        }}
+                      >
+                        {showDebugInfo ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
+                    <div
+                      style={{
                         color: 'rgba(255, 255, 255, 0.5)',
                         fontSize: 7,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                      }}>
-                        Username
-                      </span>
-                      <span style={{
-                        color: '#d4a574',
-                        fontSize: 11,
-                        fontWeight: 'bold',
-                      }}>
-                        {effectiveUsername}
-                      </span>
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      Display FPS counter and device performance info in top-right corner
                     </div>
-
-                    {/* Debug Mode Toggle - Hidden */}
-                    {false && (
-                      <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        background: 'rgba(255, 100, 100, 0.1)',
-                        border: '1px solid rgba(255, 100, 100, 0.3)',
-                        padding: 10,
-                        borderRadius: 6,
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                        }}>
-                          <span style={{
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            fontSize: 9,
-                          }}>
-                            Debug Mode
-                          </span>
-                          <button
-                            {...createMobileFriendlyHandlers(() => setDebugMode(!debugMode))}
-                            style={{
-                              background: debugMode ? '#ff6b6b' : '#666',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: 4,
-                              cursor: 'pointer',
-                              fontSize: 10,
-                              fontWeight: 'bold',
-                              ...mobileFriendlyButtonStyles,
-                            }}
-                          >
-                            {debugMode ? 'ON' : 'OFF'}
-                          </button>
-                        </div>
-                        <div style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: 7,
-                          lineHeight: 1.3,
-                        }}>
-                          Enable debug controls for testing garden faucets
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Debug Info Toggle - Hidden */}
-                    {false && (
-                      <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 8,
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        padding: 10,
-                        borderRadius: 6,
-                      }}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                        }}>
-                          <span style={{
-                            color: 'rgba(255, 255, 255, 0.85)',
-                            fontSize: 9,
-                          }}>
-                            Show Debug Info
-                          </span>
-                          <button
-                            {...createMobileFriendlyHandlers(() => setShowDebugInfo(!showDebugInfo))}
-                            style={{
-                              background: showDebugInfo ? '#4caf50' : '#666',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: 4,
-                              cursor: 'pointer',
-                              fontSize: 10,
-                              fontWeight: 'bold',
-                              ...mobileFriendlyButtonStyles,
-                            }}
-                          >
-                            {showDebugInfo ? 'ON' : 'OFF'}
-                          </button>
-                        </div>
-                        <div style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: 7,
-                          lineHeight: 1.3,
-                        }}>
-                          Display FPS counter and device performance info in top-right corner
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              {/* Garden Actions - Only visible in garden tab */}
-              {gameTab === 'garden' && (
-                <div style={{
+          {/* Garden Actions - Only visible in garden tab */}
+          {gameTab === 'garden' && (
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                padding: '8px 10px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              <button
+                {...createMobileFriendlyHandlers(() => {
+                  handleGrowClick();
+                })}
+                style={{
+                  ...mobileFriendlyButtonStyles,
+                  flex: 1,
+                  background: gardenAction === 'grow' ? '#3a8c52' : 'rgba(255, 255, 255, 0.15)',
+                  border: gardenAction === 'grow' ? '2px solid #5fb870' : '2px solid transparent',
+                  borderRadius: 6,
+                  padding: '8px 4px',
+                  cursor: 'pointer',
                   display: 'flex',
-                  gap: 6,
-                  padding: '8px 10px',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-                }}>
-                  <button
-                    {...createMobileFriendlyHandlers(() => {
-                      handleGrowClick();
-                    })}
-                    style={{
-                      ...mobileFriendlyButtonStyles,
-                      flex: 1,
-                      background: gardenAction === 'grow' ? '#3a8c52' : 'rgba(255, 255, 255, 0.15)',
-                      border: gardenAction === 'grow' ? '2px solid #5fb870' : '2px solid transparent',
-                      borderRadius: 6,
-                      padding: '8px 4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 3,
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>🌱</span>
-                    <span style={{
-                      color: 'white',
-                      fontSize: 7,
-                      fontWeight: 'bold',
-                    }}>
-                      Grow
-                    </span>
-                  </button>
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 3,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🌱</span>
+                <span
+                  style={{
+                    color: 'white',
+                    fontSize: 7,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Grow
+                </span>
+              </button>
 
-                  <button
-                    {...createMobileFriendlyHandlers(() => {
-                      handleOfferClick();
-                    })}
-                    style={{
-                      ...mobileFriendlyButtonStyles,
-                      flex: 1,
-                      background: gardenAction === 'my-offer' ? '#4a7c9a' : 'rgba(255, 255, 255, 0.15)',
-                      border: gardenAction === 'my-offer' ? '2px solid #6fa9bf' : '2px solid transparent',
-                      borderRadius: 6,
-                      padding: '8px 4px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 3,
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <span style={{ fontSize: 16 }}>📜</span>
-                    <span style={{
-                      color: 'white',
-                      fontSize: 7,
-                      fontWeight: 'bold',
-                    }}>
-                      My Offer
-                    </span>
-                  </button>
-                </div>
-              )}
+              <button
+                {...createMobileFriendlyHandlers(() => {
+                  handleOfferClick();
+                })}
+                style={{
+                  ...mobileFriendlyButtonStyles,
+                  flex: 1,
+                  background: gardenAction === 'my-offer' ? '#4a7c9a' : 'rgba(255, 255, 255, 0.15)',
+                  border:
+                    gardenAction === 'my-offer' ? '2px solid #6fa9bf' : '2px solid transparent',
+                  borderRadius: 6,
+                  padding: '8px 4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 3,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>📜</span>
+                <span
+                  style={{
+                    color: 'white',
+                    fontSize: 7,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  My Offer
+                </span>
+              </button>
+            </div>
+          )}
 
-              {/* Game Mode Tabs - 2x2 Grid at bottom */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 8,
-                marginTop: 'auto',
-              }}>
-                <button
-                  {...createMobileFriendlyHandlers(handleScroungeClick)}
-                  style={{
-                    background: gameTab === 'scrounge' ? '#8b6f47' : 'rgba(255, 255, 255, 0.15)',
-                    color: 'white',
-                    border: gameTab === 'scrounge' ? '2px solid #d4a574' : '2px solid transparent',
-                    padding: '12px 8px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    fontSize: 24,
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    ...mobileFriendlyButtonStyles,
-                  }}
-                  title="Scrounge"
-                >
-                  <span>⛏️</span>
-                  <span style={{ fontSize: 8 }}>Scrounge</span>
-                </button>
-                <button
-                  {...createMobileFriendlyHandlers(handleGardenClick)}
-                  style={{
-                    background: gameTab === 'garden' ? '#4a7c59' : 'rgba(255, 255, 255, 0.15)',
-                    color: 'white',
-                    border: gameTab === 'garden' ? '2px solid #6fbf73' : '2px solid transparent',
-                    padding: '12px 8px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    fontSize: 24,
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    ...mobileFriendlyButtonStyles,
-                  }}
-                  title="My Garden"
-                >
-                  <CombinedGemsIcon size={20} />
-                  <span style={{ fontSize: 8 }}>My Garden</span>
-                </button>
-                <button
-                  {...createMobileFriendlyHandlers(() => setGameTab('hoard'))}
-                  style={{
-                    background: gameTab === 'hoard' ? '#7c4a6f' : 'rgba(255, 255, 255, 0.15)',
-                    color: 'white',
-                    border: gameTab === 'hoard' ? '2px solid #bf6fb3' : '2px solid transparent',
-                    padding: '12px 8px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    fontSize: 24,
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    ...mobileFriendlyButtonStyles,
-                  }}
-                  title="Trade"
-                >
-                  <span>📜</span>
-                  <span style={{ fontSize: 8 }}>Trade</span>
-                </button>
-                <button
-                  {...createMobileFriendlyHandlers(() => setGameTab('settings'))}
-                  style={{
-                    background: gameTab === 'settings' ? '#5a5a5a' : 'rgba(255, 255, 255, 0.15)',
-                    color: 'white',
-                    border: gameTab === 'settings' ? '2px solid #909090' : '2px solid transparent',
-                    padding: '12px 8px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    fontSize: 24,
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    ...mobileFriendlyButtonStyles,
-                  }}
-                  title="Profile"
-                >
-                  <span>🧌</span>
-                  <span style={{ fontSize: 8 }}>Profile</span>
-                </button>
-              </div>
+          {/* Game Mode Tabs - 2x2 Grid at bottom */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 8,
+              marginTop: 'auto',
+            }}
+          >
+            <button
+              {...createMobileFriendlyHandlers(handleScroungeClick)}
+              style={{
+                background: gameTab === 'scrounge' ? '#8b6f47' : 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: gameTab === 'scrounge' ? '2px solid #d4a574' : '2px solid transparent',
+                padding: '12px 8px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 24,
+                fontWeight: 'bold',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4,
+                ...mobileFriendlyButtonStyles,
+              }}
+              title="Scrounge"
+            >
+              <span>⛏️</span>
+              <span style={{ fontSize: 8 }}>Scrounge</span>
+            </button>
+            <button
+              {...createMobileFriendlyHandlers(handleGardenClick)}
+              style={{
+                background: gameTab === 'garden' ? '#4a7c59' : 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: gameTab === 'garden' ? '2px solid #6fbf73' : '2px solid transparent',
+                padding: '12px 8px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 24,
+                fontWeight: 'bold',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4,
+                ...mobileFriendlyButtonStyles,
+              }}
+              title="My Garden"
+            >
+              <CombinedGemsIcon size={20} />
+              <span style={{ fontSize: 8 }}>My Garden</span>
+            </button>
+            <button
+              {...createMobileFriendlyHandlers(() => setGameTab('hoard'))}
+              style={{
+                background: gameTab === 'hoard' ? '#7c4a6f' : 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: gameTab === 'hoard' ? '2px solid #bf6fb3' : '2px solid transparent',
+                padding: '12px 8px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 24,
+                fontWeight: 'bold',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4,
+                ...mobileFriendlyButtonStyles,
+              }}
+              title="Trade"
+            >
+              <span>📜</span>
+              <span style={{ fontSize: 8 }}>Trade</span>
+            </button>
+            <button
+              {...createMobileFriendlyHandlers(() => setGameTab('settings'))}
+              style={{
+                background: gameTab === 'settings' ? '#5a5a5a' : 'rgba(255, 255, 255, 0.15)',
+                color: 'white',
+                border: gameTab === 'settings' ? '2px solid #909090' : '2px solid transparent',
+                padding: '12px 8px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 24,
+                fontWeight: 'bold',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4,
+                ...mobileFriendlyButtonStyles,
+              }}
+              title="Profile"
+            >
+              <span>🧌</span>
+              <span style={{ fontSize: 8 }}>Profile</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Gem Value Display - Shows total value of offered gems in My Offer mode */}
-      {activeScene === 'garden' && gardenAction === 'my-offer' && (() => {
-        const offeringGems = playerState.gems.filter(g => g.isOffering);
-        const totalValueInBronze = calculateTotalGemValue(offeringGems);
-        const coins = convertToCoins(totalValueInBronze);
+      {activeScene === 'garden' &&
+        gardenAction === 'my-offer' &&
+        (() => {
+          const offeringGems = playerState.gems.filter((g) => g.isOffering);
+          const totalValueInBronze = calculateTotalGemValue(offeringGems);
+          const coins = convertToCoins(totalValueInBronze);
 
-        const twoXValue = totalValueInBronze * 2;
-        const twoXCoins = convertToCoins(twoXValue);
-        const twoXString = formatValueAsCoins(twoXValue);
+          const twoXValue = totalValueInBronze * 2;
+          const twoXCoins = convertToCoins(twoXValue);
+          const twoXString = formatValueAsCoins(twoXValue);
 
-        return (
-          <div style={{
-            position: 'fixed',
-            top: 20,
-            right: 20,
-            background: 'rgba(0, 100, 200, 0.95)',
-            border: '2px solid #4a9eff',
-            borderRadius: 10,
-            padding: '10px 12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(10px)',
-            zIndex: 999,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6,
-            width: 145,
-          }}>
-            {/* Header and coins in same column */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}>
-              {/* Header */}
-              <div style={{
-                color: 'rgba(255, 255, 255, 0.7)',
-                fontSize: 9,
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                textAlign: 'center',
-              }}>
-                You Receive
-              </div>
-
-              {/* Coin denominations display - Horizontal row */}
-              <div style={{
-                display: 'flex',
-                gap: 6,
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.05)',
-                padding: '6px 8px',
-                borderRadius: 6,
-              }}>
-                <CoinBalance
-                  coins={coins}
-                  size={12}
-                  fontSize={10}
-                  fontFamily="monospace"
-                  showEmpty
-                  showZero
-                />
-              </div>
-            </div>
-
-            {/* SELL NOW button */}
-            <button
-              {...createMobileFriendlyHandlers(() => {
-                // Sell all offering gems
-                const offeringGems = playerState.gems.filter(g => g.isOffering);
-                const totalValueInBronze = calculateTotalGemValue(offeringGems);
-
-                if (offeringGems.length === 0) {
-                  console.log('[SELL] No gems to sell');
-                  return;
-                }
-
-                console.log('[SELL] Selling gems:', {
-                  count: offeringGems.length,
-                  totalValue: totalValueInBronze,
-                  gems: offeringGems.map(g => `${g.rarity} ${g.type}`),
-                });
-
-                // Clear garden refs to prevent race conditions
-                gardenApiRefs.current.forEach(ref => {
-                  if (ref.current) ref.current = [];
-                });
-                gardenMeshRefs.current.forEach(ref => {
-                  if (ref.current) ref.current = null;
-                });
-
-                // Remove offering gems and add coins to player
-                setPlayerState(prev => {
-                  // Calculate total bronze value
-                  const newTotalBronze = prev.coins.bronze + prev.coins.silver * 100 + prev.coins.gold * 10000 + totalValueInBronze;
-
-                  // Convert back to coin denominations
-                  const newCoins = convertToCoins(newTotalBronze);
-
-                  // Remove offering gems
-                  const remainingGems = prev.gems.filter(g => !g.isOffering);
-
-                  console.log('[SELL] Transaction complete:', {
-                    sold: offeringGems.length,
-                    remaining: remainingGems.length,
-                    oldCoins: prev.coins,
-                    newCoins: newCoins,
-                  });
-
-                  return {
-                    ...prev,
-                    coins: newCoins,
-                    gems: remainingGems,
-                  };
-                });
-
-                // Show toast notification
-                const toastId = `toast-${Date.now()}-${Math.random()}`;
-                setToasts(prevToasts => [...prevToasts, {
-                  id: toastId,
-                  type: 'sold',
-                  timestamp: Date.now(),
-                  soldCount: offeringGems.length,
-                  soldValue: totalValueInBronze,
-                }]);
-
-                // Auto-remove toast after 3 seconds
-                setTimeout(() => {
-                  setToasts(prevToasts => prevToasts.filter(t => t.id !== toastId));
-                }, 3000);
-
-                // Increment sceneKey to force full remount (prevents physics crash)
-                setSceneKey(prev => prev + 1);
-
-                console.log('[SELL] Scene reset triggered to prevent physics crash');
-              })}
+          return (
+            <div
               style={{
-                background: '#4CAF50',
-                color: 'white',
-                border: '2px solid #66BB6A',
-                borderRadius: 6,
-                padding: '8px 12px',
-                fontSize: 10,
-                fontWeight: 'bold',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                ...mobileFriendlyButtonStyles,
+                position: 'fixed',
+                top: 20,
+                right: 20,
+                background: 'rgba(0, 100, 200, 0.95)',
+                border: '2px solid #4a9eff',
+                borderRadius: 10,
+                padding: '10px 12px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+                backdropFilter: 'blur(10px)',
+                zIndex: 999,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                width: 145,
               }}
             >
-              Sell Now
-            </button>
+              {/* Header and coins in same column */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: 9,
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    textAlign: 'center',
+                  }}
+                >
+                  You Receive
+                </div>
 
-            {/* Wait for 2x text - Two lines */}
-            <div style={{
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: 7,
-              fontFamily: 'monospace',
-              borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-              paddingTop: 5,
-              lineHeight: 1.4,
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-            }}>
-              <span>or wait for other Gobs to</span>
-              <span>purchase for 2x value</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                (<CoinValueDisplay bronzeValue={twoXValue} size={8} reverse={true} showZero={true} />)
-              </span>
+                {/* Coin denominations display - Horizontal row */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 6,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    padding: '6px 8px',
+                    borderRadius: 6,
+                  }}
+                >
+                  <CoinBalance
+                    coins={coins}
+                    size={12}
+                    fontSize={10}
+                    fontFamily="monospace"
+                    showEmpty
+                    showZero
+                  />
+                </div>
+              </div>
+
+              {/* SELL NOW button */}
+              <button
+                {...createMobileFriendlyHandlers(() => {
+                  // Sell all offering gems
+                  const offeringGems = playerState.gems.filter((g) => g.isOffering);
+                  const totalValueInBronze = calculateTotalGemValue(offeringGems);
+
+                  if (offeringGems.length === 0) {
+                    console.log('[SELL] No gems to sell');
+                    return;
+                  }
+
+                  console.log('[SELL] Selling gems:', {
+                    count: offeringGems.length,
+                    totalValue: totalValueInBronze,
+                    gems: offeringGems.map((g) => `${g.rarity} ${g.type}`),
+                  });
+
+                  // Clear garden refs to prevent race conditions
+                  gardenApiRefs.current.forEach((ref) => {
+                    if (ref.current) ref.current = [];
+                  });
+                  gardenMeshRefs.current.forEach((ref) => {
+                    if (ref.current) ref.current = null;
+                  });
+
+                  // Remove offering gems and add coins to player
+                  setPlayerState((prev) => {
+                    // Calculate total bronze value
+                    const newTotalBronze =
+                      prev.coins.bronze +
+                      prev.coins.silver * 100 +
+                      prev.coins.gold * 10000 +
+                      totalValueInBronze;
+
+                    // Convert back to coin denominations
+                    const newCoins = convertToCoins(newTotalBronze);
+
+                    // Remove offering gems
+                    const remainingGems = prev.gems.filter((g) => !g.isOffering);
+
+                    console.log('[SELL] Transaction complete:', {
+                      sold: offeringGems.length,
+                      remaining: remainingGems.length,
+                      oldCoins: prev.coins,
+                      newCoins: newCoins,
+                    });
+
+                    return {
+                      ...prev,
+                      coins: newCoins,
+                      gems: remainingGems,
+                    };
+                  });
+
+                  // Show toast notification
+                  const toastId = `toast-${Date.now()}-${Math.random()}`;
+                  setToasts((prevToasts) => [
+                    ...prevToasts,
+                    {
+                      id: toastId,
+                      type: 'sold',
+                      timestamp: Date.now(),
+                      soldCount: offeringGems.length,
+                      soldValue: totalValueInBronze,
+                    },
+                  ]);
+
+                  // Auto-remove toast after 3 seconds
+                  setTimeout(() => {
+                    setToasts((prevToasts) => prevToasts.filter((t) => t.id !== toastId));
+                  }, 3000);
+
+                  // Increment sceneKey to force full remount (prevents physics crash)
+                  setSceneKey((prev) => prev + 1);
+
+                  console.log('[SELL] Scene reset triggered to prevent physics crash');
+                })}
+                style={{
+                  background: '#4CAF50',
+                  color: 'white',
+                  border: '2px solid #66BB6A',
+                  borderRadius: 6,
+                  padding: '8px 12px',
+                  fontSize: 10,
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                  ...mobileFriendlyButtonStyles,
+                }}
+              >
+                Sell Now
+              </button>
+
+              {/* Wait for 2x text - Two lines */}
+              <div
+                style={{
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: 7,
+                  fontFamily: 'monospace',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                  paddingTop: 5,
+                  lineHeight: 1.4,
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                <span>or wait for other Gobs to</span>
+                <span>purchase for 2x value</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  (
+                  <CoinValueDisplay
+                    bronzeValue={twoXValue}
+                    size={8}
+                    reverse={true}
+                    showZero={true}
+                  />
+                  )
+                </span>
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       <Canvas
         camera={{
           position: [-1, 1.5, 1],
           fov: 50,
           near: 0.1,
-          far: 100
+          far: 100,
         }}
         gl={{
           antialias: true,
@@ -3977,10 +4426,7 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
         {showDebugInfo && <Stats />}
 
         {/* Camera Controls */}
-        <OrbitControls
-          target={[0, 0.5, 0]}
-          enabled={false}
-        />
+        <OrbitControls target={[0, 0.5, 0]} enabled={false} />
 
         {/* Lighting - changes based on environment */}
         {activeScene === 'garden' ? (
@@ -4069,20 +4515,26 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
         <Physics
           gravity={[0, -9.81, 0]}
           timeStep={
-            activeTier === 'high' ? 1/60 :  // High: 60 fps physics, maximum accuracy
-            activeTier === 'medium' ? 1/45 : // Medium: 45 fps physics, balanced
-            1/30                              // Low: 30 fps physics, performance mode
+            activeTier === 'high'
+              ? 1 / 60 // High: 60 fps physics, maximum accuracy
+              : activeTier === 'medium'
+                ? 1 / 45 // Medium: 45 fps physics, balanced
+                : 1 / 30 // Low: 30 fps physics, performance mode
           }
           interpolate={activeTier === 'high' || activeTier === 'medium'}
           maxVelocityIterations={
-            activeTier === 'high' ? 8 :      // High: Maximum solver accuracy
-            activeTier === 'medium' ? 4 :    // Medium: Balanced
-            2                                 // Low: Minimal iterations for performance
+            activeTier === 'high'
+              ? 8 // High: Maximum solver accuracy
+              : activeTier === 'medium'
+                ? 4 // Medium: Balanced
+                : 2 // Low: Minimal iterations for performance
           }
           maxStabilizationIterations={
-            activeTier === 'high' ? 4 :      // High: Maximum stability
-            activeTier === 'medium' ? 2 :    // Medium: Balanced
-            1                                 // Low: Minimal stabilization
+            activeTier === 'high'
+              ? 4 // High: Maximum stability
+              : activeTier === 'medium'
+                ? 2 // Medium: Balanced
+                : 1 // Low: Minimal stabilization
           }
         >
           {/* Shadow receiving plane */}
@@ -4092,7 +4544,9 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
           <FloorCollider isGarden={activeScene === 'garden'} />
 
           {/* Drag zone - visible in Grow and My Offer modes */}
-          {activeScene === 'garden' && (gardenAction === 'grow' || gardenAction === 'my-offer') && <DragZone action={gardenAction} />}
+          {activeScene === 'garden' && (gardenAction === 'grow' || gardenAction === 'my-offer') && (
+            <DragZone action={gardenAction} />
+          )}
 
           {/* Master Physics Loop - Consolidated physics access for safety */}
           <MasterPhysicsLoop
@@ -4117,9 +4571,17 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
           {activeScene === 'garden' ? (
             <>
               {/* Show garden faucet indicators when in garden mode */}
-              <FaucetIndicator config={faucetConfigs['coin-faucet'] || GARDEN_FAUCET_CONFIGS['coin-faucet']} />
-              <FaucetIndicator config={faucetConfigs['gem-faucet'] || GARDEN_FAUCET_CONFIGS['gem-faucet']} />
-              <FaucetIndicator config={faucetConfigs['growing-gem-faucet'] || GARDEN_FAUCET_CONFIGS['growing-gem-faucet']} />
+              <FaucetIndicator
+                config={faucetConfigs['coin-faucet'] || GARDEN_FAUCET_CONFIGS['coin-faucet']}
+              />
+              <FaucetIndicator
+                config={faucetConfigs['gem-faucet'] || GARDEN_FAUCET_CONFIGS['gem-faucet']}
+              />
+              <FaucetIndicator
+                config={
+                  faucetConfigs['growing-gem-faucet'] || GARDEN_FAUCET_CONFIGS['growing-gem-faucet']
+                }
+              />
             </>
           ) : (
             /* Show default faucet indicator in scrounge mode */
@@ -4127,115 +4589,139 @@ export const PileDemo = ({ onClose, level = 1, username }: { onClose: () => void
           )}
 
           {/* Falling objects - render all types (hide when in garden mode) */}
-          {activeScene !== 'garden' && OBJECT_TYPES.map((objectType, index) => (
-            <FallingObjects
-              key={`${objectType.name}-${sceneKey}`}
-              objectType={objectType}
-              faucetConfig={faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG}
-              apiRef={objectApiRefs.current[index]}
-              meshRef={objectMeshRefs.current[index]}
-              uniformScale={false} // Use non-uniform scale for rock-like shapes
-              meshId={index.toString()}
-              selectedInstances={selectedInstances}
-              highlightConfig={touchConfig.select}
-              draggedInstance={draggedInstance}
-              collectingItems={collectingItems}
-              performanceTier={activeTier}
-              isActive={scroungeObjectsActive}
-              isTransitioningRef={isTransitioningRef}
-            />
-          ))}
+          {activeScene !== 'garden' &&
+            OBJECT_TYPES.map((objectType, index) => (
+              <FallingObjects
+                key={`${objectType.name}-${sceneKey}`}
+                objectType={objectType}
+                faucetConfig={faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG}
+                apiRef={objectApiRefs.current[index]}
+                meshRef={objectMeshRefs.current[index]}
+                uniformScale={false} // Use non-uniform scale for rock-like shapes
+                meshId={index.toString()}
+                selectedInstances={selectedInstances}
+                highlightConfig={touchConfig.select}
+                draggedInstance={draggedInstance}
+                collectingItems={collectingItems}
+                performanceTier={activeTier}
+                isActive={scroungeObjectsActive}
+                isTransitioningRef={isTransitioningRef}
+              />
+            ))}
 
           {/* Garden objects - render only in garden mode with separate faucets */}
-          {activeScene === 'garden' && GARDEN_FAUCET_ENABLED && GARDEN_OBJECT_TYPES
-            .filter(objectType => objectType.materialType === 'coin') // Only render coins with faucet
-            .map((objectType, index) => {
-              // Get the faucet config for this object type, or use a disabled default
-              const faucetConfig = (objectType.faucetId && faucetConfigs[objectType.faucetId])
-                || { ...(faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG), enabled: false };
+          {activeScene === 'garden' &&
+            GARDEN_FAUCET_ENABLED &&
+            GARDEN_OBJECT_TYPES.filter((objectType) => objectType.materialType === 'coin') // Only render coins with faucet
+              .map((objectType, index) => {
+                // Get the faucet config for this object type, or use a disabled default
+                const faucetConfig = (objectType.faucetId &&
+                  faucetConfigs[objectType.faucetId]) || {
+                  ...(faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG),
+                  enabled: false,
+                };
 
-              return (
-                <FallingObjects
-                  key={`${objectType.name}-${sceneKey}`}
-                  objectType={objectType}
-                  faucetConfig={faucetConfig}
-                  apiRef={gardenApiRefs.current[index]}
-                  meshRef={gardenMeshRefs.current[index]}
-                  uniformScale={false}
-                  meshId={`garden-${index}`}
-                  selectedInstances={selectedInstances}
-                  highlightConfig={touchConfig.select}
-                  draggedInstance={draggedInstance}
-                  collectingItems={new Map()} // No collection animations in garden
-                  performanceTier={activeTier}
-                  isActive={gardenObjectsActive}
-                  isTransitioningRef={isTransitioningRef}
-                />
-              );
-            })}
+                return (
+                  <FallingObjects
+                    key={`${objectType.name}-${sceneKey}`}
+                    objectType={objectType}
+                    faucetConfig={faucetConfig}
+                    apiRef={gardenApiRefs.current[index]}
+                    meshRef={gardenMeshRefs.current[index]}
+                    uniformScale={false}
+                    meshId={`garden-${index}`}
+                    selectedInstances={selectedInstances}
+                    highlightConfig={touchConfig.select}
+                    draggedInstance={draggedInstance}
+                    collectingItems={new Map()} // No collection animations in garden
+                    performanceTier={activeTier}
+                    isActive={gardenObjectsActive}
+                    isTransitioningRef={isTransitioningRef}
+                  />
+                );
+              })}
 
           {/* Gems - render with gem faucet */}
-          {activeScene === 'garden' && GARDEN_OBJECT_TYPES
-            .filter(objectType => objectType.materialType === 'gem')
-            .map((objectType, index) => {
-              // Get the faucet config for gems, or use a disabled default
-              const faucetConfig = (objectType.faucetId && faucetConfigs[objectType.faucetId])
-                || { ...(faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG), enabled: false };
+          {activeScene === 'garden' &&
+            GARDEN_OBJECT_TYPES.filter((objectType) => objectType.materialType === 'gem').map(
+              (objectType, index) => {
+                // Get the faucet config for gems, or use a disabled default
+                const faucetConfig = (objectType.faucetId &&
+                  faucetConfigs[objectType.faucetId]) || {
+                  ...(faucetConfigs['default'] || DEFAULT_FAUCET_CONFIG),
+                  enabled: false,
+                };
 
-              // Compute live spawn zones based on current isGrowing/isOffering state
-              // This must match the grouping logic in GARDEN_OBJECT_TYPES
-              const nameWithoutPrefix = objectType.name.replace('garden_', '');
-              const nameParts = nameWithoutPrefix.split('_');
-              const gemType = nameParts[0] as 'diamond' | 'emerald' | 'ruby' | 'sapphire' | 'amethyst';
-              const gemShape = nameParts[1] as 'tetrahedron' | 'octahedron' | 'dodecahedron';
+                // Compute live spawn zones based on current isGrowing/isOffering state
+                // This must match the grouping logic in GARDEN_OBJECT_TYPES
+                const nameWithoutPrefix = objectType.name.replace('garden_', '');
+                const nameParts = nameWithoutPrefix.split('_');
+                const gemType = nameParts[0] as
+                  | 'diamond'
+                  | 'emerald'
+                  | 'ruby'
+                  | 'sapphire'
+                  | 'amethyst';
+                const gemShape = nameParts[1] as 'tetrahedron' | 'octahedron' | 'dodecahedron';
 
-              // Get current gems for this type+shape (must match GARDEN_OBJECT_TYPES grouping)
-              const sortedGems = [...playerState.gems].sort((a, b) => a.id.localeCompare(b.id));
+                // Get current gems for this type+shape (must match GARDEN_OBJECT_TYPES grouping)
+                const sortedGems = [...playerState.gems].sort((a, b) => a.id.localeCompare(b.id));
 
-              // Filter based on current mode (must match GARDEN_OBJECT_TYPES filter logic)
-              const filteredGems = sortedGems.filter(gem => {
-                if (gardenAction === 'grow') {
-                  return !gem.isOffering;
-                } else if (gardenAction === 'my-offer') {
-                  return !gem.isGrowing;
-                } else {
-                  return !gem.isGrowing && !gem.isOffering;
-                }
-              });
+                // Filter based on current mode (must match GARDEN_OBJECT_TYPES filter logic)
+                const filteredGems = sortedGems.filter((gem) => {
+                  if (gardenAction === 'grow') {
+                    return !gem.isOffering;
+                  } else if (gardenAction === 'my-offer') {
+                    return !gem.isGrowing;
+                  } else {
+                    return !gem.isGrowing && !gem.isOffering;
+                  }
+                });
 
-              const gemsForThisType = filteredGems.filter(g => g.type === gemType && g.shape === gemShape);
+                const gemsForThisType = filteredGems.filter(
+                  (g) => g.type === gemType && g.shape === gemShape
+                );
 
-              // Determine spawn zone based on mode
-              const liveSpawnZones = gemsForThisType.map(gem => {
-                if (gardenAction === 'grow' && gem.isGrowing) {
-                  return 'grow-zone' as const;
-                } else if (gardenAction === 'my-offer' && gem.isOffering) {
-                  return 'grow-zone' as const; // Offering gems use same zone as growing
-                } else {
-                  return 'bottom' as const;
-                }
-              });
+                // Determine spawn zone based on mode
+                const liveSpawnZones = gemsForThisType.map((gem) => {
+                  if (gardenAction === 'grow' && gem.isGrowing) {
+                    return 'grow-zone' as const;
+                  } else if (gardenAction === 'my-offer' && gem.isOffering) {
+                    return 'grow-zone' as const; // Offering gems use same zone as growing
+                  } else {
+                    return 'bottom' as const;
+                  }
+                });
 
-              return (
-                <FallingObjects
-                  key={`${objectType.name}-${sceneKey}`}
-                  objectType={objectType}
-                  faucetConfig={faucetConfig}
-                  apiRef={gardenApiRefs.current[GARDEN_OBJECT_TYPES.filter(t => t.materialType === 'coin').length + index]}
-                  meshRef={gardenMeshRefs.current[GARDEN_OBJECT_TYPES.filter(t => t.materialType === 'coin').length + index]}
-                  uniformScale={false}
-                  meshId={`garden-gem-${index}`}
-                  selectedInstances={selectedInstances}
-                  highlightConfig={touchConfig.select}
-                  draggedInstance={draggedInstance}
-                  collectingItems={new Map()} // No collection animations in garden
-                  performanceTier={activeTier}
-                  liveInstanceSpawnZones={liveSpawnZones}
-                  isActive={gardenObjectsActive}
-                  isTransitioningRef={isTransitioningRef}
-                />
-              );
-            })}
+                return (
+                  <FallingObjects
+                    key={`${objectType.name}-${sceneKey}`}
+                    objectType={objectType}
+                    faucetConfig={faucetConfig}
+                    apiRef={
+                      gardenApiRefs.current[
+                        GARDEN_OBJECT_TYPES.filter((t) => t.materialType === 'coin').length + index
+                      ]
+                    }
+                    meshRef={
+                      gardenMeshRefs.current[
+                        GARDEN_OBJECT_TYPES.filter((t) => t.materialType === 'coin').length + index
+                      ]
+                    }
+                    uniformScale={false}
+                    meshId={`garden-gem-${index}`}
+                    selectedInstances={selectedInstances}
+                    highlightConfig={touchConfig.select}
+                    draggedInstance={draggedInstance}
+                    collectingItems={new Map()} // No collection animations in garden
+                    performanceTier={activeTier}
+                    liveInstanceSpawnZones={liveSpawnZones}
+                    isActive={gardenObjectsActive}
+                    isTransitioningRef={isTransitioningRef}
+                  />
+                );
+              }
+            )}
 
           {/* Particle explosions for collected items */}
           {explosions.map((explosion) => (

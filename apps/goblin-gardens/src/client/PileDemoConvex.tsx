@@ -1,5 +1,13 @@
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Physics, CuboidCollider, RigidBody, InstancedRigidBodies, RapierRigidBody, useRapier, vec3 } from '@react-three/rapier';
+import {
+  Physics,
+  CuboidCollider,
+  RigidBody,
+  InstancedRigidBodies,
+  RapierRigidBody,
+  useRapier,
+  vec3,
+} from '@react-three/rapier';
 import { OrbitControls, Environment, useGLTF, Stats } from '@react-three/drei';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
@@ -79,7 +87,8 @@ const MUSHROOM_REGISTRY: Record<string, MushroomDefinition> = {
     modelUrl: yellowMorelUrl,
     rarity: 'uncommon',
     bioluminescent: false,
-    description: 'Highly prized spring delicacy with distinctive honeycomb cap. Must be cooked thoroughly.',
+    description:
+      'Highly prized spring delicacy with distinctive honeycomb cap. Must be cooked thoroughly.',
     scale: 1.0,
   },
 };
@@ -94,10 +103,7 @@ const RARITY_COLORS: Record<RarityTier, string> = {
 };
 
 // Helper to create mushroom objects from registry
-function createMushroomObject(
-  mushroomId: string,
-  position: [number, number, number]
-): ModelObject {
+function createMushroomObject(mushroomId: string, position: [number, number, number]): ModelObject {
   const mushroom = MUSHROOM_REGISTRY[mushroomId];
   if (!mushroom) {
     throw new Error(`Mushroom ${mushroomId} not found in registry`);
@@ -210,7 +216,7 @@ const generatePolyhedronData = (): PolyhedronObject[] => {
           rarity = 'rare';
         } else {
           // Blue shades for regular objects
-          const lightness = 40 + (objectIndex * 7) % 40;
+          const lightness = 40 + ((objectIndex * 7) % 40);
           color = `hsl(200, 80%, ${lightness}%)`;
           size = 'Small';
           rarity = 'common';
@@ -350,7 +356,7 @@ function FallingBoxes() {
             {
               x: (Math.random() - 0.5) * 60,
               y: Math.random() + 15,
-              z: (Math.random() - 0.5) * 60
+              z: (Math.random() - 0.5) * 60,
             },
             true
           );
@@ -366,9 +372,13 @@ function FallingBoxes() {
       ref={api}
       instances={Array.from({ length: BOX_COUNT }, (_, i) => ({
         key: i,
-        position: [(Math.random() - 0.5) * 60, Math.random() * 2, (Math.random() - 0.5) * 60] as [number, number, number]
+        position: [(Math.random() - 0.5) * 60, Math.random() * 2, (Math.random() - 0.5) * 60] as [
+          number,
+          number,
+          number,
+        ],
       }))}
-      colliders={"cuboid"}
+      colliders={'cuboid'}
       linearDamping={1.0}
       angularDamping={0.5}
     >
@@ -410,7 +420,7 @@ function FallingSpheres() {
             {
               x: (Math.random() - 0.5) * 60,
               y: Math.random() + 15,
-              z: (Math.random() - 0.5) * 60
+              z: (Math.random() - 0.5) * 60,
             },
             true
           );
@@ -426,9 +436,13 @@ function FallingSpheres() {
       ref={api}
       instances={Array.from({ length: SPHERE_COUNT }, (_, i) => ({
         key: i,
-        position: [(Math.random() - 0.5) * 60, Math.random() * 2, (Math.random() - 0.5) * 60] as [number, number, number]
+        position: [(Math.random() - 0.5) * 60, Math.random() * 2, (Math.random() - 0.5) * 60] as [
+          number,
+          number,
+          number,
+        ],
       }))}
-      colliders={"ball"}
+      colliders={'ball'}
       linearDamping={1.0}
       angularDamping={0.5}
     >
@@ -479,23 +493,14 @@ function ClusterBalls() {
       ref={api}
       instances={Array.from({ length: BALLS }, (_, i) => ({
         key: i,
-        position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0] as [number, number, number]
+        position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0] as [number, number, number],
       }))}
-      colliders={"ball"}
+      colliders={'ball'}
       linearDamping={5}
     >
-      <instancedMesh
-        ref={meshRef}
-        args={[undefined, undefined, BALLS]}
-        castShadow
-        receiveShadow
-      >
+      <instancedMesh ref={meshRef} args={[undefined, undefined, BALLS]} castShadow receiveShadow>
         <sphereGeometry args={[1.0]} />
-        <meshPhysicalMaterial
-          roughness={0}
-          metalness={0.5}
-          color={"yellow"}
-        />
+        <meshPhysicalMaterial roughness={0} metalness={0.5} color={'yellow'} />
       </instancedMesh>
     </InstancedRigidBodies>
   );
@@ -553,12 +558,13 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
   // Detect if device is mobile/touch (enable outline) or desktop (disable for performance)
   const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-  const selectedObject = selectedObjectId !== null
-    ? allDroppableObjects.find(obj => obj.id === selectedObjectId)
-    : null;
+  const selectedObject =
+    selectedObjectId !== null
+      ? allDroppableObjects.find((obj) => obj.id === selectedObjectId)
+      : null;
 
   const totalRareObjects = allDroppableObjects.filter(
-    obj => obj.rarity === 'rare' || obj.rarity === 'epic' || obj.rarity === 'legendary'
+    (obj) => obj.rarity === 'rare' || obj.rarity === 'epic' || obj.rarity === 'legendary'
   ).length;
 
   // Calculate total physics objects
@@ -567,9 +573,9 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
   // Track when a rare object is selected
   const handleSelectObject = (id: string) => {
     setSelectedObjectId(id);
-    const obj = allDroppableObjects.find(o => o.id === id);
+    const obj = allDroppableObjects.find((o) => o.id === id);
     if (obj && (obj.rarity === 'rare' || obj.rarity === 'epic' || obj.rarity === 'legendary')) {
-      setFoundRareIds(prev => new Set(prev).add(id));
+      setFoundRareIds((prev) => new Set(prev).add(id));
     }
   };
 
@@ -589,15 +595,17 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
   return (
     <div style={{ position: 'fixed', inset: 0, background: '#2e2e2e' }}>
       {/* UI Controls */}
-      <div style={{
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10
-      }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+        }}
+      >
         <button
           onClick={onClose}
           style={{
@@ -608,22 +616,24 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
             borderRadius: 8,
             cursor: 'pointer',
             fontSize: 16,
-            fontWeight: 'bold'
+            fontWeight: 'bold',
           }}
         >
           Close Demo
         </button>
 
         {/* Rare Object Counter */}
-        <div style={{
-          background: 'rgba(255, 215, 0, 0.9)',
-          color: '#000',
-          padding: '10px 20px',
-          borderRadius: 8,
-          fontSize: 14,
-          fontWeight: 'bold',
-          textAlign: 'center'
-        }}>
+        <div
+          style={{
+            background: 'rgba(255, 215, 0, 0.9)',
+            color: '#000',
+            padding: '10px 20px',
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
           <div>Rare Objects Found</div>
           <div style={{ fontSize: 20 }}>
             {foundRareIds.size} / {totalRareObjects}
@@ -631,21 +641,25 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
         </div>
 
         {/* Object Count Display */}
-        <div style={{
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: '#fff',
-          padding: '10px 20px',
-          borderRadius: 8,
-          fontSize: 12,
-          fontFamily: 'monospace'
-        }}>
+        <div
+          style={{
+            background: 'rgba(0, 0, 0, 0.8)',
+            color: '#fff',
+            padding: '10px 20px',
+            borderRadius: 8,
+            fontSize: 12,
+            fontFamily: 'monospace',
+          }}
+        >
           <div style={{ marginBottom: 5 }}>
             <strong>Objects on Screen:</strong>
           </div>
           <div>Boxes: {BOX_COUNT}</div>
           <div>Spheres: {SPHERE_COUNT}</div>
           <div>Cluster Balls: {BALLS}</div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', marginTop: 5, paddingTop: 5 }}>
+          <div
+            style={{ borderTop: '1px solid rgba(255,255,255,0.3)', marginTop: 5, paddingTop: 5 }}
+          >
             <strong>Total: {totalObjects}</strong>
           </div>
         </div>
@@ -653,24 +667,35 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
 
       {/* Object Details Overlay */}
       {selectedObject && (
-        <div style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: 12,
-          minWidth: 200,
-          backdropFilter: 'blur(10px)',
-          border: '2px solid rgba(255, 255, 255, 0.2)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            zIndex: 1000,
+            background: 'rgba(0, 0, 0, 0.8)',
+            color: 'white',
+            padding: '20px',
+            borderRadius: 12,
+            minWidth: 200,
+            backdropFilter: 'blur(10px)',
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 15,
+            }}
+          >
             <h3 style={{ margin: 0, fontSize: 18 }}>
-              {selectedObject.type === 'mushroom' ? 'Mushroom Details' :
-               selectedObject.type === 'rare-item' ? 'Rare Item Details' :
-               'Object Details'}
+              {selectedObject.type === 'mushroom'
+                ? 'Mushroom Details'
+                : selectedObject.type === 'rare-item'
+                  ? 'Rare Item Details'
+                  : 'Object Details'}
             </h3>
             <button
               onClick={() => setSelectedObjectId(null)}
@@ -682,7 +707,7 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
                 fontSize: 20,
                 padding: 0,
                 width: 24,
-                height: 24
+                height: 24,
               }}
             >
               ×
@@ -692,16 +717,18 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
             {/* Rarity Badge */}
             <div>
               <strong>Rarity:</strong>
-              <span style={{
-                marginLeft: 8,
-                padding: '2px 8px',
-                background: RARITY_COLORS[selectedObject.rarity],
-                color: '#fff',
-                borderRadius: 4,
-                fontSize: 11,
-                fontWeight: 'bold',
-                textTransform: 'uppercase'
-              }}>
+              <span
+                style={{
+                  marginLeft: 8,
+                  padding: '2px 8px',
+                  background: RARITY_COLORS[selectedObject.rarity],
+                  color: '#fff',
+                  borderRadius: 4,
+                  fontSize: 11,
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                }}
+              >
                 {selectedObject.rarity}
               </span>
             </div>
@@ -720,15 +747,17 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
                 </div>
                 <div>
                   <strong>Color:</strong>
-                  <div style={{
-                    display: 'inline-block',
-                    width: 20,
-                    height: 20,
-                    backgroundColor: selectedObject.color,
-                    marginLeft: 8,
-                    border: '1px solid white',
-                    verticalAlign: 'middle'
-                  }} />
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      width: 20,
+                      height: 20,
+                      backgroundColor: selectedObject.color,
+                      marginLeft: 8,
+                      border: '1px solid white',
+                      verticalAlign: 'middle',
+                    }}
+                  />
                 </div>
                 <div>
                   <strong>Vertices:</strong> {selectedObject.vertices.length / 3}
@@ -759,11 +788,12 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
                 <div>
                   <strong>Name:</strong> {selectedObject.name}
                 </div>
-                {selectedObject.properties && Object.entries(selectedObject.properties).map(([key, value]) => (
-                  <div key={key}>
-                    <strong>{key}:</strong> {String(value)}
-                  </div>
-                ))}
+                {selectedObject.properties &&
+                  Object.entries(selectedObject.properties).map(([key, value]) => (
+                    <div key={key}>
+                      <strong>{key}:</strong> {String(value)}
+                    </div>
+                  ))}
               </>
             )}
 
@@ -775,8 +805,18 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
             )}
 
             {/* Footer hint */}
-            <div style={{ fontSize: 12, marginTop: 10, opacity: 0.7, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 10 }}>
-              {(selectedObject.rarity === 'rare' || selectedObject.rarity === 'epic' || selectedObject.rarity === 'legendary')
+            <div
+              style={{
+                fontSize: 12,
+                marginTop: 10,
+                opacity: 0.7,
+                borderTop: '1px solid rgba(255,255,255,0.2)',
+                paddingTop: 10,
+              }}
+            >
+              {selectedObject.rarity === 'rare' ||
+              selectedObject.rarity === 'epic' ||
+              selectedObject.rarity === 'legendary'
                 ? '🎉 You found a rare object!'
                 : 'Keep looking for rare objects!'}
               <br />
@@ -791,10 +831,10 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
           position: [0, 20, 30],
           fov: 50,
           near: 0.1,
-          far: 150
+          far: 150,
         }}
         gl={{
-          powerPreference: "high-performance",
+          powerPreference: 'high-performance',
           alpha: false,
           antialias: true,
         }}
@@ -802,20 +842,12 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
         {/* FPS Counter */}
         <Stats />
 
-        <OrbitControls
-          minPolarAngle={0}
-          maxPolarAngle={Math.PI / 2}
-          target={[0, 10, 0]}
-        />
+        <OrbitControls minPolarAngle={0} maxPolarAngle={Math.PI / 2} target={[0, 10, 0]} />
 
         <Environment files="/venice_sunset_1k.hdr" />
 
         <ambientLight intensity={0.5} />
-        <directionalLight
-          position={[10, 10, 10]}
-          intensity={1}
-          castShadow
-        />
+        <directionalLight position={[10, 10, 10]} intensity={1} castShadow />
 
         {isMobile ? (
           <Selection>
@@ -824,20 +856,20 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
             </EffectComposer>
 
             <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
-            {/* Trimesh floor */}
-            <RigidBody type="fixed" colliders="trimesh">
-              <FloorMesh />
-            </RigidBody>
+              {/* Trimesh floor */}
+              <RigidBody type="fixed" colliders="trimesh">
+                <FloorMesh />
+              </RigidBody>
 
-            {/* Falling boxes and spheres */}
-            <FallingBoxes />
-            <FallingSpheres />
+              {/* Falling boxes and spheres */}
+              <FallingBoxes />
+              <FallingSpheres />
 
-            {/* Cluster of 800 instanced balls */}
-            <ClusterBalls />
+              {/* Cluster of 800 instanced balls */}
+              <ClusterBalls />
 
-            {/* All droppable objects - draggable */}
-            {/* {allDroppableObjects.map((obj) => (
+              {/* All droppable objects - draggable */}
+              {/* {allDroppableObjects.map((obj) => (
               <DraggableRigidBody
                 key={obj.id}
                 groupProps={{ position: obj.position }}
@@ -863,8 +895,8 @@ export const PileDemo = ({ onClose }: { onClose: () => void }) => {
                 }
               />
             ))} */}
-          </Physics>
-        </Selection>
+            </Physics>
+          </Selection>
         ) : (
           <Physics gravity={[0, -9.81, 0]} timeStep={1 / 60}>
             {/* Trimesh floor */}

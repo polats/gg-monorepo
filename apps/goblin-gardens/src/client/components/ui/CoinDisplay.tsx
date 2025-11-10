@@ -26,9 +26,12 @@ export type CoinType = 'gold' | 'silver' | 'bronze';
  */
 export function getCoinColor(coinType: CoinType): string {
   switch (coinType) {
-    case 'gold': return '#FFD700';
-    case 'silver': return '#C0C0C0';
-    case 'bronze': return '#CD7F32';
+    case 'gold':
+      return '#FFD700';
+    case 'silver':
+      return '#C0C0C0';
+    case 'bronze':
+      return '#CD7F32';
   }
 }
 
@@ -93,18 +96,22 @@ export const CoinAmount: React.FC<CoinAmountProps> = ({
   const textColor = affordable ? 'white' : '#ff6b6b';
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 3,
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 3,
+      }}
+    >
       <CoinIcon color={color} size={size} />
-      <span style={{
-        color: textColor,
-        fontSize,
-        fontWeight,
-        fontFamily,
-      }}>
+      <span
+        style={{
+          color: textColor,
+          fontSize,
+          fontWeight,
+          fontFamily,
+        }}
+      >
         {formatCoinAmount(amount)}
       </span>
     </div>
@@ -145,11 +152,13 @@ export const CoinBalance: React.FC<CoinBalanceProps> = ({
 
   if (isEmpty && showEmpty) {
     return (
-      <div style={{
-        color: 'rgba(255, 255, 255, 0.5)',
-        fontSize,
-        fontStyle: 'italic',
-      }}>
+      <div
+        style={{
+          color: 'rgba(255, 255, 255, 0.5)',
+          fontSize,
+          fontStyle: 'italic',
+        }}
+      >
         None
       </div>
     );
@@ -160,23 +169,27 @@ export const CoinBalance: React.FC<CoinBalanceProps> = ({
     : ['bronze', 'silver', 'gold'];
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: vertical ? 'column' : 'row',
-      gap,
-      alignItems: 'center',
-    }}>
-      {coinTypes.map((type) => (
-        <CoinAmount
-          key={type}
-          type={type}
-          amount={coins[type]}
-          size={size}
-          fontSize={fontSize}
-          fontFamily={fontFamily}
-          showZero={showZero}
-        />
-      )).filter(Boolean)}
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: vertical ? 'column' : 'row',
+        gap,
+        alignItems: 'center',
+      }}
+    >
+      {coinTypes
+        .map((type) => (
+          <CoinAmount
+            key={type}
+            type={type}
+            amount={coins[type]}
+            size={size}
+            fontSize={fontSize}
+            fontFamily={fontFamily}
+            showZero={showZero}
+          />
+        ))
+        .filter(Boolean)}
     </div>
   );
 };
@@ -207,11 +220,13 @@ export const CoinCost: React.FC<CoinCostProps> = ({
 
   if (isFree && showFree) {
     return (
-      <span style={{
-        color: '#50C878',
-        fontSize,
-        fontWeight: 'bold',
-      }}>
+      <span
+        style={{
+          color: '#50C878',
+          fontSize,
+          fontWeight: 'bold',
+        }}
+      >
         Free
       </span>
     );
@@ -220,11 +235,13 @@ export const CoinCost: React.FC<CoinCostProps> = ({
   const coinTypes: CoinType[] = ['bronze', 'silver', 'gold'];
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+      }}
+    >
       {coinTypes.map((type) => {
         const amount = cost[type];
         if (amount === 0) return null;

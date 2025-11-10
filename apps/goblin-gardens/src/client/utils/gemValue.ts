@@ -10,27 +10,27 @@ import type { Gem, GemType, GemShape, GemRarity } from '../types/game';
 
 // Gem type base values (lowest to highest)
 export const GEM_TYPE_VALUES: Record<GemType, number> = {
-  emerald: 10,    // Lowest tier
-  sapphire: 25,   // Low-mid tier
-  amethyst: 50,   // Mid tier
-  ruby: 100,      // High tier
-  diamond: 200,   // Highest tier
+  emerald: 10, // Lowest tier
+  sapphire: 25, // Low-mid tier
+  amethyst: 50, // Mid tier
+  ruby: 100, // High tier
+  diamond: 200, // Highest tier
 };
 
 // Shape multipliers (lowest to highest)
 export const SHAPE_MULTIPLIERS: Record<GemShape, number> = {
-  tetrahedron: 1.0,   // Basic shape (4 faces)
-  octahedron: 1.5,    // Medium complexity (8 faces)
-  dodecahedron: 2.0,  // Highest complexity (12 faces)
+  tetrahedron: 1.0, // Basic shape (4 faces)
+  octahedron: 1.5, // Medium complexity (8 faces)
+  dodecahedron: 2.0, // Highest complexity (12 faces)
 };
 
 // Rarity multipliers (lowest to highest)
 export const RARITY_MULTIPLIERS: Record<GemRarity, number> = {
-  common: 1.0,      // Base multiplier
-  uncommon: 1.5,    // 50% increase
-  rare: 2.0,        // 2x value
-  epic: 3.0,        // 3x value
-  legendary: 5.0,   // 5x value
+  common: 1.0, // Base multiplier
+  uncommon: 1.5, // 50% increase
+  rare: 2.0, // 2x value
+  epic: 3.0, // 3x value
+  legendary: 5.0, // 5x value
 };
 
 // Level multiplier (each level adds value)
@@ -68,7 +68,7 @@ export function calculateGemValue(gem: Gem): number {
   const baseValue = GEM_TYPE_VALUES[gem.type];
   const shapeMultiplier = SHAPE_MULTIPLIERS[gem.shape];
   const rarityMultiplier = RARITY_MULTIPLIERS[gem.rarity];
-  const levelBonus = 1 + (gem.level * LEVEL_MULTIPLIER);
+  const levelBonus = 1 + gem.level * LEVEL_MULTIPLIER;
 
   // Size is measured in millimeters
   const sizeInMm = gem.size * 1000;
@@ -109,7 +109,11 @@ export function formatGemValue(value: number): string {
  * @param bronzeValue - Total value in bronze coins
  * @returns Object with gold, silver, and bronze counts
  */
-export function convertToCoins(bronzeValue: number): { gold: number; silver: number; bronze: number } {
+export function convertToCoins(bronzeValue: number): {
+  gold: number;
+  silver: number;
+  bronze: number;
+} {
   const totalBronze = Math.floor(bronzeValue);
 
   const gold = Math.floor(totalBronze / BRONZE_PER_GOLD);
@@ -165,7 +169,7 @@ export function getGemValueBreakdown(gem: Gem) {
   const baseValue = GEM_TYPE_VALUES[gem.type];
   const shapeMultiplier = SHAPE_MULTIPLIERS[gem.shape];
   const rarityMultiplier = RARITY_MULTIPLIERS[gem.rarity];
-  const levelBonus = 1 + (gem.level * LEVEL_MULTIPLIER);
+  const levelBonus = 1 + gem.level * LEVEL_MULTIPLIER;
   const sizeInMm = gem.size * 1000;
   const sizeMultiplier = sizeInMm / SIZE_BASE_MM;
   const totalValue = calculateGemValue(gem);

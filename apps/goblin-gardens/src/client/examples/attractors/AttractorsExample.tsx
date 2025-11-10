@@ -1,15 +1,11 @@
-import { Box, Html, Sphere } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import {
-  InstancedRigidBodies,
-  interactionGroups,
-  RigidBody
-} from "@react-three/rapier";
-import { RapierRigidBody } from "@react-three/rapier";
-import { createRef, useEffect, useRef } from "react";
-import { Demo } from "../../DemoApp";
-import { Attractor } from "@react-three/rapier-addons";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Box, Html, Sphere } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { InstancedRigidBodies, interactionGroups, RigidBody } from '@react-three/rapier';
+import { RapierRigidBody } from '@react-three/rapier';
+import { createRef, useEffect, useRef } from 'react';
+import { Demo } from '../../DemoApp';
+import { Attractor } from '@react-three/rapier-addons';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const BALLS = 100;
 
@@ -24,25 +20,17 @@ export const AttractorExample: Demo = () => {
         ref={api}
         instances={Array.from({ length: BALLS }, (_, i) => ({
           key: i,
-          position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0]
+          position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0],
         }))}
-        colliders={"ball"}
+        colliders={'ball'}
       >
         <instancedMesh args={[undefined, undefined, BALLS]} castShadow>
           <sphereGeometry args={[1]} />
-          <meshPhysicalMaterial
-            roughness={0.5}
-            metalness={0.5}
-            color={"green"}
-          />
+          <meshPhysicalMaterial roughness={0.5} metalness={0.5} color={'green'} />
         </instancedMesh>
       </InstancedRigidBodies>
 
-      <RigidBody
-        position={[-21, 50, 0]}
-        colliders="ball"
-        collisionGroups={interactionGroups(1)}
-      >
+      <RigidBody position={[-21, 50, 0]} colliders="ball" collisionGroups={interactionGroups(1)}>
         <Sphere />
         <Html>Nested Attractor</Html>
         <Attractor strength={4} collisionGroups={interactionGroups(1, 2)} />

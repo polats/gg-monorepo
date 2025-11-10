@@ -7,6 +7,7 @@ This directory contains 5 interactive GLSL shaders designed specifically for the
 **`gem-viewer.html`** - All 5 gem shaders in one interactive viewer!
 
 **Features**:
+
 - Toggle between all 5 gem types
 - Octahedral geometry (proper gem shape)
 - Dynamic lighting with adjustable intensity
@@ -16,6 +17,7 @@ This directory contains 5 interactive GLSL shaders designed specifically for the
 - Download individual gem renders
 
 **Quick Start**:
+
 ```bash
 open test-shaders/gem-viewer.html
 ```
@@ -29,9 +31,11 @@ For reference, each shader is also available as a standalone file:
 ## Shaders
 
 ### 1. Diamond Sparkle (`diamond-sparkle.html`)
+
 **Visual Style**: Brilliant refractive sparkles with prismatic light dispersion
 
 **Features**:
+
 - Radial facets that rotate over time
 - Sharp sparkle peaks at facet centers
 - Chromatic dispersion (rainbow effects)
@@ -39,6 +43,7 @@ For reference, each shader is also available as a standalone file:
 - Adjustable intensity and facet count
 
 **Parameters**:
+
 - Sparkle Intensity (0-2)
 - Facet Count (4-16)
 - Rotation Speed (0-2)
@@ -50,9 +55,11 @@ For reference, each shader is also available as a standalone file:
 ---
 
 ### 2. Emerald Depth (`emerald-depth.html`)
+
 **Visual Style**: Layered translucent green with organic inclusions
 
 **Features**:
+
 - Multiple depth layers using FBM noise
 - Organic inclusions (darker spots)
 - Flowing animation
@@ -60,6 +67,7 @@ For reference, each shader is also available as a standalone file:
 - Subtle shimmer
 
 **Parameters**:
+
 - Depth Layers (2-8)
 - Inclusion Density (0-1)
 - Flow Speed (0-1)
@@ -71,9 +79,11 @@ For reference, each shader is also available as a standalone file:
 ---
 
 ### 3. Ruby Fire (`ruby-fire.html`)
+
 **Visual Style**: Intense inner glow with flickering fire-like energy
 
 **Features**:
+
 - Turbulent fire effect using layered FBM
 - Pulsing core
 - Hot spots with yellow-orange highlights
@@ -81,6 +91,7 @@ For reference, each shader is also available as a standalone file:
 - Dynamic flickering
 
 **Parameters**:
+
 - Fire Intensity (0-2)
 - Flicker Speed (0-2)
 - Turbulence (0-1)
@@ -92,9 +103,11 @@ For reference, each shader is also available as a standalone file:
 ---
 
 ### 4. Sapphire Ocean (`sapphire-ocean.html`)
+
 **Visual Style**: Deep blue waves with liquid shimmer
 
 **Features**:
+
 - Flowing sine waves
 - Organic noise patterns
 - Shimmer highlights
@@ -102,6 +115,7 @@ For reference, each shader is also available as a standalone file:
 - Depth gradient
 
 **Parameters**:
+
 - Wave Amplitude (0-1)
 - Wave Speed (0-2)
 - Shimmer Intensity (0-1)
@@ -113,9 +127,11 @@ For reference, each shader is also available as a standalone file:
 ---
 
 ### 5. Amethyst Crystal (`amethyst-crystal.html`)
+
 **Visual Style**: Geometric crystalline structure with purple gradients
 
 **Features**:
+
 - Voronoi cells for crystal structure
 - Rotating facets
 - Internal reflections
@@ -123,6 +139,7 @@ For reference, each shader is also available as a standalone file:
 - Refraction effects
 
 **Parameters**:
+
 - Crystal Complexity (2-8)
 - Rotation Speed (0-1)
 - Refraction (0-1)
@@ -138,11 +155,13 @@ For reference, each shader is also available as a standalone file:
 ### Unified Viewer (Recommended)
 
 Open the unified gem viewer:
+
 ```bash
 open test-shaders/gem-viewer.html
 ```
 
 **Controls**:
+
 - **Gem Selection** - Click any gem button to switch shaders
 - **Mouse** - Move mouse to rotate gem
 - **Lighting** - Adjust light intensity and ambient light
@@ -152,11 +171,13 @@ open test-shaders/gem-viewer.html
 ### Individual Shaders
 
 Each shader is also available standalone:
+
 ```bash
 open test-shaders/diamond-sparkle.html
 ```
 
 **Individual shader controls**:
+
 - **Parameter sliders** - Adjust visual properties in real-time
 - **Color pickers** - Customize gem colors
 - **Reset button** - Restore default values
@@ -167,19 +188,20 @@ open test-shaders/diamond-sparkle.html
 The unified viewer demonstrates the recommended approach:
 
 **Octahedral Geometry** (like the viewer):
+
 ```typescript
 // In React Three Fiber
 import { useFrame } from '@react-three/fiber';
 
 function Gem({ type, level, rarity }) {
   const meshRef = useRef();
-  
+
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.material.uniforms.u_time.value = state.clock.elapsedTime;
     }
   });
-  
+
   return (
     <mesh ref={meshRef}>
       <octahedronGeometry args={[0.1, 0]} />
@@ -198,6 +220,7 @@ function Gem({ type, level, rarity }) {
 ```
 
 **Key Integration Points**:
+
 1. Use `OctahedronGeometry` for proper gem shape
 2. Pass `u_time` uniform for animation
 3. Link `u_intensity` to gem level/rarity
@@ -207,12 +230,14 @@ function Gem({ type, level, rarity }) {
 ## Technical Details
 
 **Technology**:
+
 - Three.js r128 (from CDN)
 - GLSL ES 1.0 fragment shaders
 - WebGL rendering
 - Real-time 60fps performance
 
 **Shader Techniques Used**:
+
 - Voronoi cells (Amethyst)
 - Fractional Brownian Motion / FBM (Emerald, Ruby)
 - Sine wave interference (Diamond, Sapphire)
@@ -221,6 +246,7 @@ function Gem({ type, level, rarity }) {
 - Smooth interpolation (all shaders)
 
 **Performance**:
+
 - Optimized for real-time rendering
 - No texture lookups (pure mathematical)
 - Minimal branching
@@ -237,13 +263,13 @@ Each shader can be customized by:
 
 ## Gem Type Mapping
 
-| Gem Type | Shader | Key Characteristic |
-|----------|--------|-------------------|
-| Diamond | Diamond Sparkle | Brilliant refraction |
-| Emerald | Emerald Depth | Organic inclusions |
-| Ruby | Ruby Fire | Inner glow |
-| Sapphire | Sapphire Ocean | Liquid shimmer |
-| Amethyst | Amethyst Crystal | Geometric structure |
+| Gem Type | Shader           | Key Characteristic   |
+| -------- | ---------------- | -------------------- |
+| Diamond  | Diamond Sparkle  | Brilliant refraction |
+| Emerald  | Emerald Depth    | Organic inclusions   |
+| Ruby     | Ruby Fire        | Inner glow           |
+| Sapphire | Sapphire Ocean   | Liquid shimmer       |
+| Amethyst | Amethyst Crystal | Geometric structure  |
 
 ## Next Steps
 

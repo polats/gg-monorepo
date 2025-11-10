@@ -41,8 +41,18 @@ export function CanvasText({
     context.textBaseline = anchorY;
 
     // Draw text
-    const x = anchorX === 'left' ? scaleFactor * 0.2 : anchorX === 'right' ? canvas.width - scaleFactor * 0.2 : canvas.width / 2;
-    const y = anchorY === 'top' ? scaleFactor * 0.2 : anchorY === 'bottom' ? canvas.height - scaleFactor * 0.2 : canvas.height / 2;
+    const x =
+      anchorX === 'left'
+        ? scaleFactor * 0.2
+        : anchorX === 'right'
+          ? canvas.width - scaleFactor * 0.2
+          : canvas.width / 2;
+    const y =
+      anchorY === 'top'
+        ? scaleFactor * 0.2
+        : anchorY === 'bottom'
+          ? canvas.height - scaleFactor * 0.2
+          : canvas.height / 2;
     context.fillText(children, x, y);
 
     const tex = new THREE.CanvasTexture(canvas);

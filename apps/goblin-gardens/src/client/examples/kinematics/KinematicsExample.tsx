@@ -1,10 +1,10 @@
-import { Box, Sphere, Torus } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { RigidBody, RapierRigidBody } from "@react-three/rapier";
-import { useEffect, useRef } from "react";
-import { Euler, Quaternion } from "three";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Box, Sphere, Torus } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { RigidBody, RapierRigidBody } from '@react-three/rapier';
+import { useEffect, useRef } from 'react';
+import { Euler, Quaternion } from 'three';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const Ball = () => {
   const ball = useRef<RapierRigidBody>(null);
@@ -12,10 +12,7 @@ const Ball = () => {
   useFrame(() => {
     if (ball.current) {
       if (ball.current.translation().y < -10) {
-        ball.current.setTranslation(
-          { x: Math.random() * 2, y: 20, z: 0 },
-          true
-        );
+        ball.current.setTranslation({ x: Math.random() * 2, y: 20, z: 0 }, true);
         ball.current.setLinvel({ x: 0, y: 0, z: 0 }, true);
       }
     }
@@ -41,16 +38,14 @@ export const Kinematics: Demo = () => {
 
     if (torus.current) {
       const euler = new Euler(now / 1000, 0, 0);
-      torus.current.setNextKinematicRotation(
-        new Quaternion().setFromEuler(euler)
-      );
+      torus.current.setNextKinematicRotation(new Quaternion().setFromEuler(euler));
     }
 
     if (platform.current) {
       platform.current.setNextKinematicTranslation({
         x: Math.sin(now / 100),
         y: -8 + Math.sin(now / 50) * 0.5,
-        z: 0
+        z: 0,
       });
     }
   });
@@ -75,12 +70,7 @@ export const Kinematics: Demo = () => {
         </Torus>
       </RigidBody>
 
-      <RigidBody
-        colliders="cuboid"
-        position={[0, -8, 0]}
-        type="kinematicPosition"
-        ref={platform}
-      >
+      <RigidBody colliders="cuboid" position={[0, -8, 0]} type="kinematicPosition" ref={platform}>
         <Box args={[40, 1, 40]} castShadow receiveShadow>
           <meshPhysicalMaterial />
         </Box>

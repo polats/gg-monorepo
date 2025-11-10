@@ -20,7 +20,9 @@ import morelUrl from './models/mush-03-morel.glb?url';
 
 ```typescript
 const MUSHROOM_REGISTRY: Record<string, MushroomDefinition> = {
-  'jack-o-lantern': { /* existing */ },
+  'jack-o-lantern': {
+    /* existing */
+  },
 
   // Add new mushrooms here:
   'ghost-fungus': {
@@ -59,6 +61,7 @@ const specialObjects: ModelObject[] = [
 ```
 
 That's it! The mushroom will automatically:
+
 - ✅ Drop from the sky with physics
 - ✅ Be draggable and selectable
 - ✅ Show proper details when double-clicked
@@ -103,10 +106,7 @@ const RARE_ITEM_REGISTRY: Record<string, RareItemDefinition> = {
 **Step 2: Create helper function (similar to createMushroomObject)**
 
 ```typescript
-function createRareItemObject(
-  itemId: string,
-  position: [number, number, number]
-): ModelObject {
+function createRareItemObject(itemId: string, position: [number, number, number]): ModelObject {
   const item = RARE_ITEM_REGISTRY[itemId];
   if (!item) {
     throw new Error(`Rare item ${itemId} not found in registry`);
@@ -141,15 +141,16 @@ const specialObjects: ModelObject[] = [
 
 The system supports 5 rarity levels with pre-defined colors:
 
-| Rarity | Color | Usage |
-|--------|-------|-------|
-| `common` | Gray (#9e9e9e) | Regular objects |
-| `uncommon` | Green (#4caf50) | Slightly special |
-| `rare` | Blue (#2196f3) | Notable finds |
-| `epic` | Purple (#9c27b0) | Very special |
-| `legendary` | Orange (#ff6d00) | Extremely rare |
+| Rarity      | Color            | Usage            |
+| ----------- | ---------------- | ---------------- |
+| `common`    | Gray (#9e9e9e)   | Regular objects  |
+| `uncommon`  | Green (#4caf50)  | Slightly special |
+| `rare`      | Blue (#2196f3)   | Notable finds    |
+| `epic`      | Purple (#9c27b0) | Very special     |
+| `legendary` | Orange (#ff6d00) | Extremely rare   |
 
 Objects with `rare`, `epic`, or `legendary` rarity are:
+
 - Tracked in the "Rare Objects Found" counter
 - Highlighted with "🎉 You found a rare object!" message
 - More visually striking in the UI
@@ -241,19 +242,13 @@ You can easily spawn multiple instances:
 ```typescript
 const specialObjects: ModelObject[] = [
   // Spawn 5 jack-o'-lanterns in a row
-  ...Array.from({ length: 5 }, (_, i) =>
-    createMushroomObject('jack-o-lantern', [i * 3, 25, 0])
-  ),
+  ...Array.from({ length: 5 }, (_, i) => createMushroomObject('jack-o-lantern', [i * 3, 25, 0])),
 
   // Spawn morels in a circle
   ...Array.from({ length: 8 }, (_, i) => {
     const angle = (i / 8) * Math.PI * 2;
     const radius = 15;
-    return createMushroomObject('morel', [
-      Math.cos(angle) * radius,
-      25,
-      Math.sin(angle) * radius
-    ]);
+    return createMushroomObject('morel', [Math.cos(angle) * radius, 25, Math.sin(angle) * radius]);
   }),
 ];
 ```
@@ -265,11 +260,13 @@ const specialObjects: ModelObject[] = [
 The details panel automatically adjusts based on object type. To add custom information:
 
 **For mushrooms:**
+
 - Edit the `MUSHROOM_REGISTRY` entry
 - Add properties to the `properties` object
 - They'll automatically show if they have special handling (like `bioluminescent`)
 
 **For rare items:**
+
 - All properties in the `properties` object are displayed
 - Format: `<strong>PropertyName:</strong> value`
 
@@ -373,6 +370,7 @@ const MUSHROOM_REGISTRY: Record<string, MushroomDefinition> = {
 3. **Positioning:** Higher Y values = drops from higher up
 4. **Scale:** 1.0 = normal size, 0.5 = half size, 2.0 = double size
 5. **Rarity Balance:**
+
    - Common: 60-70%
    - Uncommon: 20-30%
    - Rare: 5-10%
@@ -386,17 +384,20 @@ const MUSHROOM_REGISTRY: Record<string, MushroomDefinition> = {
 ## Troubleshooting
 
 **Mushroom not appearing:**
+
 - Check model path is correct
 - Verify GLB file exists
 - Check browser console for errors
 - Ensure position isn't underground (Y should be > 0)
 
 **Physics issues:**
+
 - Try adjusting scale (smaller = more stable)
 - Check model has proper geometry (no zero-area faces)
 - Verify convex hull is being generated
 
 **Selection not working:**
+
 - Double-click to select (not single click)
 - Make sure `onSelect` callback is passed
 - Check selectedObjectId state is updating
@@ -406,6 +407,7 @@ const MUSHROOM_REGISTRY: Record<string, MushroomDefinition> = {
 ## Next Steps
 
 With this system, you can easily:
+
 - ✅ Add all mushrooms from the research database
 - ✅ Create rare treasure items
 - ✅ Build a complete collection system

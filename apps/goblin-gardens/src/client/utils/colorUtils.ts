@@ -10,10 +10,14 @@ import type { GemType } from '../types/game';
  */
 export function getCoinColor(coinType: string): string {
   switch (coinType) {
-    case 'gold': return '#FFD700';
-    case 'silver': return '#C0C0C0';
-    case 'bronze': return '#CD7F32';
-    default: return '#CD7F32';
+    case 'gold':
+      return '#FFD700';
+    case 'silver':
+      return '#C0C0C0';
+    case 'bronze':
+      return '#CD7F32';
+    default:
+      return '#CD7F32';
   }
 }
 
@@ -22,24 +26,37 @@ export function getCoinColor(coinType: string): string {
  */
 export function getCrystalColor(crystal: string): string {
   switch (crystal) {
-    case 'ruby': return '#E0115F'; // Deep red
-    case 'sapphire': return '#0F52BA'; // Deep blue
-    case 'emerald': return '#50C878'; // Emerald green
-    case 'amethyst': return '#9966CC'; // Purple
-    case 'diamond': return '#E8F5F5'; // Clear/white
-    case 'topaz': return '#FFD700'; // Golden yellow
-    case 'aquamarine': return '#7FFFD4'; // Cyan/turquoise
-    case 'citrine': return '#E4D00A'; // Yellow
-    case 'obsidian': return '#3C3C3C'; // Dark gray/black
-    case 'quartz': return '#F0F0F0'; // Light gray/clear
-    default: return '#ffffff';
+    case 'ruby':
+      return '#E0115F'; // Deep red
+    case 'sapphire':
+      return '#0F52BA'; // Deep blue
+    case 'emerald':
+      return '#50C878'; // Emerald green
+    case 'amethyst':
+      return '#9966CC'; // Purple
+    case 'diamond':
+      return '#E8F5F5'; // Clear/white
+    case 'topaz':
+      return '#FFD700'; // Golden yellow
+    case 'aquamarine':
+      return '#7FFFD4'; // Cyan/turquoise
+    case 'citrine':
+      return '#E4D00A'; // Yellow
+    case 'obsidian':
+      return '#3C3C3C'; // Dark gray/black
+    case 'quartz':
+      return '#F0F0F0'; // Light gray/clear
+    default:
+      return '#ffffff';
   }
 }
 
 /**
  * Get the gem icon styles based on shape
  */
-export function getGemIconStyle(shape: 'tetrahedron' | 'octahedron' | 'dodecahedron'): React.CSSProperties {
+export function getGemIconStyle(
+  shape: 'tetrahedron' | 'octahedron' | 'dodecahedron'
+): React.CSSProperties {
   const baseStyle: React.CSSProperties = {
     width: 12,
     height: 12,

@@ -5,6 +5,7 @@
 **Location:** `PointerForceField.tsx` lines 71-91 (now removed)
 
 **The Bug:**
+
 ```typescript
 useEffect(() => {
   return () => {
@@ -20,6 +21,7 @@ useEffect(() => {
 ```
 
 **Why It Crashed:**
+
 1. User clicks "My Offer"
 2. `isTransitioningRef.current = true`
 3. React queues `setGardenAction('my-offer')`
@@ -37,6 +39,7 @@ useEffect(() => {
 **Removed lines 71-91** - the cleanup useEffect that was writing to physics bodies during unmount.
 
 **Why It's Safe:**
+
 - Transition handlers already clear `isDragging` and `draggedInstance` before switching
 - When PointerForceField unmounts, `pickedBodyRef` is lost (component state)
 - No useFrame loop holds a reference to the picked body anymore
@@ -48,16 +51,15 @@ useEffect(() => {
 Let me count them properly:
 
 **PileDemo.tsx:**
+
 1. MasterPhysicsLoop - 1 useFrame (drag zone counting)
 
-**PointerForceField.tsx:**
-2. Main loop - 1 useFrame (dragging, push forces)
+**PointerForceField.tsx:** 2. Main loop - 1 useFrame (dragging, push forces)
 
-**FallingObjects.tsx (per instance):**
-3. Collection animation - 1 useFrame
-4. Matrix sync - 1 useFrame
+**FallingObjects.tsx (per instance):** 3. Collection animation - 1 useFrame 4. Matrix sync - 1 useFrame
 
 **How many FallingObjects instances?**
+
 - With reduced test config: ~5 object types
 - Scrounge mode: 5 instances × 2 loops = 10
 - Garden mode: 3 coins + 5 gems = 8 instances × 2 loops = 16
@@ -69,6 +71,7 @@ All 18 loops now check `isTransitioningRef` and are blocked during transitions.
 ## Testing
 
 Try the crash sequence:
+
 1. My Garden → Grow mode
 2. Drag gem into grow zone
 3. Click "My Offer"

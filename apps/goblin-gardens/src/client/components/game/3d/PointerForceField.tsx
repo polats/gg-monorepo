@@ -57,7 +57,12 @@ export function PointerForceField({
   const indicatorRef = useRef<THREE.Mesh>(null);
 
   // Pickup mode state
-  const pickedBodyRef = useRef<{ body: RapierRigidBodyType; offset: THREE.Vector3; instanceKey: string; initialY: number } | null>(null);
+  const pickedBodyRef = useRef<{
+    body: RapierRigidBodyType;
+    offset: THREE.Vector3;
+    instanceKey: string;
+    initialY: number;
+  } | null>(null);
   const originalDamping = useRef({ linear: 0, angular: 0 });
 
   // Use config values based on mode
@@ -141,17 +146,20 @@ export function PointerForceField({
             const projection = toCenter.dot(ray.direction);
             if (projection < 0) return;
 
-            const closestPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(projection));
+            const closestPoint = ray.origin
+              .clone()
+              .add(ray.direction.clone().multiplyScalar(projection));
             const distanceToCenter = closestPoint.distanceTo(bodyPos);
 
             if (distanceToCenter < radius) {
-              const hitDistance = projection - Math.sqrt(radius * radius - distanceToCenter * distanceToCenter);
+              const hitDistance =
+                projection - Math.sqrt(radius * radius - distanceToCenter * distanceToCenter);
 
               if (!closestHit || hitDistance < closestHit.distance) {
                 closestHit = {
                   meshId: meshIndex.toString(),
                   instanceId,
-                  distance: hitDistance
+                  distance: hitDistance,
                 };
               }
             }
@@ -163,7 +171,7 @@ export function PointerForceField({
           const instanceKey = `${hit.meshId}:${hit.instanceId}`;
 
           // Toggle selection
-          setSelectedInstances(prev => {
+          setSelectedInstances((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(instanceKey)) {
               newSet.delete(instanceKey);
@@ -191,8 +199,16 @@ export function PointerForceField({
 
         console.log('[PICK] Physics-based picking:', {
           clickCoords: { x: normalized.x.toFixed(3), y: normalized.y.toFixed(3) },
-          rayOrigin: { x: ray.origin.x.toFixed(3), y: ray.origin.y.toFixed(3), z: ray.origin.z.toFixed(3) },
-          rayDirection: { x: ray.direction.x.toFixed(3), y: ray.direction.y.toFixed(3), z: ray.direction.z.toFixed(3) }
+          rayOrigin: {
+            x: ray.origin.x.toFixed(3),
+            y: ray.origin.y.toFixed(3),
+            z: ray.origin.z.toFixed(3),
+          },
+          rayDirection: {
+            x: ray.direction.x.toFixed(3),
+            y: ray.direction.y.toFixed(3),
+            z: ray.direction.z.toFixed(3),
+          },
         });
 
         type PickupHit = {
@@ -242,7 +258,9 @@ export function PointerForceField({
             if (projection < 0) return;
 
             // Find closest point on ray to sphere center
-            const closestPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(projection));
+            const closestPoint = ray.origin
+              .clone()
+              .add(ray.direction.clone().multiplyScalar(projection));
 
             // Distance from closest point to sphere center
             const distanceToCenter = closestPoint.distanceTo(bodyPos);
@@ -250,17 +268,20 @@ export function PointerForceField({
             // Check if ray intersects sphere
             if (distanceToCenter < radius) {
               // Calculate actual hit distance (entry point of sphere)
-              const hitDistance = projection - Math.sqrt(radius * radius - distanceToCenter * distanceToCenter);
+              const hitDistance =
+                projection - Math.sqrt(radius * radius - distanceToCenter * distanceToCenter);
 
               // Keep closest hit
               if (!closestHit || hitDistance < closestHit.distance) {
-                const hitPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(hitDistance));
+                const hitPoint = ray.origin
+                  .clone()
+                  .add(ray.direction.clone().multiplyScalar(hitDistance));
                 closestHit = {
                   meshId: meshIndex.toString(),
                   instanceId,
                   distance: hitDistance,
                   body,
-                  hitPoint
+                  hitPoint,
                 };
               }
             }
@@ -278,8 +299,12 @@ export function PointerForceField({
             meshId,
             instanceId,
             distance: hit.distance.toFixed(3),
-            bodyPos: { x: body.translation().x.toFixed(3), y: body.translation().y.toFixed(3), z: body.translation().z.toFixed(3) },
-            isSleeping: body.isSleeping()
+            bodyPos: {
+              x: body.translation().x.toFixed(3),
+              y: body.translation().y.toFixed(3),
+              z: body.translation().z.toFixed(3),
+            },
+            isSleeping: body.isSleeping(),
           });
 
           // Store original damping
@@ -399,7 +424,20 @@ export function PointerForceField({
       window.removeEventListener('touchend', handlePointerUp);
       window.removeEventListener('touchmove', handlePointerMove as any);
     };
-  }, [camera, raycaster, size, onDraggingChange, isPickupMode, isSelectMode, isPushMode, objectApis, config.pickup.damping, setSelectedInstances, onDraggedObjectChange, onCollectItem]);
+  }, [
+    camera,
+    raycaster,
+    size,
+    onDraggingChange,
+    isPickupMode,
+    isSelectMode,
+    isPushMode,
+    objectApis,
+    config.pickup.damping,
+    setSelectedInstances,
+    onDraggedObjectChange,
+    onCollectItem,
+  ]);
 
   useFrame(() => {
     // CRITICAL: Check transition flag FIRST - blocks all physics access during transitions
@@ -475,8 +513,7 @@ export function PointerForceField({
         try {
           const bodyPos = body.translation();
           const distance = Math.sqrt(
-            Math.pow(bodyPos.x - pos.x, 2) +
-            Math.pow(bodyPos.z - pos.z, 2)
+            Math.pow(bodyPos.x - pos.x, 2) + Math.pow(bodyPos.z - pos.z, 2)
           );
 
           if (distance < FORCE_RADIUS) {
@@ -490,7 +527,7 @@ export function PointerForceField({
             const normZ = dirZ / dirLength;
 
             // Falloff based on distance (closer = stronger)
-            const falloff = 1 - (distance / FORCE_RADIUS);
+            const falloff = 1 - distance / FORCE_RADIUS;
 
             // Combine radial push with drag direction
             const forceX = (normX * FORCE_STRENGTH + vel.x * 10) * falloff;
@@ -504,7 +541,10 @@ export function PointerForceField({
             body.applyImpulse({ x: clampedForceX, y: 0, z: clampedForceZ }, true);
           }
         } catch (error) {
-          console.error('[POINTER FORCE FIELD] Error accessing body in push mode:', error, { apiIndex, bodyIndex });
+          console.error('[POINTER FORCE FIELD] Error accessing body in push mode:', error, {
+            apiIndex,
+            bodyIndex,
+          });
         }
       });
     });
@@ -516,7 +556,7 @@ export function PointerForceField({
       <mesh ref={indicatorRef} renderOrder={999}>
         <sphereGeometry args={[isPushMode ? FORCE_RADIUS * 0.5 : 0.1, 16, 16]} />
         <meshBasicMaterial
-          color={isPushMode ? "#4caf50" : isPickupMode ? "#ffffff" : "#00bcd4"}
+          color={isPushMode ? '#4caf50' : isPickupMode ? '#ffffff' : '#00bcd4'}
           transparent
           opacity={0.2}
           depthWrite={false}

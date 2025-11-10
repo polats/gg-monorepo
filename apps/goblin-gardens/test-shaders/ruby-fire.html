@@ -1,166 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ruby Fire Shader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f5f5;
-            overflow: hidden;
-        }
-        #container { display: flex; height: 100vh; }
-        #canvas-container { flex: 1; position: relative; }
-        canvas { display: block; width: 100%; height: 100%; }
-        #controls {
-            width: 320px;
-            background: white;
-            padding: 24px;
-            overflow-y: auto;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-        }
-        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #191919; }
-        .description { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.5; }
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-size: 13px; font-weight: 500; color: #191919; margin-bottom: 8px; }
-        input[type="range"] {
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: #e0e0e0;
-            outline: none;
-            -webkit-appearance: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #191919;
-            cursor: pointer;
-        }
-        input[type="color"] {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .value-display { display: inline-block; font-size: 12px; color: #666; margin-left: 8px; }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #191919;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        button:hover { background: #333; }
-        .section-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #999;
-            margin: 24px 0 12px 0;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: #f5f5f5;
+        overflow: hidden;
+      }
+      #container {
+        display: flex;
+        height: 100vh;
+      }
+      #canvas-container {
+        flex: 1;
+        position: relative;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #controls {
+        width: 320px;
+        background: white;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #191919;
+      }
+      .description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+      .control-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #191919;
+        margin-bottom: 8px;
+      }
+      input[type='range'] {
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: #e0e0e0;
+        outline: none;
+        -webkit-appearance: none;
+      }
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #191919;
+        cursor: pointer;
+      }
+      input[type='color'] {
+        width: 100%;
+        height: 40px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .value-display {
+        display: inline-block;
+        font-size: 12px;
+        color: #666;
+        margin-left: 8px;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #191919;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 8px;
+      }
+      button:hover {
+        background: #333;
+      }
+      .section-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #999;
+        margin: 24px 0 12px 0;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="container">
-        <div id="canvas-container"></div>
-        <div id="controls">
-            <h1>Ruby Fire</h1>
-            <p class="description">Intense inner glow with flickering fire-like energy, capturing ruby's passionate warmth.</p>
-            
-            <div class="section-title">Parameters</div>
-            
-            <div class="control-group">
-                <label>Fire Intensity</label>
-                <input type="range" id="intensity" min="0" max="2" step="0.1" value="1.2">
-                <span class="value-display" id="intensity-value">1.2</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Flicker Speed</label>
-                <input type="range" id="speed" min="0" max="2" step="0.1" value="0.8">
-                <span class="value-display" id="speed-value">0.8</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Turbulence</label>
-                <input type="range" id="turbulence" min="0" max="1" step="0.05" value="0.5">
-                <span class="value-display" id="turbulence-value">0.5</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Glow Radius</label>
-                <input type="range" id="glow" min="0" max="1" step="0.05" value="0.6">
-                <span class="value-display" id="glow-value">0.6</span>
-            </div>
-            
-            <div class="section-title">Colors</div>
-            
-            <div class="control-group">
-                <label>Core Color</label>
-                <input type="color" id="coreColor" value="#ff1744">
-            </div>
-            
-            <div class="control-group">
-                <label>Edge Color</label>
-                <input type="color" id="edgeColor" value="#8b0000">
-            </div>
-            
-            <div class="section-title">Actions</div>
-            <button onclick="resetParameters()">Reset to Defaults</button>
-            <button onclick="downloadImage()">Download PNG</button>
+      <div id="canvas-container"></div>
+      <div id="controls">
+        <h1>Ruby Fire</h1>
+        <p class="description">
+          Intense inner glow with flickering fire-like energy, capturing ruby's passionate warmth.
+        </p>
+
+        <div class="section-title">Parameters</div>
+
+        <div class="control-group">
+          <label>Fire Intensity</label>
+          <input type="range" id="intensity" min="0" max="2" step="0.1" value="1.2" />
+          <span class="value-display" id="intensity-value">1.2</span>
         </div>
+
+        <div class="control-group">
+          <label>Flicker Speed</label>
+          <input type="range" id="speed" min="0" max="2" step="0.1" value="0.8" />
+          <span class="value-display" id="speed-value">0.8</span>
+        </div>
+
+        <div class="control-group">
+          <label>Turbulence</label>
+          <input type="range" id="turbulence" min="0" max="1" step="0.05" value="0.5" />
+          <span class="value-display" id="turbulence-value">0.5</span>
+        </div>
+
+        <div class="control-group">
+          <label>Glow Radius</label>
+          <input type="range" id="glow" min="0" max="1" step="0.05" value="0.6" />
+          <span class="value-display" id="glow-value">0.6</span>
+        </div>
+
+        <div class="section-title">Colors</div>
+
+        <div class="control-group">
+          <label>Core Color</label>
+          <input type="color" id="coreColor" value="#ff1744" />
+        </div>
+
+        <div class="control-group">
+          <label>Edge Color</label>
+          <input type="color" id="edgeColor" value="#8b0000" />
+        </div>
+
+        <div class="section-title">Actions</div>
+        <button onclick="resetParameters()">Reset to Defaults</button>
+        <button onclick="downloadImage()">Download PNG</button>
+      </div>
     </div>
 
     <script>
-        const params = {
-            intensity: 1.2,
-            speed: 0.8,
-            turbulence: 0.5,
-            glow: 0.6,
-            coreColor: new THREE.Color(0xff1744),
-            edgeColor: new THREE.Color(0x8b0000),
-        };
+      const params = {
+        intensity: 1.2,
+        speed: 0.8,
+        turbulence: 0.5,
+        glow: 0.6,
+        coreColor: new THREE.Color(0xff1744),
+        edgeColor: new THREE.Color(0x8b0000),
+      };
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-        
-        const container = document.getElementById('canvas-container');
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        container.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                u_time: { value: 0 },
-                u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-                u_intensity: { value: params.intensity },
-                u_speed: { value: params.speed },
-                u_turbulence: { value: params.turbulence },
-                u_glow: { value: params.glow },
-                u_coreColor: { value: params.coreColor },
-                u_edgeColor: { value: params.edgeColor },
-            },
-            vertexShader: `
+      const container = document.getElementById('canvas-container');
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          u_time: { value: 0 },
+          u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
+          u_intensity: { value: params.intensity },
+          u_speed: { value: params.speed },
+          u_turbulence: { value: params.turbulence },
+          u_glow: { value: params.glow },
+          u_coreColor: { value: params.coreColor },
+          u_edgeColor: { value: params.edgeColor },
+        },
+        vertexShader: `
                 varying vec2 vUv;
                 void main() {
                     vUv = uv;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
-            fragmentShader: `
+        fragmentShader: `
                 uniform float u_time;
                 uniform vec2 u_resolution;
                 uniform float u_intensity;
@@ -243,66 +288,78 @@
                     
                     gl_FragColor = vec4(color, 1.0);
                 }
-            `
-        });
+            `,
+      });
 
-        const geometry = new THREE.PlaneGeometry(2, 2);
-        const plane = new THREE.Mesh(geometry, material);
-        scene.add(plane);
+      const geometry = new THREE.PlaneGeometry(2, 2);
+      const plane = new THREE.Mesh(geometry, material);
+      scene.add(plane);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            material.uniforms.u_time.value = performance.now() / 1000;
-            renderer.render(scene, camera);
-        }
-        animate();
+      function animate() {
+        requestAnimationFrame(animate);
+        material.uniforms.u_time.value = performance.now() / 1000;
+        renderer.render(scene, camera);
+      }
+      animate();
 
-        window.addEventListener('resize', () => {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            renderer.setSize(width, height);
-            material.uniforms.u_resolution.value.set(width, height);
-        });
+      window.addEventListener('resize', () => {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        renderer.setSize(width, height);
+        material.uniforms.u_resolution.value.set(width, height);
+      });
 
-        function updateParam(name, value) {
-            params[name] = parseFloat(value);
-            material.uniforms['u_' + name].value = params[name];
-            document.getElementById(name + '-value').textContent = value;
-        }
+      function updateParam(name, value) {
+        params[name] = parseFloat(value);
+        material.uniforms['u_' + name].value = params[name];
+        document.getElementById(name + '-value').textContent = value;
+      }
 
-        function updateColor(name, value) {
-            params[name].setStyle(value);
-            material.uniforms['u_' + name].value = params[name];
-        }
+      function updateColor(name, value) {
+        params[name].setStyle(value);
+        material.uniforms['u_' + name].value = params[name];
+      }
 
-        function resetParameters() {
-            document.getElementById('intensity').value = 1.2;
-            updateParam('intensity', 1.2);
-            document.getElementById('speed').value = 0.8;
-            updateParam('speed', 0.8);
-            document.getElementById('turbulence').value = 0.5;
-            updateParam('turbulence', 0.5);
-            document.getElementById('glow').value = 0.6;
-            updateParam('glow', 0.6);
-            document.getElementById('coreColor').value = '#ff1744';
-            updateColor('coreColor', '#ff1744');
-            document.getElementById('edgeColor').value = '#8b0000';
-            updateColor('edgeColor', '#8b0000');
-        }
+      function resetParameters() {
+        document.getElementById('intensity').value = 1.2;
+        updateParam('intensity', 1.2);
+        document.getElementById('speed').value = 0.8;
+        updateParam('speed', 0.8);
+        document.getElementById('turbulence').value = 0.5;
+        updateParam('turbulence', 0.5);
+        document.getElementById('glow').value = 0.6;
+        updateParam('glow', 0.6);
+        document.getElementById('coreColor').value = '#ff1744';
+        updateColor('coreColor', '#ff1744');
+        document.getElementById('edgeColor').value = '#8b0000';
+        updateColor('edgeColor', '#8b0000');
+      }
 
-        function downloadImage() {
-            const link = document.createElement('a');
-            link.download = 'ruby-fire.png';
-            link.href = renderer.domElement.toDataURL();
-            link.click();
-        }
+      function downloadImage() {
+        const link = document.createElement('a');
+        link.download = 'ruby-fire.png';
+        link.href = renderer.domElement.toDataURL();
+        link.click();
+      }
 
-        document.getElementById('intensity').addEventListener('input', (e) => updateParam('intensity', e.target.value));
-        document.getElementById('speed').addEventListener('input', (e) => updateParam('speed', e.target.value));
-        document.getElementById('turbulence').addEventListener('input', (e) => updateParam('turbulence', e.target.value));
-        document.getElementById('glow').addEventListener('input', (e) => updateParam('glow', e.target.value));
-        document.getElementById('coreColor').addEventListener('input', (e) => updateColor('coreColor', e.target.value));
-        document.getElementById('edgeColor').addEventListener('input', (e) => updateColor('edgeColor', e.target.value));
+      document
+        .getElementById('intensity')
+        .addEventListener('input', (e) => updateParam('intensity', e.target.value));
+      document
+        .getElementById('speed')
+        .addEventListener('input', (e) => updateParam('speed', e.target.value));
+      document
+        .getElementById('turbulence')
+        .addEventListener('input', (e) => updateParam('turbulence', e.target.value));
+      document
+        .getElementById('glow')
+        .addEventListener('input', (e) => updateParam('glow', e.target.value));
+      document
+        .getElementById('coreColor')
+        .addEventListener('input', (e) => updateColor('coreColor', e.target.value));
+      document
+        .getElementById('edgeColor')
+        .addEventListener('input', (e) => updateColor('edgeColor', e.target.value));
     </script>
-</body>
+  </body>
 </html>

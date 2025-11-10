@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 import {
   RigidBody,
   useAfterPhysicsStep,
   useBeforePhysicsStep,
-  useRapier
-} from "@react-three/rapier";
-import { Box } from "@react-three/drei";
-import { useControls, button } from "leva";
-import { useDemo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  useRapier,
+} from '@react-three/rapier';
+import { Box } from '@react-three/drei';
+import { useControls, button } from 'leva';
+import { useDemo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 export const ManualStepExample = () => {
   const { setPaused } = useDemo();
@@ -16,13 +16,13 @@ export const ManualStepExample = () => {
 
   const steps = useRef({
     before: 0,
-    after: 0
+    after: 0,
   });
 
   useControls({
     step: button(() => {
       step(1 / 60);
-    })
+    }),
   });
 
   useEffect(() => {
@@ -31,12 +31,12 @@ export const ManualStepExample = () => {
 
   useBeforePhysicsStep(() => {
     steps.current.before++;
-    console.log("before step", steps.current.before);
+    console.log('before step', steps.current.before);
   });
 
   useAfterPhysicsStep(() => {
     steps.current.after++;
-    console.log("after step", steps.current.after);
+    console.log('after step', steps.current.after);
   });
 
   useResetOrbitControls(30);

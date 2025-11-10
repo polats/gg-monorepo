@@ -7,7 +7,10 @@ export function DebugAxes() {
     <group position={[0, 0.005, 0]}>
       {/* X Axis - Red - Left/Right */}
       <Line
-        points={[[-1, 0, 0], [1, 0, 0]]}
+        points={[
+          [-1, 0, 0],
+          [1, 0, 0],
+        ]}
         color="red"
         lineWidth={3}
       />
@@ -24,7 +27,10 @@ export function DebugAxes() {
 
       {/* Y Axis - Green - Up/Down */}
       <Line
-        points={[[0, 0, 0], [0, 0.5, 0]]}
+        points={[
+          [0, 0, 0],
+          [0, 0.5, 0],
+        ]}
         color="green"
         lineWidth={3}
       />
@@ -41,7 +47,10 @@ export function DebugAxes() {
 
       {/* Z Axis - Blue - Forward/Back (toward/away from camera) */}
       <Line
-        points={[[0, 0, -1], [0, 0, 1]]}
+        points={[
+          [0, 0, -1],
+          [0, 0, 1],
+        ]}
         color="blue"
         lineWidth={3}
       />

@@ -1,6 +1,7 @@
 # Player State Persistence Implementation ✅
 
 ## Summary
+
 Implemented complete server-side persistence for player state, including coins, gems, and gem states (growing/offering). Player progress now saves automatically and loads on startup.
 
 ---
@@ -10,10 +11,12 @@ Implemented complete server-side persistence for player state, including coins, 
 ### 1. Server-Side APIs
 
 **Endpoints Created**:
+
 - `POST /api/player-state/save` - Save player state to server
 - `GET /api/player-state/load` - Load player state from server
 
 **Data Persisted**:
+
 - **Coins**: Gold, Silver, Bronze counts
 - **Gems**: Full gem collection with all properties
   - Gem type, rarity, shape, color
@@ -28,6 +31,7 @@ Implemented complete server-side persistence for player state, including coins, 
 ### 1. Shared API Types (`src/shared/types/api.ts`)
 
 **New Types Added** (lines 58-103):
+
 ```typescript
 export type GemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type GemType = 'diamond' | 'emerald' | 'ruby' | 'sapphire' | 'amethyst';
@@ -62,13 +66,13 @@ export type SavePlayerStateRequest = {
 };
 
 export type SavePlayerStateResponse = {
-  type: "savePlayerState";
+  type: 'savePlayerState';
   success: boolean;
   message?: string;
 };
 
 export type LoadPlayerStateResponse = {
-  type: "loadPlayerState";
+  type: 'loadPlayerState';
   playerState: PlayerState | null;
 };
 ```
@@ -80,6 +84,7 @@ export type LoadPlayerStateResponse = {
 **Storage**: Uses in-memory `mockStorage` Map
 
 **Save Endpoint** (lines 246-278):
+
 ```typescript
 router.post('/api/player-state/save', async (req, res) => {
   const { playerState } = req.body;
@@ -96,8 +101,8 @@ router.post('/api/player-state/save', async (req, res) => {
   console.log(`[SAVE] Player state saved for ${mockContext.username}:`, {
     coins: playerState.coins,
     gemCount: playerState.gems.length,
-    growingGems: playerState.gems.filter(g => g.isGrowing).length,
-    offeringGems: playerState.gems.filter(g => g.isOffering).length,
+    growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+    offeringGems: playerState.gems.filter((g) => g.isOffering).length,
   });
 
   res.json({
@@ -109,6 +114,7 @@ router.post('/api/player-state/save', async (req, res) => {
 ```
 
 **Load Endpoint** (lines 280-314):
+
 ```typescript
 router.get('/api/player-state/load', async (_req, res) => {
   const playerStateKey = `playerState:${mockContext.username}`;
@@ -128,8 +134,8 @@ router.get('/api/player-state/load', async (_req, res) => {
   console.log(`[LOAD] Player state loaded:`, {
     coins: playerState.coins,
     gemCount: playerState.gems.length,
-    growingGems: playerState.gems.filter(g => g.isGrowing).length,
-    offeringGems: playerState.gems.filter(g => g.isOffering).length,
+    growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+    offeringGems: playerState.gems.filter((g) => g.isOffering).length,
   });
 
   res.json({
@@ -148,6 +154,7 @@ router.get('/api/player-state/load', async (_req, res) => {
 **Key Format**: `playerState:{username}`
 
 **Save Endpoint** (lines 259-294):
+
 ```typescript
 router.post('/api/player-state/save', async (req, res) => {
   const { playerState } = req.body;
@@ -167,8 +174,8 @@ router.post('/api/player-state/save', async (req, res) => {
   console.log(`[SAVE] Player state saved for ${displayName}:`, {
     coins: playerState.coins,
     gemCount: playerState.gems.length,
-    growingGems: playerState.gems.filter(g => g.isGrowing).length,
-    offeringGems: playerState.gems.filter(g => g.isOffering).length,
+    growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+    offeringGems: playerState.gems.filter((g) => g.isOffering).length,
   });
 
   res.json({
@@ -180,6 +187,7 @@ router.post('/api/player-state/save', async (req, res) => {
 ```
 
 **Load Endpoint** (lines 296-333):
+
 ```typescript
 router.get('/api/player-state/load', async (_req, res) => {
   const username = await reddit.getCurrentUsername();
@@ -202,8 +210,8 @@ router.get('/api/player-state/load', async (_req, res) => {
   console.log(`[LOAD] Player state loaded for ${displayName}:`, {
     coins: playerState.coins,
     gemCount: playerState.gems.length,
-    growingGems: playerState.gems.filter(g => g.isGrowing).length,
-    offeringGems: playerState.gems.filter(g => g.isOffering).length,
+    growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+    offeringGems: playerState.gems.filter((g) => g.isOffering).length,
   });
 
   res.json({
@@ -218,6 +226,7 @@ router.get('/api/player-state/load', async (_req, res) => {
 ### 4. Client Integration (`src/client/PileDemo.tsx`)
 
 **Load on Mount** (lines 894-922):
+
 ```typescript
 // Load player state from server on mount
 useEffect(() => {
@@ -252,12 +261,17 @@ useEffect(() => {
 ```
 
 **Auto-Save on Changes (Debounced)** (lines 924-962):
+
 ```typescript
 // Save player state to server whenever it changes (debounced)
 useEffect(() => {
   // Don't save on initial mount (when state is empty)
-  if (playerState.coins.gold === 0 && playerState.coins.silver === 0 &&
-      playerState.coins.bronze === 0 && playerState.gems.length === 0) {
+  if (
+    playerState.coins.gold === 0 &&
+    playerState.coins.silver === 0 &&
+    playerState.coins.bronze === 0 &&
+    playerState.gems.length === 0
+  ) {
     return;
   }
 
@@ -266,8 +280,8 @@ useEffect(() => {
       console.log('[SAVE] Saving player state to server...', {
         coins: playerState.coins,
         gemCount: playerState.gems.length,
-        growingGems: playerState.gems.filter(g => g.isGrowing).length,
-        offeringGems: playerState.gems.filter(g => g.isOffering).length,
+        growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+        offeringGems: playerState.gems.filter((g) => g.isOffering).length,
       });
 
       const response = await fetch('/api/player-state/save', {
@@ -301,24 +315,28 @@ useEffect(() => {
 ### Player Journey
 
 1. **First Visit**:
+
    - Player loads the game
    - Load API returns `null` (no saved state)
    - Player starts with 0 coins, 0 gems
    - Player scrounges for items
 
 2. **Collecting Items**:
+
    - Player collects coins/gems
    - `playerState` updates
    - After 1 second of inactivity, auto-save triggers
    - State saves to server
 
 3. **Moving Gems**:
+
    - Player drags gem to "My Grow" zone
    - Gem's `isGrowing` flag set to `true`
    - Auto-save triggers after 1 second
    - State persisted with growing flag
 
 4. **Offering Gems**:
+
    - Player drags gem to "My Offers" zone
    - Gem's `isOffering` flag set to `true`
    - Auto-save triggers after 1 second
@@ -337,16 +355,19 @@ useEffect(() => {
 ## Debouncing Strategy
 
 **Why Debounce?**
+
 - Prevents excessive API calls
 - Reduces server load
 - Batches rapid changes together
 
 **How It Works**:
+
 - When `playerState` changes, start 1-second timer
 - If state changes again, cancel timer and restart
 - After 1 second of no changes, save to server
 
 **Example**:
+
 - Player collects 5 coins in 2 seconds
 - Only 1 save API call after they stop collecting
 - Not 5 separate calls
@@ -358,6 +379,7 @@ useEffect(() => {
 All save/load operations log to console for debugging:
 
 **Load Example**:
+
 ```
 [LOAD] Fetching player state from server...
 [LOAD] Player state loaded successfully: {
@@ -369,6 +391,7 @@ All save/load operations log to console for debugging:
 ```
 
 **Save Example**:
+
 ```
 [SAVE] Saving player state to server... {
   coins: { gold: 15, silver: 50, bronze: 100 },
@@ -384,7 +407,9 @@ All save/load operations log to console for debugging:
 ## Files Modified
 
 ### Server Files
+
 1. **`src/shared/types/api.ts`**:
+
    - Added `Gem`, `GemRarity`, `GemType`, `GemShape` types
    - Added `PlayerState` type
    - Added `SavePlayerStateRequest` type
@@ -392,6 +417,7 @@ All save/load operations log to console for debugging:
    - Added `LoadPlayerStateResponse` type
 
 2. **`src/server/local.ts`**:
+
    - Updated imports to include new types
    - Added save endpoint (lines 246-278)
    - Added load endpoint (lines 280-314)
@@ -403,6 +429,7 @@ All save/load operations log to console for debugging:
    - Added load endpoint (lines 296-333)
 
 ### Client Files
+
 4. **`src/client/PileDemo.tsx`**:
    - Added load effect on mount (lines 894-922)
    - Added auto-save effect with debouncing (lines 924-962)
@@ -414,6 +441,7 @@ All save/load operations log to console for debugging:
 ## Build Status
 
 ✅ **Build succeeded**
+
 - Client: 20.16s
 - Server: 13.24s
 - No errors
@@ -425,6 +453,7 @@ All save/load operations log to console for debugging:
 ### Manual Testing Steps
 
 1. **Fresh Start**:
+
    ```
    - Clear browser storage
    - Refresh game
@@ -433,6 +462,7 @@ All save/load operations log to console for debugging:
    ```
 
 2. **Collect Items**:
+
    ```
    - Collect 5 coins
    - Wait 1 second
@@ -441,6 +471,7 @@ All save/load operations log to console for debugging:
    ```
 
 3. **Refresh Game**:
+
    ```
    - Refresh browser
    - Console: "[LOAD] Player state loaded successfully: { coins: ..., gemCount: 5 }"
@@ -448,6 +479,7 @@ All save/load operations log to console for debugging:
    ```
 
 4. **Move Gem to Grow Zone**:
+
    ```
    - Drag gem to "My Grow" area
    - Wait 1 second
@@ -470,6 +502,7 @@ All save/load operations log to console for debugging:
 ## Data Safety
 
 ### Save Triggers
+
 - ✅ Collecting coins
 - ✅ Collecting gems
 - ✅ Moving gems to grow zone
@@ -477,6 +510,7 @@ All save/load operations log to console for debugging:
 - ✅ Any other `playerState` change
 
 ### What's NOT Saved
+
 - Performance settings (tier selection)
 - Camera position
 - UI state (open/closed panels)
@@ -484,6 +518,7 @@ All save/load operations log to console for debugging:
 - Physics object positions
 
 ### Edge Cases Handled
+
 - ✅ Empty state (no coins, no gems) - doesn't save
 - ✅ Network error - logs error, game continues
 - ✅ No saved data - starts fresh
@@ -494,6 +529,7 @@ All save/load operations log to console for debugging:
 ## Production Considerations
 
 ### Redis Keys
+
 - Format: `playerState:{username}`
 - Examples:
   - `playerState:Bogsworth`
@@ -501,11 +537,13 @@ All save/load operations log to console for debugging:
   - `playerState:anonymous` (for non-logged users)
 
 ### Data Size
+
 - Typical save: ~2-5 KB (100 gems + coins)
 - Max realistic: ~50 KB (1000+ gems)
 - Redis handles this easily
 
 ### Performance
+
 - Local dev: In-memory (instant)
 - Production: Redis (< 10ms typically)
 - Network: Depends on client connection
@@ -516,6 +554,7 @@ All save/load operations log to console for debugging:
 ## Future Enhancements
 
 ### Possible Additions
+
 1. **Manual Save Button**: Let players force a save
 2. **Save Indicator**: Show "Saving..." or "Saved" status
 3. **Offline Queue**: Queue saves if offline, sync when online
@@ -524,6 +563,7 @@ All save/load operations log to console for debugging:
 6. **Version Migration**: Handle schema changes gracefully
 
 ### Analytics Opportunities
+
 - Track average coins/gems per player
 - Monitor save frequency
 - Identify popular gem types
@@ -534,6 +574,7 @@ All save/load operations log to console for debugging:
 ## Summary
 
 ### What Changed
+
 - ✅ Player state persists across sessions
 - ✅ Coins saved and restored
 - ✅ Gems saved with all properties
@@ -542,12 +583,14 @@ All save/load operations log to console for debugging:
 - ✅ Auto-load on game start
 
 ### What Stayed the Same
+
 - Game mechanics unchanged
 - UI/UX unchanged
 - Physics system unchanged
 - Visual appearance unchanged
 
 ### Expected Result
+
 **Players can now close the game and return later without losing progress!**
 
 All collected coins, gems, and their states (growing/offering) are automatically saved to the server and restored on next visit.

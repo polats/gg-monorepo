@@ -1,31 +1,21 @@
-import { Html, Torus } from "@react-three/drei";
-import { RigidBody } from "@react-three/rapier";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Html, Torus } from '@react-three/drei';
+import { RigidBody } from '@react-three/rapier';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 export const LockedTransformsExample: Demo = () => {
   useResetOrbitControls(30);
 
   return (
     <group rotation={[0, 0, 0]} scale={1}>
-      <RigidBody
-        position={[0, 10, 0]}
-        colliders="hull"
-        lockRotations
-        restitution={1}
-      >
+      <RigidBody position={[0, 10, 0]} colliders="hull" lockRotations restitution={1}>
         <Torus castShadow scale={3} receiveShadow>
           <Html>Locked Rotations</Html>
           <meshPhysicalMaterial />
         </Torus>
       </RigidBody>
 
-      <RigidBody
-        position={[0, 5, 0]}
-        colliders="hull"
-        lockTranslations
-        restitution={1}
-      >
+      <RigidBody position={[0, 5, 0]} colliders="hull" lockTranslations restitution={1}>
         <Torus castShadow scale={3} receiveShadow>
           <Html>Locked Translations</Html>
           <meshPhysicalMaterial />

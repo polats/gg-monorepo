@@ -56,13 +56,15 @@ export const GemList: React.FC<GemListProps> = ({
       }}
     >
       {displayGems.length === 0 ? (
-        <div style={{
-          color: 'rgba(255, 255, 255, 0.3)',
-          fontSize: 7,
-          textAlign: 'center',
-          padding: '10px 0',
-          fontStyle: 'italic',
-        }}>
+        <div
+          style={{
+            color: 'rgba(255, 255, 255, 0.3)',
+            fontSize: 7,
+            textAlign: 'center',
+            padding: '10px 0',
+            fontStyle: 'italic',
+          }}
+        >
           {emptyMessage}
         </div>
       ) : (

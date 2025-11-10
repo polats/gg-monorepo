@@ -7,7 +7,7 @@ import {
   IncrementBy5Response,
   GetColorMapResponse,
   UpdateColorMapResponse,
-  ColorMap
+  ColorMap,
 } from '../shared/types/api';
 
 const titleElement = document.getElementById('title') as HTMLHeadingElement;
@@ -48,13 +48,15 @@ demoButton?.addEventListener('click', async () => {
     const { createElement } = await import('react');
 
     const root = createRoot(demoRoot);
-    root.render(createElement(DemoApp, {
-      onClose: () => {
-        root.unmount();
-        demoRoot.style.display = 'none';
-        mainApp.classList.remove('hidden');
-      }
-    }));
+    root.render(
+      createElement(DemoApp, {
+        onClose: () => {
+          root.unmount();
+          demoRoot.style.display = 'none';
+          mainApp.classList.remove('hidden');
+        },
+      })
+    );
   }
 });
 
@@ -73,13 +75,15 @@ pileDemoButton?.addEventListener('click', async () => {
     const { createElement } = await import('react');
 
     const root = createRoot(demoRoot);
-    root.render(createElement(PileDemo, {
-      onClose: () => {
-        root.unmount();
-        demoRoot.style.display = 'none';
-        mainApp.classList.remove('hidden');
-      }
-    }));
+    root.render(
+      createElement(PileDemo, {
+        onClose: () => {
+          root.unmount();
+          demoRoot.style.display = 'none';
+          mainApp.classList.remove('hidden');
+        },
+      })
+    );
   }
 });
 
@@ -180,7 +184,10 @@ async function updateCounter(action: 'increment' | 'decrement' | 'increment-by-5
       body: JSON.stringify({}),
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = (await response.json()) as IncrementResponse | DecrementResponse | IncrementBy5Response;
+    const data = (await response.json()) as
+      | IncrementResponse
+      | DecrementResponse
+      | IncrementBy5Response;
     counterValueElement.textContent = data.count.toString();
   } catch (err) {
     console.error(`Error ${action}ing count:`, err);
@@ -414,15 +421,17 @@ function animate(): void {
   const { createElement } = await import('react');
 
   const root = createRoot(demoRoot);
-  root.render(createElement(PileDemo, {
-    onClose: () => {
-      // When closing PileDemo, go back to color grid
-      root.unmount();
-      if (demoRoot) demoRoot.style.display = 'none';
-      if (colorGridScreen) colorGridScreen.style.display = 'block';
-      void fetchColorMap();
-    },
-    level: 1,
-    username: username
-  }));
+  root.render(
+    createElement(PileDemo, {
+      onClose: () => {
+        // When closing PileDemo, go back to color grid
+        root.unmount();
+        if (demoRoot) demoRoot.style.display = 'none';
+        if (colorGridScreen) colorGridScreen.style.display = 'block';
+        void fetchColorMap();
+      },
+      level: 1,
+      username: username,
+    })
+  );
 })();

@@ -63,7 +63,12 @@ export function FallingObjects({
 }: FallingObjectsProps) {
   const api = useRef<RapierRigidBody[]>(null);
   const internalMeshRef = useRef<THREE.InstancedMesh>(null);
-  const instanceMatricesRef = useRef<Map<number, { position: THREE.Vector3; rotation: THREE.Quaternion; originalScale: THREE.Vector3 }>>(new Map());
+  const instanceMatricesRef = useRef<
+    Map<
+      number,
+      { position: THREE.Vector3; rotation: THREE.Quaternion; originalScale: THREE.Vector3 }
+    >
+  >(new Map());
 
   // Memoize instances to prevent regeneration on re-render
   const instances = useMemo(
@@ -96,10 +101,11 @@ export function FallingObjects({
 
         // Determine spawn position based on per-instance zone or global spawnHeight
         // Use liveInstanceSpawnZones if provided (for reactive updates), otherwise fall back to config
-        const spawnZone = liveInstanceSpawnZones?.[i]
-          || objectType.instanceSpawnZones?.[i]
-          || objectType.spawnHeight
-          || 'normal';
+        const spawnZone =
+          liveInstanceSpawnZones?.[i] ||
+          objectType.instanceSpawnZones?.[i] ||
+          objectType.spawnHeight ||
+          'normal';
         let position: [number, number, number];
 
         if (spawnZone === 'far-bottom') {
@@ -109,7 +115,11 @@ export function FallingObjects({
             x = Math.random() * 2 - 1; // -1 to 1
             z = Math.random() * 2 - 1; // -1 to 1
           } while (Math.abs(x) / 1.5 + Math.abs(z) / 1.0 > 1); // Elongated diamond (wider in X)
-          position = [COIN_SPAWN_X + x * COIN_SPAWN_RADIUS, Math.random() * 0.8 - 0.3, COIN_SPAWN_Z + z * COIN_SPAWN_RADIUS];
+          position = [
+            COIN_SPAWN_X + x * COIN_SPAWN_RADIUS,
+            Math.random() * 0.8 - 0.3,
+            COIN_SPAWN_Z + z * COIN_SPAWN_RADIUS,
+          ];
         } else if (spawnZone === 'bottom') {
           // Gems - diamond-shaped zone, elongated along X and Z
           let x, z;
@@ -117,7 +127,11 @@ export function FallingObjects({
             x = Math.random() * 2 - 1; // -1 to 1
             z = Math.random() * 2 - 1; // -1 to 1
           } while (Math.abs(x) / 1.0 + Math.abs(z) / 1.5 > 1); // Elongated diamond (wider in Z)
-          position = [GEM_SPAWN_X + x * GEM_SPAWN_RADIUS, Math.random() * 0.8 - 0.3, GEM_SPAWN_Z + z * GEM_SPAWN_RADIUS];
+          position = [
+            GEM_SPAWN_X + x * GEM_SPAWN_RADIUS,
+            Math.random() * 0.8 - 0.3,
+            GEM_SPAWN_Z + z * GEM_SPAWN_RADIUS,
+          ];
         } else if (spawnZone === 'grow-zone') {
           // Growing gems - circular zone in the grow area
           const angle = Math.random() * Math.PI * 2;
@@ -140,7 +154,13 @@ export function FallingObjects({
     // to prevent reinitializing physics bodies when zones change.
     // The faucet will handle respawning objects in the correct zones.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [objectType.count, objectType.scaleRange, uniformScale, objectType.spawnHeight, objectType.instanceScales]
+    [
+      objectType.count,
+      objectType.scaleRange,
+      uniformScale,
+      objectType.spawnHeight,
+      objectType.instanceScales,
+    ]
   );
 
   // Sync internal refs with external refs
@@ -259,10 +279,11 @@ export function FallingObjects({
         if (body) {
           // Determine spawn zone for this specific instance
           // Use live spawn zones if provided (for reactive updates), otherwise fall back to config
-          const spawnZone = liveInstanceSpawnZones?.[farthestIndex]
-            || objectType.instanceSpawnZones?.[farthestIndex]
-            || objectType.spawnHeight
-            || 'normal';
+          const spawnZone =
+            liveInstanceSpawnZones?.[farthestIndex] ||
+            objectType.instanceSpawnZones?.[farthestIndex] ||
+            objectType.spawnHeight ||
+            'normal';
 
           // Calculate spawn position based on the instance's spawn zone
           let spawnX, spawnY, spawnZ;
@@ -413,10 +434,7 @@ export function FallingObjects({
             thickness={0.5}
           />
         ) : objectType.materialType === 'coin' ? (
-          <meshStandardMaterial
-            metalness={0.9}
-            roughness={0.2}
-          />
+          <meshStandardMaterial metalness={0.9} roughness={0.2} />
         ) : (
           <meshLambertMaterial />
         )}

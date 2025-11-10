@@ -1,15 +1,15 @@
-import { Cylinder, Sphere } from "@react-three/drei";
+import { Cylinder, Sphere } from '@react-three/drei';
 import {
   BallCollider,
   CylinderCollider,
   RapierRigidBody,
   RigidBody,
   RigidBodyOptions,
-  useSphericalJoint
-} from "@react-three/rapier";
-import { useRef } from "react";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  useSphericalJoint,
+} from '@react-three/rapier';
+import { useRef } from 'react';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const Rod = (props: RigidBodyOptions) => {
   const anchor = useRef<RapierRigidBody>(null!);
@@ -17,7 +17,7 @@ const Rod = (props: RigidBodyOptions) => {
 
   useSphericalJoint(anchor, rod, [
     [0, 0, 0],
-    [0, 0, 0]
+    [0, 0, 0],
   ]);
 
   return (
@@ -25,13 +25,8 @@ const Rod = (props: RigidBodyOptions) => {
       <RigidBody ref={anchor} {...props} />
 
       <RigidBody ref={rod} {...props} colliders={false}>
-        <Cylinder
-          scale={[0.05, 2, 0.05]}
-          position={[0, -1, 0]}
-          receiveShadow
-          castShadow
-        >
-          <meshStandardMaterial color={"black"} />
+        <Cylinder scale={[0.05, 2, 0.05]} position={[0, -1, 0]} receiveShadow castShadow>
+          <meshStandardMaterial color={'black'} />
         </Cylinder>
         <Sphere scale={0.2} position={[0, -2, 0]} receiveShadow castShadow>
           <meshStandardMaterial metalness={1} roughness={0.3} />

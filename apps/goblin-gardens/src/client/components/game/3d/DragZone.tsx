@@ -4,29 +4,28 @@ export function DragZone({ action = 'my-offer' }: { action?: 'grow' | 'appraise'
   const rotationY = 5.5;
 
   // Determine colors based on action
-  const backgroundColor = action === 'grow'
-    ? '#1a3a2a' // Dark green
-    : action === 'appraise'
-    ? '#3a2a1a' // Dark gold/brown
-    : '#1a2a3a'; // Dark cyan (default)
+  const backgroundColor =
+    action === 'grow'
+      ? '#1a3a2a' // Dark green
+      : action === 'appraise'
+        ? '#3a2a1a' // Dark gold/brown
+        : '#1a2a3a'; // Dark cyan (default)
 
-  const textColor = action === 'grow'
-    ? '#50C878' // Green
-    : action === 'appraise'
-    ? '#FFD700' // Gold
-    : '#88ccff'; // Cyan (default)
+  const textColor =
+    action === 'grow'
+      ? '#50C878' // Green
+      : action === 'appraise'
+        ? '#FFD700' // Gold
+        : '#88ccff'; // Cyan (default)
 
-  const borderColor = action === 'grow'
-    ? '#2a5a3a' // Medium green
-    : action === 'appraise'
-    ? '#5a4a2a' // Medium gold/brown
-    : '#3a5a7a'; // Medium cyan (default)
+  const borderColor =
+    action === 'grow'
+      ? '#2a5a3a' // Medium green
+      : action === 'appraise'
+        ? '#5a4a2a' // Medium gold/brown
+        : '#3a5a7a'; // Medium cyan (default)
 
-  const displayText = action === 'grow'
-    ? 'Grow'
-    : action === 'appraise'
-    ? 'Appraise'
-    : 'My Offer';
+  const displayText = action === 'grow' ? 'Grow' : action === 'appraise' ? 'Appraise' : 'My Offer';
 
   return (
     <group rotation={[0, rotationY, 0]} position={[-0.39, -0.01, 0.4]}>

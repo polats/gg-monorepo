@@ -1,14 +1,9 @@
-import { useFrame } from "@react-three/fiber";
-import {
-  InstancedRigidBodies,
-  RapierRigidBody,
-  useRapier,
-  vec3
-} from "@react-three/rapier";
-import { useEffect, useRef } from "react";
-import { Color, InstancedMesh } from "three";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { useFrame } from '@react-three/fiber';
+import { InstancedRigidBodies, RapierRigidBody, useRapier, vec3 } from '@react-three/rapier';
+import { useEffect, useRef } from 'react';
+import { Color, InstancedMesh } from 'three';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const BALLS = 1000;
 
@@ -48,22 +43,14 @@ export const Cluster: Demo = () => {
         ref={api}
         instances={Array.from({ length: BALLS }, (_, i) => ({
           key: i,
-          position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0]
+          position: [Math.floor(i / 30) * 1, (i % 30) * 0.5, 0],
         }))}
-        colliders={"ball"}
+        colliders={'ball'}
         linearDamping={5}
       >
-        <instancedMesh
-          ref={ref}
-          args={[undefined, undefined, BALLS]}
-          castShadow
-        >
+        <instancedMesh ref={ref} args={[undefined, undefined, BALLS]} castShadow>
           <sphereGeometry args={[0.2]} />
-          <meshPhysicalMaterial
-            roughness={0}
-            metalness={0.5}
-            color={"yellow"}
-          />
+          <meshPhysicalMaterial roughness={0} metalness={0.5} color={'yellow'} />
         </instancedMesh>
       </InstancedRigidBodies>
     </group>

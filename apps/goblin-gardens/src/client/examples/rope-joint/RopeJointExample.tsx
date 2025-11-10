@@ -1,17 +1,17 @@
-import { Sphere, Box } from "@react-three/drei";
+import { Sphere, Box } from '@react-three/drei';
 import {
   BallCollider,
   RapierRigidBody,
   RigidBody,
   RigidBodyOptions,
-  useRopeJoint
-} from "@react-three/rapier";
-import { useRef } from "react";
-import { Demo } from "../../DemoApp";
-import { Vector3 } from "@react-three/fiber";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  useRopeJoint,
+} from '@react-three/rapier';
+import { useRef } from 'react';
+import { Demo } from '../../DemoApp';
+import { Vector3 } from '@react-three/fiber';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
-const WALL_COLORS = ["#50514F", "#CBD4C2", "#FFFCFF", "#247BA0", "#C3B299"];
+const WALL_COLORS = ['#50514F', '#CBD4C2', '#FFFCFF', '#247BA0', '#C3B299'];
 
 interface BoxRigidBodyProps extends RigidBodyOptions {
   color: string;
@@ -73,11 +73,7 @@ const BoxWall = ({ height, width, ...props }: BoxWallProps) => {
   );
 };
 
-const RopeJoint = ({
-  anchorPosition,
-  ballPosition,
-  ropeLength
-}: RopeJointProps) => {
+const RopeJoint = ({ anchorPosition, ballPosition, ropeLength }: RopeJointProps) => {
   const anchor = useRef<RapierRigidBody>(null!);
   const ball = useRef<RapierRigidBody>(null!);
 
@@ -113,11 +109,7 @@ export const RopeJointExample: Demo = () => {
     <group position={[0, 0, 0]} scale={3}>
       <Floor />
       <BoxWall height={10} width={6} />
-      <RopeJoint
-        ropeLength={35}
-        anchorPosition={[0, 15, 0]}
-        ballPosition={[-8, 15, 8]}
-      />
+      <RopeJoint ropeLength={35} anchorPosition={[0, 15, 0]} ballPosition={[-8, 15, 8]} />
     </group>
   );
 };

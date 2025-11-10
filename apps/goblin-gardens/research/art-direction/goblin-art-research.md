@@ -14,6 +14,7 @@
 ### Mythological Origins
 
 **European Folklore Roots:**
+
 - Small, grotesque, monstrous humanoid creatures appearing in multiple European cultures
 - First attested in stories from the Middle Ages
 - Traditionally reserved for "ugly fairies" that are mischievous or malevolent
@@ -22,6 +23,7 @@
 - Often rumored to hold magical abilities
 
 **Physical Characteristics (Traditional):**
+
 - Unruly hair and green-colored skin (most common)
 - Long, grasping fingers ending in claws
 - Decidedly inhuman eyes
@@ -29,6 +31,7 @@
 - Small stature
 
 **Cultural Variations:**
+
 - **Germany (Kobolds):** Similar to goblins, sometimes caring domestic helpers, can become angry if offended
 - **South Korea (Dokkaebi):** Capable of both good and evil
 
@@ -37,25 +40,30 @@
 **Literary & Gaming:**
 
 **J.R.R. Tolkien:**
+
 - Goblins and orcs used synonymously
 - Post-Tolkien fantasy: goblins typically smaller and trickier vs. orcs being larger and brutish
 
 **Dungeons & Dragons:**
+
 - Popularized in fantasy role-playing
 - Staple of random encounters
 - Portrayed as barbaric foes
 
 **Harry Potter:**
+
 - Strange but civilized humanoids
 - Often serve as bankers or craftsmen
 - More sophisticated portrayal
 
 **Video Games:**
+
 - **Clash of Clans:** Small, green-skinned with big pointy ears, constant grin, obsessed with LOOT, faster than Spring Trap
 - **Deep Rock Galactic (lore):** Ship maintenance crew, smaller stature helps reach problem areas, love working with mechanical things
 - **Warcraft, Final Fantasy, Magic: the Gathering, Runescape:** Recurring fantasy staple
 
 **Comics/Film:**
+
 - **Green Goblin (Spider-Man):** Well-known supervillain archetype
 
 ### Goblincore Aesthetic (2024-2025)
@@ -63,6 +71,7 @@
 **Definition:** The "darker companion to cottagecore"
 
 **Visual Elements:**
+
 - Earth tones in darker shades
 - Natural finds and foraged items
 - Mushrooms, moss, stones, bones
@@ -71,6 +80,7 @@
 - Celebration of the weird, imperfect, and earthy
 
 **Cultural Zeitgeist:**
+
 - Active TikTok trend (2024-2025)
 - Connection to 90s Saturday morning cartoons
 - Anti-perfectionist, pro-chaos energy
@@ -83,14 +93,17 @@
 From `docs/design-principles.md`:
 
 **Goblin Keywords/Vibes:**
+
 - Greed, Sneaky, Swarms, Gold, Weak, Hive, Shadows, Dark, Thieves, Shinies, Dungeon, Scout, Chaos, Low Level, Trash, Goblincore
 
 **Inspirations:**
+
 - **Games:** Plants vs. Zombies, Orcs Must Die, Deep Rock Galactic, Vampire Survivor
 - **Shows/Anime:** Isekai (Solo Leveling, Shield Hero, Slime), Delicious in Dungeon, Frieren
 - **Idle/Strategy:** Zombie Idle Miner, Clash of Clans
 
 **Feelings to Evoke:**
+
 - Power Fantasy
 - Number Go Up
 - Community/Guilds
@@ -102,6 +115,7 @@ From `docs/design-principles.md`:
 ## 3. Relevant Game Art Styles Analysis
 
 ### Plants vs. Zombies
+
 - **Style:** Hand-painted with black outlines
 - **Approach:** Dynamic vector illustration (licensing materials move beyond static 3/4 view)
 - **Character Design:** Exaggerated, cartoonish, instantly recognizable silhouettes
@@ -109,6 +123,7 @@ From `docs/design-principles.md`:
 - **Tone:** Lighthearted, accessible, comedic
 
 ### Deep Rock Galactic
+
 - **Style:** Stylized/Simplistic 3D (not truly "low-poly" but efficient polygon use)
 - **Visual Approach:** "Clay-with-grooves" aesthetic for characters
 - **Texture Strategy:** Detail from textures and lighting rather than geometry
@@ -116,6 +131,7 @@ From `docs/design-principles.md`:
 - **Tone:** Cool, tough with a bit of silliness
 
 ### Orcs Must Die
+
 - **Style:** Cartoonish, stylized 3D
 - **Tone:** Lighthearted, doesn't take itself seriously
 - **Visual Quality:** Larger-than-life with vibrant colors
@@ -123,12 +139,14 @@ From `docs/design-principles.md`:
 - **Age Resistance:** Stylized approach ages better than photorealism
 
 ### Vampire Survivors
+
 - **Style:** Pixel art, minimalist
 - **Gameplay Integration:** Retro aesthetic supports bullet hell mechanics
 - **Mobile Optimization:** Works in landscape mode, 1-4 player couch co-op
 - **Performance:** Lightweight, runs on any device
 
 ### Don't Starve
+
 - **Style:** Dark gothic cartoon (Tim Burton/Edward Gorey/Addams Family inspired)
 - **Technical:** Bone animation with Flash-created assets
 - **Color Palette:** No vibrant/happy colors - grim, dark, cold world
@@ -136,6 +154,7 @@ From `docs/design-principles.md`:
 - **Tone:** Dark supernatural yet cartoonish
 
 ### Clash of Clans
+
 - **Goblin Design:** Small, green-skinned, big pointy ears, constant grin, sparkly eyes
 - **Character:** Obsessed with LOOT, fast, limitless hunger for resources
 - **Style:** Bold, colorful, mobile-optimized cartoon 3D
@@ -146,9 +165,11 @@ From `docs/design-principles.md`:
 ## 4. Art Style Options for Goblin Gardens
 
 ### Option 1: Stylized Low-Poly 3D
+
 **"Chunky Goblincore"**
 
 **Visual Characteristics:**
+
 - Simplified 3D models with efficient polygon counts
 - "Clay-like" texture quality with painted detail
 - Exaggerated proportions (big heads, small bodies)
@@ -156,11 +177,13 @@ From `docs/design-principles.md`:
 - Warm, earthy color palette with darker goblincore tones
 
 **Inspirations:**
+
 - Deep Rock Galactic (technical approach)
 - Stylized goblin wizard models (cartoon proportions)
 - Goblin Stone (character-focused 3D)
 
 **Advantages for Mobile/Reddit Client:**
+
 - Performance-efficient for mobile devices
 - Scalable - looks good at various resolutions
 - Allows for dynamic lighting and depth
@@ -168,18 +191,21 @@ From `docs/design-principles.md`:
 - Easier to animate (rigged models)
 
 **Color Palette:**
+
 - Forest greens, muddy browns, mossy tones
 - Pops of "shinies" (gold, silver, colorful trash)
 - Darker earth tones for shadows/depth
 - Warm lighting to offset darker palette
 
 **Technical Considerations:**
+
 - Requires 3D modeling/rigging pipeline
 - Good for future expansion (adding new items/characters)
 - Can use normal maps for detail without high poly counts
 - WebGL/Three.js implementation for browser
 
 **Best For:**
+
 - Premium feel with casual gameplay
 - Players who want tactile, "toy-like" quality
 - Long-term project with asset reusability
@@ -187,9 +213,11 @@ From `docs/design-principles.md`:
 ---
 
 ### Option 2: Cartoon-Casual Vector
+
 **"Trash Treasure Tycoon"**
 
 **Visual Characteristics:**
+
 - Bold outlines (black or dark colored)
 - Flat or subtle gradient shading
 - Expressive, exaggerated character designs
@@ -197,11 +225,13 @@ From `docs/design-principles.md`:
 - Clean, readable silhouettes
 
 **Inspirations:**
+
 - Plants vs. Zombies (dynamic vector style)
 - Clash of Clans (bold mobile-friendly designs)
 - Orcs Must Die (cartoonish, lighthearted tone)
 
 **Advantages for Mobile/Reddit Client:**
+
 - Extremely lightweight (vector graphics)
 - Crystal clear on any screen size/resolution
 - Fast to render, minimal performance impact
@@ -209,6 +239,7 @@ From `docs/design-principles.md`:
 - Strong visual identity and brand recognition
 
 **Color Palette:**
+
 - Vibrant greens for goblins
 - Rich, saturated colors for treasures/items
 - Darker goblincore backgrounds (caves, shadows)
@@ -216,6 +247,7 @@ From `docs/design-principles.md`:
 - "Glow" effects for special items
 
 **Technical Considerations:**
+
 - Can be created in Illustrator/Figma
 - Sprite-based or HTML5 Canvas rendering
 - Small file sizes for fast loading
@@ -223,6 +255,7 @@ From `docs/design-principles.md`:
 - Easy for UI/UX integration
 
 **Best For:**
+
 - Quick iteration and content updates
 - Broad audience appeal (casual + core players)
 - Strong branding potential
@@ -231,9 +264,11 @@ From `docs/design-principles.md`:
 ---
 
 ### Option 3: Hand-Drawn Dark Whimsy
+
 **"Burton's Goblin Garden"**
 
 **Visual Characteristics:**
+
 - Hand-drawn line art with deliberate imperfections
 - Tim Burton/Edward Gorey influenced aesthetic
 - Scratchy textures and cross-hatching
@@ -241,12 +276,14 @@ From `docs/design-principles.md`:
 - Asymmetrical, slightly unsettling designs
 
 **Inspirations:**
+
 - Don't Starve (gothic cartoon aesthetic)
 - Goblincore aesthetic (dark companion to cottagecore)
 - Edward Gorey illustrations
 - Delicious in Dungeon (detailed food/item art)
 
 **Advantages for Mobile/Reddit Client:**
+
 - Unique, immediately distinctive visual identity
 - Appeals to indie game aesthetic lovers
 - Matches "trash to treasure" narrative perfectly
@@ -254,6 +291,7 @@ From `docs/design-principles.md`:
 - Lower barrier to entry for hand-drawn assets
 
 **Color Palette:**
+
 - Desaturated earth tones (browns, grays, muted greens)
 - Parchment/aged paper backgrounds
 - Selective saturation on important items (treasures glow)
@@ -261,6 +299,7 @@ From `docs/design-principles.md`:
 - Warm candlelight/mushroom glow as light sources
 
 **Technical Considerations:**
+
 - Hand-drawn or digitally painted assets
 - Can mix with Flash-style bone animation
 - 2D sprite-based or layered composition
@@ -268,6 +307,7 @@ From `docs/design-principles.md`:
 - Particle effects for atmosphere (dust, spores, sparkles)
 
 **Best For:**
+
 - Story-rich, atmospheric experience
 - Players who love indie/art-house games
 - Differentiation in crowded mobile market
@@ -296,6 +336,7 @@ From `docs/design-principles.md`:
 ### Secondary Recommendation: **Option 1 - Stylized Low-Poly 3D**
 
 **If you have:**
+
 - 3D pipeline/expertise available
 - Longer development timeline
 - Goal for premium positioning
@@ -304,6 +345,7 @@ From `docs/design-principles.md`:
 ### Tertiary Option: **Option 3 - Hand-Drawn Dark Whimsy**
 
 **If you want:**
+
 - Niche positioning in indie/art-game space
 - Older/mature Reddit demographic targeting
 - Story-heavy, atmospheric experience
@@ -314,6 +356,7 @@ From `docs/design-principles.md`:
 ## 6. Hybrid Approach Possibility
 
 Consider combining elements:
+
 - **Base:** Option 2 (Cartoon-Casual Vector) for characters and UI
 - **Special Items:** Option 3 hand-drawn aesthetic for rare treasures
 - **Effects:** Stylized 3D particles for "juice" and satisfaction
@@ -337,22 +380,26 @@ This creates visual hierarchy: common items are clean vectors, rare items have s
 ## 8. Reference Links & Resources
 
 **Goblin Character Design:**
+
 - Sketchfab: Stylized Goblin Wizard (blue, cartoon proportions, family-friendly)
 - CGTrader: Collection of 8 stylized goblin characters
 - Dribbble: 400+ goblin design inspiration boards
 
 **Art Style References:**
+
 - Deep Rock Galactic ArtStation portfolios
 - Plants vs. Zombies Style Guide (Design Force)
 - Don't Starve concept art (Klei Entertainment)
 - Goblin Stone (2024 turn-based RPG with goblin protagonists)
 
 **Goblincore Aesthetic:**
+
 - Pinterest goblincore boards (2025 active)
 - TikTok #goblincore and #goblindnd
 - Aesthetics Wiki - Goblincore entry
 
 **Similar Games (2024-2025):**
+
 - Kamaeru: A Frog Refuge (cozy collecting)
 - Smushi Come Home (mushroom foraging)
 - Forest Doesn't Care (atmospheric mushroom picking)
@@ -360,6 +407,6 @@ This creates visual hierarchy: common items are clean vectors, rare items have s
 
 ---
 
-*Document created: 2025-10-23*
-*For: Goblin Gardens - Dwarves vs. Goblins Universe*
-*Platform: Mobile (Reddit Client)*
+_Document created: 2025-10-23_
+_For: Goblin Gardens - Dwarves vs. Goblins Universe_
+_Platform: Mobile (Reddit Client)_

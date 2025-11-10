@@ -60,10 +60,10 @@ export const LOCATION_CONFIGS: Record<string, LevelConfig> = {
   // Rockfall - Starting location, basic coins with green gems in both shapes
   'rockfall': {
     level: 1,
-    goldCoins: 0,      // No gold (intentional for starting location)
+    goldCoins: 0, // No gold (intentional for starting location)
     silverCoins: 20,
     bronzeCoins: 25,
-    diamondGems: 0,    // No diamonds (intentional for starting location)
+    diamondGems: 0, // No diamonds (intentional for starting location)
     emeraldGems: 10,
     emeraldTetraGems: 10,
     emeraldDodecaGems: 0,
@@ -82,19 +82,19 @@ export const LOCATION_CONFIGS: Record<string, LevelConfig> = {
   // Bright Warrens - Silver-rich with dodecahedron emerald, octahedron sapphire, tetrahedron ruby
   'bright-warrens': {
     level: 1,
-    goldCoins: 0,      // No gold
-    silverCoins: 60,   // Silver-rich (main feature)
-    bronzeCoins: 0,    // No bronze
-    diamondGems: 0,    // No diamonds
-    emeraldGems: 0,    // No octahedron emeralds
+    goldCoins: 0, // No gold
+    silverCoins: 60, // Silver-rich (main feature)
+    bronzeCoins: 0, // No bronze
+    diamondGems: 0, // No diamonds
+    emeraldGems: 0, // No octahedron emeralds
     emeraldTetraGems: 0, // No tetrahedron emeralds
     emeraldDodecaGems: 40, // Dodecahedron emeralds (main gem)
-    rubyGems: 0,       // No dodecahedron rubies
+    rubyGems: 0, // No dodecahedron rubies
     rubyTetraGems: 25, // Tetrahedron rubies
-    sapphireGems: 0,   // No tetrahedron sapphires
+    sapphireGems: 0, // No tetrahedron sapphires
     sapphireOctaGems: 35, // Octahedron sapphires
     sapphireDodecaGems: 0, // No dodecahedron sapphires
-    amethystGems: 0,   // No amethysts
+    amethystGems: 0, // No amethysts
     chunkyRocks: 0,
     roundedBoulders: 200,
     mediumRocks: 180,
@@ -104,19 +104,19 @@ export const LOCATION_CONFIGS: Record<string, LevelConfig> = {
   // Crystal Caves - Gold-rich with dodecahedron sapphire, dodecahedron ruby, octahedron diamond
   'crystal-caves': {
     level: 1,
-    goldCoins: 60,     // Gold-rich (main coin)
-    silverCoins: 0,    // No silver
-    bronzeCoins: 0,    // No bronze
-    diamondGems: 50,   // Octahedron diamonds (main gem)
-    emeraldGems: 0,    // No emeralds
+    goldCoins: 60, // Gold-rich (main coin)
+    silverCoins: 0, // No silver
+    bronzeCoins: 0, // No bronze
+    diamondGems: 50, // Octahedron diamonds (main gem)
+    emeraldGems: 0, // No emeralds
     emeraldTetraGems: 0, // No tetrahedron emeralds
     emeraldDodecaGems: 0, // No dodecahedron emeralds
-    rubyGems: 40,      // Dodecahedron rubies
-    rubyTetraGems: 0,  // No tetrahedron rubies
-    sapphireGems: 0,   // No tetrahedron sapphires
+    rubyGems: 40, // Dodecahedron rubies
+    rubyTetraGems: 0, // No tetrahedron rubies
+    sapphireGems: 0, // No tetrahedron sapphires
     sapphireOctaGems: 0, // No octahedron sapphires
     sapphireDodecaGems: 45, // Dodecahedron sapphires
-    amethystGems: 0,   // No amethysts
+    amethystGems: 0, // No amethysts
     chunkyRocks: 0,
     roundedBoulders: 80, // Reduced rocks to make gems more visible
     mediumRocks: 80,
@@ -133,7 +133,7 @@ export const LOCATION_CONFIGS: Record<string, LevelConfig> = {
     emeraldGems: 5,
     emeraldTetraGems: 0,
     emeraldDodecaGems: 0,
-    rubyGems: 30,       // Rubies are common in fire fields
+    rubyGems: 30, // Rubies are common in fire fields
     rubyTetraGems: 0,
     sapphireGems: 5,
     sapphireOctaGems: 0,

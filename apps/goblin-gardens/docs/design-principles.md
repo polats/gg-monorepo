@@ -12,18 +12,18 @@ Goblins = Greed, Sneaky, Swarms, Gold, Weak, Hive, Shadows, Dark, Thieves, Shini
 Inspirations:
 
 Vibes -
-    games -
-        Plants vs. Zombies
-        Orcs Must Die
-        Deep Rock Galactic
-        Vampire Survivor
-    shows -
-    Isekais
-        Solo Leveling
-        Shield Hero
-        Reincarnated As a Slime
-    Delicious in Dungeon
-    Frieren
+games -
+Plants vs. Zombies
+Orcs Must Die
+Deep Rock Galactic
+Vampire Survivor
+shows -
+Isekais
+Solo Leveling
+Shield Hero
+Reincarnated As a Slime
+Delicious in Dungeon
+Frieren
 
 Gameplay / Juice -
 Zombie Idle Miner
@@ -52,7 +52,6 @@ Play Core Loops to gain resources
 
 Attack the other team
 Dig Deeper than the other team
-
 
 Dark Crystal:
 

@@ -1,19 +1,19 @@
-import { Box, Sphere } from "@react-three/drei";
+import { Box, Sphere } from '@react-three/drei';
 import {
   BallCollider,
   RapierRigidBody,
   RigidBody,
   RigidBodyOptions,
-  useSpringJoint
-} from "@react-three/rapier";
-import { forwardRef, useMemo, useRef } from "react";
-import { Demo } from "../../DemoApp";
-import { useForwardedRef } from "../../hooks/use-forwarded-ref";
-import { vectorArrayToVector3 } from "../../utils/vector-utils";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
-import { Vector3 } from "three";
+  useSpringJoint,
+} from '@react-three/rapier';
+import { forwardRef, useMemo, useRef } from 'react';
+import { Demo } from '../../DemoApp';
+import { useForwardedRef } from '../../hooks/use-forwarded-ref';
+import { vectorArrayToVector3 } from '../../utils/vector-utils';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
+import { Vector3 } from 'three';
 
-const COLORS_ARR = ["#335C67", "#FFF3B0", "#E09F3E", "#9E2A2B", "#540B0E"];
+const COLORS_ARR = ['#335C67', '#FFF3B0', '#E09F3E', '#9E2A2B', '#540B0E'];
 
 interface BallSpringProps extends RigidBodyOptions {
   jointNum: number;
@@ -34,49 +34,47 @@ const BoxRigidBody = ({ color, ...props }: BoxRigidBodyProps) => {
   );
 };
 
-const BallSpring = forwardRef<RapierRigidBody, BallSpringProps>(
-  (props, floorRef) => {
-    const floor = useForwardedRef(floorRef);
-    const ball = useRef<RapierRigidBody>(null!);
+const BallSpring = forwardRef<RapierRigidBody, BallSpringProps>((props, floorRef) => {
+  const floor = useForwardedRef(floorRef);
+  const ball = useRef<RapierRigidBody>(null!);
 
-    const stiffness = 1.0e3;
-    const criticalDamping = 2.0 * Math.sqrt(stiffness * (props.mass ?? 1));
-    const dampingRatio = props.jointNum / (props.total / 2);
-    const damping = dampingRatio * criticalDamping;
+  const stiffness = 1.0e3;
+  const criticalDamping = 2.0 * Math.sqrt(stiffness * (props.mass ?? 1));
+  const dampingRatio = props.jointNum / (props.total / 2);
+  const damping = dampingRatio * criticalDamping;
 
-    const ballPos = props.position as Vector3;
+  const ballPos = props.position as Vector3;
 
-    if (!ballPos) {
-      throw new Error("BallSpring requires a position prop");
-    }
-
-    useSpringJoint(ball, floor, [
-      [0, 0, 0],
-      [ballPos.x, ballPos.y - 3, ballPos.z],
-      0,
-      stiffness,
-      damping
-    ]);
-
-    return (
-      <RigidBody
-        key={`spring-${props.jointNum}`}
-        {...props}
-        ref={ball}
-        ccd
-        name={`spring-${props.jointNum}`}
-        position={ballPos}
-        colliders={false}
-        canSleep={false}
-      >
-        <Sphere args={[0.5]} castShadow receiveShadow>
-          <meshStandardMaterial color="#E09F3E" />
-        </Sphere>
-        <BallCollider args={[0.5]} />
-      </RigidBody>
-    );
+  if (!ballPos) {
+    throw new Error('BallSpring requires a position prop');
   }
-);
+
+  useSpringJoint(ball, floor, [
+    [0, 0, 0],
+    [ballPos.x, ballPos.y - 3, ballPos.z],
+    0,
+    stiffness,
+    damping,
+  ]);
+
+  return (
+    <RigidBody
+      key={`spring-${props.jointNum}`}
+      {...props}
+      ref={ball}
+      ccd
+      name={`spring-${props.jointNum}`}
+      position={ballPos}
+      colliders={false}
+      canSleep={false}
+    >
+      <Sphere args={[0.5]} castShadow receiveShadow>
+        <meshStandardMaterial color="#E09F3E" />
+      </Sphere>
+      <BallCollider args={[0.5]} />
+    </RigidBody>
+  );
+});
 
 export const SpringExample: Demo = () => {
   const floor = useRef<RapierRigidBody>(null);

@@ -60,24 +60,28 @@ export function GameControls({
 
       {/* Top Right Controls - Only show when sidebar is closed and controls are visible */}
       {!sidebarOpen && controlsVisible && (
-        <div style={{
-          position: 'absolute',
-          top: 20,
-          right: 70,
-          zIndex: 1001,
-          display: 'flex',
-          gap: 10,
-          alignItems: 'center',
-        }}>
-          {/* Touch Mode Buttons */}
-          <div style={{
+        <div
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 70,
+            zIndex: 1001,
             display: 'flex',
-            gap: 5,
-            background: 'rgba(0, 0, 0, 0.8)',
-            padding: 8,
-            borderRadius: 8,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          }}>
+            gap: 10,
+            alignItems: 'center',
+          }}
+        >
+          {/* Touch Mode Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 5,
+              background: 'rgba(0, 0, 0, 0.8)',
+              padding: 8,
+              borderRadius: 8,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            }}
+          >
             <button
               {...createMobileFriendlyHandlers(() => onTouchModeChange('push'))}
               style={{
@@ -100,7 +104,8 @@ export function GameControls({
               style={{
                 background: touchConfig.mode === 'pickup' ? '#ff9800' : 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
-                border: touchConfig.mode === 'pickup' ? '2px solid #ff9800' : '2px solid transparent',
+                border:
+                  touchConfig.mode === 'pickup' ? '2px solid #ff9800' : '2px solid transparent',
                 padding: '10px 14px',
                 borderRadius: 6,
                 cursor: 'pointer',
@@ -117,7 +122,8 @@ export function GameControls({
               style={{
                 background: touchConfig.mode === 'select' ? '#00bcd4' : 'rgba(255, 255, 255, 0.2)',
                 color: 'white',
-                border: touchConfig.mode === 'select' ? '2px solid #00bcd4' : '2px solid transparent',
+                border:
+                  touchConfig.mode === 'select' ? '2px solid #00bcd4' : '2px solid transparent',
                 padding: '10px 14px',
                 borderRadius: 6,
                 cursor: 'pointer',
@@ -157,7 +163,9 @@ export function GameControls({
             style={{
               background: faucetConfig.enabled ? '#4caf50' : 'rgba(255, 255, 255, 0.2)',
               color: 'white',
-              border: faucetConfig.enabled ? '2px solid #4caf50' : '2px solid rgba(255, 255, 255, 0.3)',
+              border: faucetConfig.enabled
+                ? '2px solid #4caf50'
+                : '2px solid rgba(255, 255, 255, 0.3)',
               padding: '10px 14px',
               borderRadius: 8,
               cursor: 'pointer',

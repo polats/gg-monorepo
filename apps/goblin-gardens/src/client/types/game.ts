@@ -11,16 +11,16 @@ export interface LevelConfig {
   silverCoins: number;
   bronzeCoins: number;
   // Gem types - each gem type can appear in different shapes
-  diamondGems: number;   // Clear/white gems (octahedron)
-  emeraldGems: number;   // Green gems (octahedron)
+  diamondGems: number; // Clear/white gems (octahedron)
+  emeraldGems: number; // Green gems (octahedron)
   emeraldTetraGems: number; // Green gems (tetrahedron)
   emeraldDodecaGems: number; // Green gems (dodecahedron)
-  rubyGems: number;      // Red gems (dodecahedron)
+  rubyGems: number; // Red gems (dodecahedron)
   rubyTetraGems: number; // Red gems (tetrahedron)
-  sapphireGems: number;  // Blue gems (tetrahedron)
+  sapphireGems: number; // Blue gems (tetrahedron)
   sapphireOctaGems: number; // Blue gems (octahedron)
   sapphireDodecaGems: number; // Blue gems (dodecahedron)
-  amethystGems: number;  // Purple gems (octahedron)
+  amethystGems: number; // Purple gems (octahedron)
   // Rock counts (background objects)
   chunkyRocks: number;
   roundedBoulders: number;

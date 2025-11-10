@@ -196,14 +196,17 @@ export function generateObjectTypes(levelConfig: LevelConfig): ObjectTypeConfig[
   ];
 
   // Filter out types with 0 count
-  return types.filter(type => type.count > 0);
+  return types.filter((type) => type.count > 0);
 }
 
 /**
  * Apply performance-based scaling to boulder/rock counts
  * Keeps coins and gems at full count since they're collectibles
  */
-export function applyPerformanceScaling(levelConfig: LevelConfig, performanceTier: PerformanceTier): LevelConfig {
+export function applyPerformanceScaling(
+  levelConfig: LevelConfig,
+  performanceTier: PerformanceTier
+): LevelConfig {
   return {
     ...levelConfig,
     // Scale rock/boulder counts based on performance

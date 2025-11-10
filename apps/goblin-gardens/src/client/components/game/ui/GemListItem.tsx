@@ -58,45 +58,45 @@ export const GemListItem: React.FC<GemListItemProps> = ({ gem, onClick }) => {
         />
       )}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <GemIcon
-          shape={gem.shape}
-          size={12}
-          color={gem.color}
-        />
+        <GemIcon shape={gem.shape} size={12} color={gem.color} />
       </div>
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        flex: 1,
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1,
-      }}>
-        <span style={{
-          fontSize: 8,
-          fontWeight: 'bold',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 8,
+            fontWeight: 'bold',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           <span style={{ color: getRarityColor(gem.rarity) }}>
             {gem.rarity.charAt(0).toUpperCase() + gem.rarity.slice(1)}
-          </span>
-          {' '}
-          <span style={{ color: 'white' }}>
-            {GEM_TYPE_NAMES[gem.type]}
-          </span>
+          </span>{' '}
+          <span style={{ color: 'white' }}>{GEM_TYPE_NAMES[gem.type]}</span>
         </span>
-        <span style={{
-          color: 'rgba(255, 255, 255, 0.4)',
-          fontSize: 6,
-          fontFamily: 'monospace',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 3,
-        }}>
-          <CoinValueDisplay bronzeValue={calculateGemValue(gem)} size={8} reverse={true} /> • {gem.growthRate}x • {(gem.size * 1000).toFixed(0)}mm
+        <span
+          style={{
+            color: 'rgba(255, 255, 255, 0.4)',
+            fontSize: 6,
+            fontFamily: 'monospace',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+          }}
+        >
+          <CoinValueDisplay bronzeValue={calculateGemValue(gem)} size={8} reverse={true} /> •{' '}
+          {gem.growthRate}x • {(gem.size * 1000).toFixed(0)}mm
         </span>
       </div>
     </div>

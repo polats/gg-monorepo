@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 
-import { Box, Clone, Sphere, useGLTF } from "@react-three/drei";
-import { RigidBody, TrimeshCollider } from "@react-three/rapier";
-import { ThreeElements } from "@react-three/fiber";
-import { Mesh } from "three";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
-import DraggableRigidBody from "../../components/DraggableRigidBody";
+import { Box, Clone, Sphere, useGLTF } from '@react-three/drei';
+import { RigidBody, TrimeshCollider } from '@react-three/rapier';
+import { ThreeElements } from '@react-three/fiber';
+import { Mesh } from 'three';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
+import DraggableRigidBody from '../../components/DraggableRigidBody';
 
-type GroupProps = ThreeElements["group"];
+type GroupProps = ThreeElements['group'];
 
 const Map = () => {
   const { nodes } = useGLTF(
     // @ts-ignore
-    new URL("../../models/map.glb", import.meta.url).toString()
+    new URL('../../models/map.glb', import.meta.url).toString()
   ) as unknown as { nodes: { map: Mesh } };
 
   nodes.map.castShadow = true;
@@ -26,7 +26,7 @@ const Map = () => {
         <TrimeshCollider
           args={[
             nodes.map.geometry.attributes.position.array,
-            nodes.map.geometry.index?.array || []
+            nodes.map.geometry.index?.array || [],
           ]}
         />
       </RigidBody>
@@ -36,7 +36,7 @@ const Map = () => {
 
 const Pear = (props: GroupProps) => {
   const { nodes } = useGLTF(
-    new URL("../../models/objects.glb", import.meta.url).toString()
+    new URL('../../models/objects.glb', import.meta.url).toString()
   ) as unknown as {
     nodes: {
       pear: Mesh;
@@ -48,7 +48,7 @@ const Pear = (props: GroupProps) => {
       groupProps={{ ...props, scale: 1 }}
       rigidBodyProps={{
         position: [0, 2, 0],
-        colliders: "hull"
+        colliders: 'hull',
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
@@ -69,17 +69,17 @@ const Ball = () => {
   return (
     <DraggableRigidBody
       rigidBodyProps={{
-        colliders: "ball",
+        colliders: 'ball',
         position: [5, 0, 0],
         onCollisionEnter: ({ manifold }) => {
           setColliding(true);
         },
-        onCollisionExit: () => setColliding(false)
+        onCollisionExit: () => setColliding(false),
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
         <Sphere castShadow>
-          <meshPhysicalMaterial color={colliding ? "blue" : "green"} />
+          <meshPhysicalMaterial color={colliding ? 'blue' : 'green'} />
         </Sphere>
       }
     />
@@ -93,13 +93,13 @@ const CompoundShape = () => {
     <DraggableRigidBody
       groupProps={{ scale: 1 }}
       rigidBodyProps={{
-        colliders: "cuboid",
-        onSleep: () => setAsleep(true)
+        colliders: 'cuboid',
+        onSleep: () => setAsleep(true),
       }}
       dragControlsProps={{ preventOverlap: true }}
       visibleMesh={
         <Box castShadow>
-          <meshPhysicalMaterial color={asleep ? "red" : "white"} />
+          <meshPhysicalMaterial color={asleep ? 'red' : 'white'} />
         </Box>
       }
     />

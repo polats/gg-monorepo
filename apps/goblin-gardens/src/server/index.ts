@@ -17,7 +17,7 @@ import {
   UpdateOfferResponse,
   ExecuteTradeRequest,
   ExecuteTradeResponse,
-  Gem
+  Gem,
 } from '../shared/types/api';
 import { redis, reddit, createServer, context, getServerPort } from '@devvit/web/server';
 import { createPost } from './core/post';
@@ -36,9 +36,21 @@ const router = express.Router();
 // Helper function to generate a random color
 function generateRandomColor(): string {
   const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B195', '#C06C84',
-    '#6C5B7B', '#355C7D', '#F67280', '#C06C84', '#2C3E50'
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#FFA07A',
+    '#98D8C8',
+    '#F7DC6F',
+    '#BB8FCE',
+    '#85C1E2',
+    '#F8B195',
+    '#C06C84',
+    '#6C5B7B',
+    '#355C7D',
+    '#F67280',
+    '#C06C84',
+    '#2C3E50',
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
@@ -137,25 +149,26 @@ router.post<{ postId: string }, DecrementResponse | { status: string; message: s
   }
 );
 
-router.post<{ postId: string }, IncrementBy5Response | { status: string; message: string }, unknown>(
-  '/api/increment-by-5',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
-      return;
-    }
-
-    res.json({
-      count: await redis.incrBy('count', 5),
-      postId,
-      type: 'incrementBy5',
+router.post<
+  { postId: string },
+  IncrementBy5Response | { status: string; message: string },
+  unknown
+>('/api/increment-by-5', async (_req, res): Promise<void> => {
+  const { postId } = context;
+  if (!postId) {
+    res.status(400).json({
+      status: 'error',
+      message: 'postId is required',
     });
+    return;
   }
-);
+
+  res.json({
+    count: await redis.incrBy('count', 5),
+    postId,
+    type: 'incrementBy5',
+  });
+});
 
 router.get<{}, GetColorMapResponse | { status: string; message: string }>(
   '/api/color-map',
@@ -198,61 +211,62 @@ router.get<{}, GetColorMapResponse | { status: string; message: string }>(
   }
 );
 
-router.post<{}, UpdateColorMapResponse | { status: string; message: string }, { row: number; col: number }>(
-  '/api/color-map/update',
-  async (req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
-      res.status(400).json({
-        status: 'error',
-        message: 'postId is required',
-      });
+router.post<
+  {},
+  UpdateColorMapResponse | { status: string; message: string },
+  { row: number; col: number }
+>('/api/color-map/update', async (req, res): Promise<void> => {
+  const { postId } = context;
+  if (!postId) {
+    res.status(400).json({
+      status: 'error',
+      message: 'postId is required',
+    });
+    return;
+  }
+
+  try {
+    const { row, col } = req.body;
+    const username = await reddit.getCurrentUsername();
+    const displayName = username ?? 'anonymous';
+    const colorMapKey = getUserColorMapKey(displayName);
+
+    // Get current color map
+    let colorMapJson = await redis.get(colorMapKey);
+    let colorMap: ColorMap;
+
+    if (!colorMapJson) {
+      colorMap = initializeColorMap();
+    } else {
+      colorMap = JSON.parse(colorMapJson) as ColorMap;
+    }
+
+    // Validate row and col
+    if (row < 0 || row >= colorMap.length || col < 0 || col >= colorMap[0].length) {
+      res.status(400).json({ status: 'error', message: 'Invalid row or column' });
       return;
     }
 
-    try {
-      const { row, col } = req.body;
-      const username = await reddit.getCurrentUsername();
-      const displayName = username ?? 'anonymous';
-      const colorMapKey = getUserColorMapKey(displayName);
+    // Generate new random color
+    const newColor = generateRandomColor();
+    colorMap[row][col] = newColor;
 
-      // Get current color map
-      let colorMapJson = await redis.get(colorMapKey);
-      let colorMap: ColorMap;
+    // Save updated color map
+    await redis.set(colorMapKey, JSON.stringify(colorMap));
 
-      if (!colorMapJson) {
-        colorMap = initializeColorMap();
-      } else {
-        colorMap = JSON.parse(colorMapJson) as ColorMap;
-      }
-
-      // Validate row and col
-      if (row < 0 || row >= colorMap.length || col < 0 || col >= colorMap[0].length) {
-        res.status(400).json({ status: 'error', message: 'Invalid row or column' });
-        return;
-      }
-
-      // Generate new random color
-      const newColor = generateRandomColor();
-      colorMap[row][col] = newColor;
-
-      // Save updated color map
-      await redis.set(colorMapKey, JSON.stringify(colorMap));
-
-      res.json({
-        type: 'updateColorMap',
-        postId: postId,
-        colorMap: colorMap,
-        row: row,
-        col: col,
-        newColor: newColor,
-      });
-    } catch (error) {
-      console.error('API Update Color Map Error:', error);
-      res.status(400).json({ status: 'error', message: 'Failed to update color map' });
-    }
+    res.json({
+      type: 'updateColorMap',
+      postId: postId,
+      colorMap: colorMap,
+      row: row,
+      col: col,
+      newColor: newColor,
+    });
+  } catch (error) {
+    console.error('API Update Color Map Error:', error);
+    res.status(400).json({ status: 'error', message: 'Failed to update color map' });
   }
-);
+});
 
 // ============================================================================
 // Player State Persistence APIs
@@ -263,42 +277,43 @@ function getUserPlayerStateKey(username: string): string {
   return `playerState:${username}`;
 }
 
-router.post<{}, SavePlayerStateResponse | { status: string; message: string }, SavePlayerStateRequest>(
-  '/api/player-state/save',
-  async (req, res): Promise<void> => {
-    try {
-      const { playerState } = req.body;
+router.post<
+  {},
+  SavePlayerStateResponse | { status: string; message: string },
+  SavePlayerStateRequest
+>('/api/player-state/save', async (req, res): Promise<void> => {
+  try {
+    const { playerState } = req.body;
 
-      if (!playerState) {
-        res.status(400).json({ status: 'error', message: 'playerState is required' });
-        return;
-      }
-
-      const username = await reddit.getCurrentUsername();
-      const displayName = username ?? 'anonymous';
-      const playerStateKey = getUserPlayerStateKey(displayName);
-
-      // Save player state to Redis
-      await redis.set(playerStateKey, JSON.stringify(playerState));
-
-      console.log(`[SAVE] Player state saved for ${displayName}:`, {
-        coins: playerState.coins,
-        gemCount: playerState.gems.length,
-        growingGems: playerState.gems.filter(g => g.isGrowing).length,
-        offeringGems: playerState.gems.filter(g => g.isOffering).length,
-      });
-
-      res.json({
-        type: 'savePlayerState',
-        success: true,
-        message: 'Player state saved successfully',
-      });
-    } catch (error) {
-      console.error('API Save Player State Error:', error);
-      res.status(400).json({ status: 'error', message: 'Failed to save player state' });
+    if (!playerState) {
+      res.status(400).json({ status: 'error', message: 'playerState is required' });
+      return;
     }
+
+    const username = await reddit.getCurrentUsername();
+    const displayName = username ?? 'anonymous';
+    const playerStateKey = getUserPlayerStateKey(displayName);
+
+    // Save player state to Redis
+    await redis.set(playerStateKey, JSON.stringify(playerState));
+
+    console.log(`[SAVE] Player state saved for ${displayName}:`, {
+      coins: playerState.coins,
+      gemCount: playerState.gems.length,
+      growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+      offeringGems: playerState.gems.filter((g) => g.isOffering).length,
+    });
+
+    res.json({
+      type: 'savePlayerState',
+      success: true,
+      message: 'Player state saved successfully',
+    });
+  } catch (error) {
+    console.error('API Save Player State Error:', error);
+    res.status(400).json({ status: 'error', message: 'Failed to save player state' });
   }
-);
+});
 
 router.get<{}, LoadPlayerStateResponse | { status: string; message: string }>(
   '/api/player-state/load',
@@ -324,8 +339,8 @@ router.get<{}, LoadPlayerStateResponse | { status: string; message: string }>(
       console.log(`[LOAD] Player state loaded for ${displayName}:`, {
         coins: playerState.coins,
         gemCount: playerState.gems.length,
-        growingGems: playerState.gems.filter(g => g.isGrowing).length,
-        offeringGems: playerState.gems.filter(g => g.isOffering).length,
+        growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+        offeringGems: playerState.gems.filter((g) => g.isOffering).length,
       });
 
       res.json({
@@ -371,7 +386,7 @@ function calculateGemValue(gem: Gem): number {
   const baseValue = GEM_TYPE_VALUES[gem.type] || 10;
   const shapeMultiplier = SHAPE_MULTIPLIERS[gem.shape] || 1.0;
   const rarityMultiplier = RARITY_MULTIPLIERS[gem.rarity] || 1.0;
-  const levelBonus = 1 + (gem.level * 0.1);
+  const levelBonus = 1 + gem.level * 0.1;
 
   const sizeInMm = gem.size * 1000;
   const sizeMultiplier = sizeInMm / 100;
@@ -404,8 +419,8 @@ router.get<{}, GetActiveOffersResponse | { status: string; message: string }>(
   '/api/offers',
   async (req, res): Promise<void> => {
     try {
-      const cursor = parseInt(req.query.cursor as string || '0');
-      const limit = parseInt(req.query.limit as string || '10');
+      const cursor = parseInt((req.query.cursor as string) || '0');
+      const limit = parseInt((req.query.limit as string) || '10');
 
       // Use Redis Sorted Set to get active offers sorted by timestamp (most recent first)
       // The sorted set key stores username as member, timestamp as score
@@ -415,31 +430,27 @@ router.get<{}, GetActiveOffersResponse | { status: string; message: string }>(
       const totalCount = await redis.zCard(activeOffersIndex);
 
       // Get usernames from sorted set (reverse order = newest first)
-      const usernames = await redis.zRange(
-        activeOffersIndex,
-        cursor,
-        cursor + limit - 1,
-        { by: 'rank', reverse: true }
-      );
+      const usernames = await redis.zRange(activeOffersIndex, cursor, cursor + limit - 1, {
+        by: 'rank',
+        reverse: true,
+      });
 
       // Fetch offers for these usernames
-      const offerPromises = usernames.map(({ member }) =>
-        redis.get(`activeOffer:${member}`)
-      );
+      const offerPromises = usernames.map(({ member }) => redis.get(`activeOffer:${member}`));
       const offerJsons = await Promise.all(offerPromises);
 
       const activeOffers: ActiveOffer[] = offerJsons
-        .filter(json => json !== null && json !== undefined)
-        .map(json => JSON.parse(json!) as ActiveOffer);
+        .filter((json) => json !== null && json !== undefined)
+        .map((json) => JSON.parse(json!) as ActiveOffer);
 
       // Transform to response format
-      const offers = activeOffers.map(offer => ({
+      const offers = activeOffers.map((offer) => ({
         username: offer.username,
         lastActive: formatLastActive(offer.timestamp),
         level: offer.level,
         itemCount: offer.itemCount,
         offer: {
-          gems: offer.gems.map(gem => ({
+          gems: offer.gems.map((gem) => ({
             name: `${gem.rarity} ${gem.type}`,
             rarity: gem.rarity,
             shape: gem.shape,
@@ -449,10 +460,12 @@ router.get<{}, GetActiveOffersResponse | { status: string; message: string }>(
         },
       }));
 
-      const hasMore = (cursor + limit) < totalCount;
+      const hasMore = cursor + limit < totalCount;
       const nextCursor = hasMore ? cursor + limit : null;
 
-      console.log(`[OFFERS] Returning ${offers.length} active offers (cursor: ${cursor}, total: ${totalCount})`);
+      console.log(
+        `[OFFERS] Returning ${offers.length} active offers (cursor: ${cursor}, total: ${totalCount})`
+      );
 
       res.json({
         type: 'getActiveOffers',
@@ -477,12 +490,14 @@ router.post<{}, UpdateOfferResponse | { status: string; message: string }, Updat
       const displayName = username ?? 'anonymous';
 
       if (!gems || !Array.isArray(gems) || gems.length === 0) {
-        res.status(400).json({ status: 'error', message: 'gems array is required and cannot be empty' });
+        res
+          .status(400)
+          .json({ status: 'error', message: 'gems array is required and cannot be empty' });
         return;
       }
 
       // Validate all gems have isOffering = true
-      const invalidGems = gems.filter(g => !g.isOffering);
+      const invalidGems = gems.filter((g) => !g.isOffering);
       if (invalidGems.length > 0) {
         res.status(400).json({ status: 'error', message: 'All gems must have isOffering = true' });
         return;
@@ -636,8 +651,8 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       const sellerState = JSON.parse(sellerStateJson) as PlayerState;
 
       // Validation: Seller still has the gems
-      const sellerGemIds = new Set(sellerState.gems.map(g => g.id));
-      const missingGems = offer.gems.filter(g => !sellerGemIds.has(g.id));
+      const sellerGemIds = new Set(sellerState.gems.map((g) => g.id));
+      const missingGems = offer.gems.filter((g) => !sellerGemIds.has(g.id));
       if (missingGems.length > 0) {
         res.status(400).json({
           type: 'executeTrade',
@@ -648,9 +663,8 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       }
 
       // Validation: Buyer has enough coins
-      const buyerBronzeTotal = buyerState.coins.bronze +
-                               buyerState.coins.silver * 100 +
-                               buyerState.coins.gold * 10000;
+      const buyerBronzeTotal =
+        buyerState.coins.bronze + buyerState.coins.silver * 100 + buyerState.coins.gold * 10000;
 
       if (buyerBronzeTotal < offer.totalValue) {
         res.status(400).json({
@@ -665,13 +679,12 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       // Note: Redis in Devvit may not support WATCH/MULTI, so we'll do best effort
 
       // 1. Remove gems from seller
-      const offerGemIds = new Set(offer.gems.map(g => g.id));
-      const updatedSellerGems = sellerState.gems.filter(g => !offerGemIds.has(g.id));
+      const offerGemIds = new Set(offer.gems.map((g) => g.id));
+      const updatedSellerGems = sellerState.gems.filter((g) => !offerGemIds.has(g.id));
 
       // 2. Add coins to seller
-      let sellerBronzeTotal = sellerState.coins.bronze +
-                               sellerState.coins.silver * 100 +
-                               sellerState.coins.gold * 10000;
+      let sellerBronzeTotal =
+        sellerState.coins.bronze + sellerState.coins.silver * 100 + sellerState.coins.gold * 10000;
       sellerBronzeTotal += offer.totalValue;
 
       const newSellerCoins = {
@@ -689,7 +702,7 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       };
 
       // 4. Add gems to buyer (mark as not offering)
-      const acquiredGems = offer.gems.map(gem => ({
+      const acquiredGems = offer.gems.map((gem) => ({
         ...gem,
         isOffering: false,
         isGrowing: false,
@@ -717,7 +730,9 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       await redis.del(offerKey);
       await redis.zRem(activeOffersIndex, [sellerUsername]);
 
-      console.log(`[TRADE] ${buyerUsername} bought ${acquiredGems.length} gems from ${sellerUsername} for ${offer.totalValue} bronze`);
+      console.log(
+        `[TRADE] ${buyerUsername} bought ${acquiredGems.length} gems from ${sellerUsername} for ${offer.totalValue} bronze`
+      );
 
       res.json({
         type: 'executeTrade',

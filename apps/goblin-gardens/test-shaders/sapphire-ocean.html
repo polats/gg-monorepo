@@ -1,166 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sapphire Ocean Shader</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f5f5;
-            overflow: hidden;
-        }
-        #container { display: flex; height: 100vh; }
-        #canvas-container { flex: 1; position: relative; }
-        canvas { display: block; width: 100%; height: 100%; }
-        #controls {
-            width: 320px;
-            background: white;
-            padding: 24px;
-            overflow-y: auto;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
-        }
-        h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; color: #191919; }
-        .description { font-size: 14px; color: #666; margin-bottom: 24px; line-height: 1.5; }
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-size: 13px; font-weight: 500; color: #191919; margin-bottom: 8px; }
-        input[type="range"] {
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: #e0e0e0;
-            outline: none;
-            -webkit-appearance: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #191919;
-            cursor: pointer;
-        }
-        input[type="color"] {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .value-display { display: inline-block; font-size: 12px; color: #666; margin-left: 8px; }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #191919;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-        button:hover { background: #333; }
-        .section-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #999;
-            margin: 24px 0 12px 0;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: #f5f5f5;
+        overflow: hidden;
+      }
+      #container {
+        display: flex;
+        height: 100vh;
+      }
+      #canvas-container {
+        flex: 1;
+        position: relative;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #controls {
+        width: 320px;
+        background: white;
+        padding: 24px;
+        overflow-y: auto;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #191919;
+      }
+      .description {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+      .control-group {
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #191919;
+        margin-bottom: 8px;
+      }
+      input[type='range'] {
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: #e0e0e0;
+        outline: none;
+        -webkit-appearance: none;
+      }
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #191919;
+        cursor: pointer;
+      }
+      input[type='color'] {
+        width: 100%;
+        height: 40px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .value-display {
+        display: inline-block;
+        font-size: 12px;
+        color: #666;
+        margin-left: 8px;
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #191919;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 8px;
+      }
+      button:hover {
+        background: #333;
+      }
+      .section-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #999;
+        margin: 24px 0 12px 0;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="container">
-        <div id="canvas-container"></div>
-        <div id="controls">
-            <h1>Sapphire Ocean</h1>
-            <p class="description">Deep blue waves with liquid shimmer, evoking sapphire's serene oceanic depths.</p>
-            
-            <div class="section-title">Parameters</div>
-            
-            <div class="control-group">
-                <label>Wave Amplitude</label>
-                <input type="range" id="amplitude" min="0" max="1" step="0.05" value="0.5">
-                <span class="value-display" id="amplitude-value">0.5</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Wave Speed</label>
-                <input type="range" id="speed" min="0" max="2" step="0.1" value="0.4">
-                <span class="value-display" id="speed-value">0.4</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Shimmer Intensity</label>
-                <input type="range" id="shimmer" min="0" max="1" step="0.05" value="0.6">
-                <span class="value-display" id="shimmer-value">0.6</span>
-            </div>
-            
-            <div class="control-group">
-                <label>Depth</label>
-                <input type="range" id="depth" min="0" max="1" step="0.05" value="0.7">
-                <span class="value-display" id="depth-value">0.7</span>
-            </div>
-            
-            <div class="section-title">Colors</div>
-            
-            <div class="control-group">
-                <label>Deep Blue</label>
-                <input type="color" id="deepColor" value="#0a2463">
-            </div>
-            
-            <div class="control-group">
-                <label>Light Blue</label>
-                <input type="color" id="lightColor" value="#0f52ba">
-            </div>
-            
-            <div class="section-title">Actions</div>
-            <button onclick="resetParameters()">Reset to Defaults</button>
-            <button onclick="downloadImage()">Download PNG</button>
+      <div id="canvas-container"></div>
+      <div id="controls">
+        <h1>Sapphire Ocean</h1>
+        <p class="description">
+          Deep blue waves with liquid shimmer, evoking sapphire's serene oceanic depths.
+        </p>
+
+        <div class="section-title">Parameters</div>
+
+        <div class="control-group">
+          <label>Wave Amplitude</label>
+          <input type="range" id="amplitude" min="0" max="1" step="0.05" value="0.5" />
+          <span class="value-display" id="amplitude-value">0.5</span>
         </div>
+
+        <div class="control-group">
+          <label>Wave Speed</label>
+          <input type="range" id="speed" min="0" max="2" step="0.1" value="0.4" />
+          <span class="value-display" id="speed-value">0.4</span>
+        </div>
+
+        <div class="control-group">
+          <label>Shimmer Intensity</label>
+          <input type="range" id="shimmer" min="0" max="1" step="0.05" value="0.6" />
+          <span class="value-display" id="shimmer-value">0.6</span>
+        </div>
+
+        <div class="control-group">
+          <label>Depth</label>
+          <input type="range" id="depth" min="0" max="1" step="0.05" value="0.7" />
+          <span class="value-display" id="depth-value">0.7</span>
+        </div>
+
+        <div class="section-title">Colors</div>
+
+        <div class="control-group">
+          <label>Deep Blue</label>
+          <input type="color" id="deepColor" value="#0a2463" />
+        </div>
+
+        <div class="control-group">
+          <label>Light Blue</label>
+          <input type="color" id="lightColor" value="#0f52ba" />
+        </div>
+
+        <div class="section-title">Actions</div>
+        <button onclick="resetParameters()">Reset to Defaults</button>
+        <button onclick="downloadImage()">Download PNG</button>
+      </div>
     </div>
 
     <script>
-        const params = {
-            amplitude: 0.5,
-            speed: 0.4,
-            shimmer: 0.6,
-            depth: 0.7,
-            deepColor: new THREE.Color(0x0a2463),
-            lightColor: new THREE.Color(0x0f52ba),
-        };
+      const params = {
+        amplitude: 0.5,
+        speed: 0.4,
+        shimmer: 0.6,
+        depth: 0.7,
+        deepColor: new THREE.Color(0x0a2463),
+        lightColor: new THREE.Color(0x0f52ba),
+      };
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
-        
-        const container = document.getElementById('canvas-container');
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        container.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                u_time: { value: 0 },
-                u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
-                u_amplitude: { value: params.amplitude },
-                u_speed: { value: params.speed },
-                u_shimmer: { value: params.shimmer },
-                u_depth: { value: params.depth },
-                u_deepColor: { value: params.deepColor },
-                u_lightColor: { value: params.lightColor },
-            },
-            vertexShader: `
+      const container = document.getElementById('canvas-container');
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      const material = new THREE.ShaderMaterial({
+        uniforms: {
+          u_time: { value: 0 },
+          u_resolution: { value: new THREE.Vector2(container.clientWidth, container.clientHeight) },
+          u_amplitude: { value: params.amplitude },
+          u_speed: { value: params.speed },
+          u_shimmer: { value: params.shimmer },
+          u_depth: { value: params.depth },
+          u_deepColor: { value: params.deepColor },
+          u_lightColor: { value: params.lightColor },
+        },
+        vertexShader: `
                 varying vec2 vUv;
                 void main() {
                     vUv = uv;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
-            fragmentShader: `
+        fragmentShader: `
                 uniform float u_time;
                 uniform vec2 u_resolution;
                 uniform float u_amplitude;
@@ -234,66 +279,78 @@
                     
                     gl_FragColor = vec4(color, 1.0);
                 }
-            `
-        });
+            `,
+      });
 
-        const geometry = new THREE.PlaneGeometry(2, 2);
-        const plane = new THREE.Mesh(geometry, material);
-        scene.add(plane);
+      const geometry = new THREE.PlaneGeometry(2, 2);
+      const plane = new THREE.Mesh(geometry, material);
+      scene.add(plane);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            material.uniforms.u_time.value = performance.now() / 1000;
-            renderer.render(scene, camera);
-        }
-        animate();
+      function animate() {
+        requestAnimationFrame(animate);
+        material.uniforms.u_time.value = performance.now() / 1000;
+        renderer.render(scene, camera);
+      }
+      animate();
 
-        window.addEventListener('resize', () => {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            renderer.setSize(width, height);
-            material.uniforms.u_resolution.value.set(width, height);
-        });
+      window.addEventListener('resize', () => {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        renderer.setSize(width, height);
+        material.uniforms.u_resolution.value.set(width, height);
+      });
 
-        function updateParam(name, value) {
-            params[name] = parseFloat(value);
-            material.uniforms['u_' + name].value = params[name];
-            document.getElementById(name + '-value').textContent = value;
-        }
+      function updateParam(name, value) {
+        params[name] = parseFloat(value);
+        material.uniforms['u_' + name].value = params[name];
+        document.getElementById(name + '-value').textContent = value;
+      }
 
-        function updateColor(name, value) {
-            params[name].setStyle(value);
-            material.uniforms['u_' + name].value = params[name];
-        }
+      function updateColor(name, value) {
+        params[name].setStyle(value);
+        material.uniforms['u_' + name].value = params[name];
+      }
 
-        function resetParameters() {
-            document.getElementById('amplitude').value = 0.5;
-            updateParam('amplitude', 0.5);
-            document.getElementById('speed').value = 0.4;
-            updateParam('speed', 0.4);
-            document.getElementById('shimmer').value = 0.6;
-            updateParam('shimmer', 0.6);
-            document.getElementById('depth').value = 0.7;
-            updateParam('depth', 0.7);
-            document.getElementById('deepColor').value = '#0a2463';
-            updateColor('deepColor', '#0a2463');
-            document.getElementById('lightColor').value = '#0f52ba';
-            updateColor('lightColor', '#0f52ba');
-        }
+      function resetParameters() {
+        document.getElementById('amplitude').value = 0.5;
+        updateParam('amplitude', 0.5);
+        document.getElementById('speed').value = 0.4;
+        updateParam('speed', 0.4);
+        document.getElementById('shimmer').value = 0.6;
+        updateParam('shimmer', 0.6);
+        document.getElementById('depth').value = 0.7;
+        updateParam('depth', 0.7);
+        document.getElementById('deepColor').value = '#0a2463';
+        updateColor('deepColor', '#0a2463');
+        document.getElementById('lightColor').value = '#0f52ba';
+        updateColor('lightColor', '#0f52ba');
+      }
 
-        function downloadImage() {
-            const link = document.createElement('a');
-            link.download = 'sapphire-ocean.png';
-            link.href = renderer.domElement.toDataURL();
-            link.click();
-        }
+      function downloadImage() {
+        const link = document.createElement('a');
+        link.download = 'sapphire-ocean.png';
+        link.href = renderer.domElement.toDataURL();
+        link.click();
+      }
 
-        document.getElementById('amplitude').addEventListener('input', (e) => updateParam('amplitude', e.target.value));
-        document.getElementById('speed').addEventListener('input', (e) => updateParam('speed', e.target.value));
-        document.getElementById('shimmer').addEventListener('input', (e) => updateParam('shimmer', e.target.value));
-        document.getElementById('depth').addEventListener('input', (e) => updateParam('depth', e.target.value));
-        document.getElementById('deepColor').addEventListener('input', (e) => updateColor('deepColor', e.target.value));
-        document.getElementById('lightColor').addEventListener('input', (e) => updateColor('lightColor', e.target.value));
+      document
+        .getElementById('amplitude')
+        .addEventListener('input', (e) => updateParam('amplitude', e.target.value));
+      document
+        .getElementById('speed')
+        .addEventListener('input', (e) => updateParam('speed', e.target.value));
+      document
+        .getElementById('shimmer')
+        .addEventListener('input', (e) => updateParam('shimmer', e.target.value));
+      document
+        .getElementById('depth')
+        .addEventListener('input', (e) => updateParam('depth', e.target.value));
+      document
+        .getElementById('deepColor')
+        .addEventListener('input', (e) => updateColor('deepColor', e.target.value));
+      document
+        .getElementById('lightColor')
+        .addEventListener('input', (e) => updateColor('lightColor', e.target.value));
     </script>
-</body>
+  </body>
 </html>

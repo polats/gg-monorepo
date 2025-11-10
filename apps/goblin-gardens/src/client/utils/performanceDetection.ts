@@ -66,7 +66,9 @@ export async function detectPerformance(): Promise<PerformanceInfo> {
   }
   // MEDIUM TIER: Devices with tier 2 GPU AND strong CPU AND RAM (both required)
   else if (
-    gpuTier >= 2 && cpuCores >= 6 && deviceMemory > 8 // Tier 2 GPU with 6+ cores AND more than 8GB RAM
+    gpuTier >= 2 &&
+    cpuCores >= 6 &&
+    deviceMemory > 8 // Tier 2 GPU with 6+ cores AND more than 8GB RAM
   ) {
     tier = 'medium';
   }

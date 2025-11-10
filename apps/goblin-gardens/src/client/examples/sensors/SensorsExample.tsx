@@ -1,14 +1,9 @@
-import { Box, Sphere, Text } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import {
-  CuboidCollider,
-  RigidBody,
-  RapierRigidBody,
-  RigidBodyProps
-} from "@react-three/rapier";
-import { useEffect, useRef, useState } from "react";
-import { MeshPhysicalMaterial } from "three";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Box, Sphere, Text } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { CuboidCollider, RigidBody, RapierRigidBody, RigidBodyProps } from '@react-three/rapier';
+import { useEffect, useRef, useState } from 'react';
+import { MeshPhysicalMaterial } from 'three';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const material = new MeshPhysicalMaterial();
 
@@ -17,37 +12,12 @@ const Goal = (props: RigidBodyProps) => {
 
   return (
     <RigidBody position={[0, 1, 0]}>
-      <Box
-        scale={[11, 1, 1]}
-        position={[0, 3, 0]}
-        material={material}
-        castShadow
-      />
-      <Box
-        scale={[1, 6, 1]}
-        position={[-5, 0, 0]}
-        material={material}
-        castShadow
-      />
-      <Box
-        scale={[1, 6, 1]}
-        position={[5, 0, 0]}
-        material={material}
-        castShadow
-      />
+      <Box scale={[11, 1, 1]} position={[0, 3, 0]} material={material} castShadow />
+      <Box scale={[1, 6, 1]} position={[-5, 0, 0]} material={material} castShadow />
+      <Box scale={[1, 6, 1]} position={[5, 0, 0]} material={material} castShadow />
 
-      <Box
-        scale={[1, 1, 3]}
-        position={[-5, -3, 0]}
-        material={material}
-        castShadow
-      />
-      <Box
-        scale={[1, 1, 3]}
-        position={[5, -3, 0]}
-        material={material}
-        castShadow
-      />
+      <Box scale={[1, 1, 3]} position={[-5, -3, 0]} material={material} castShadow />
+      <Box scale={[1, 1, 3]} position={[5, -3, 0]} material={material} castShadow />
 
       {intersecting && <Text fontSize={2}>Goal</Text>}
 

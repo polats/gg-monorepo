@@ -1,9 +1,9 @@
-import { Box, Sphere } from "@react-three/drei";
-import { RigidBody } from "@react-three/rapier";
-import { useRef } from "react";
-import { Group } from "three";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+import { Box, Sphere } from '@react-three/drei';
+import { RigidBody } from '@react-three/rapier';
+import { useRef } from 'react';
+import { Group } from 'three';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 export const Transforms: Demo = () => {
   const group = useRef<Group>(null);
@@ -12,23 +12,13 @@ export const Transforms: Demo = () => {
   return (
     <group>
       <group rotation={[2, 2, 6]} position={[0, -5, 0]} scale={1.2} ref={group}>
-        <RigidBody
-          position={[-0.5, 2, 1]}
-          colliders="ball"
-          onCollisionEnter={console.log}
-        >
+        <RigidBody position={[-0.5, 2, 1]} colliders="ball" onCollisionEnter={console.log}>
           <Sphere scale={0.2} castShadow receiveShadow>
             <meshPhysicalMaterial />
           </Sphere>
         </RigidBody>
         <RigidBody position={[0, 0, 1]} colliders="cuboid">
-          <Box
-            castShadow
-            receiveShadow
-            scale={2}
-            position={[0, 0, 2]}
-            rotation={[2, 1, 3]}
-          >
+          <Box castShadow receiveShadow scale={2} position={[0, 0, 2]} rotation={[2, 1, 3]}>
             <meshPhysicalMaterial />
           </Box>
           <Box castShadow receiveShadow scale={1} position={[2, 0, 0]}>
@@ -45,12 +35,7 @@ export const Transforms: Demo = () => {
       <group rotation={[1, 1, 1]} scale={1.1}>
         <RigidBody>
           <group scale={1} rotation={[2, 0, 1]} position={[1, 4, 1]}>
-            <Box
-              castShadow
-              receiveShadow
-              material-color="blue"
-              scale={[1, 1, 8]}
-            />
+            <Box castShadow receiveShadow material-color="blue" scale={[1, 1, 8]} />
 
             <Box material-color="blue" position={[1, 2, 3]} />
           </group>

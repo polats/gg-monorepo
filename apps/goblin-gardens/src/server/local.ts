@@ -20,7 +20,7 @@ import {
   UpdateOfferResponse,
   ExecuteTradeRequest,
   ExecuteTradeResponse,
-  Gem
+  Gem,
 } from '../shared/types/api';
 
 const app = express();
@@ -45,9 +45,21 @@ const activeOffers = new Map<string, ActiveOffer>();
 // Helper function to generate a random color
 function generateRandomColor(): string {
   const colors = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B195', '#C06C84',
-    '#6C5B7B', '#355C7D', '#F67280', '#C06C84', '#2C3E50'
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#FFA07A',
+    '#98D8C8',
+    '#F7DC6F',
+    '#BB8FCE',
+    '#85C1E2',
+    '#F8B195',
+    '#C06C84',
+    '#6C5B7B',
+    '#355C7D',
+    '#F67280',
+    '#C06C84',
+    '#2C3E50',
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 }
@@ -71,20 +83,149 @@ if (!mockStorage.has('colorMap')) {
 
 // Mock followed users data
 const mockFollowedUsers: FollowedUser[] = [
-  { username: 'Bogsworth', lastActive: '2h ago', level: 15, itemCount: 234, offer: { gems: [{ name: 'Perfect Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' }, { name: 'Rare Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' }, { name: 'Epic Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }], totalValue: 30000 } },
-  { username: 'CrystalMiner88', lastActive: '5h ago', level: 12, itemCount: 187, offer: { gems: [{ name: 'Flawless Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' }, { name: 'Clear Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }], totalValue: 24000 } },
-  { username: 'CaveExplorer', lastActive: '1d ago', level: 8, itemCount: 95, offer: { gems: [{ name: 'Pristine Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' }], totalValue: 10000 } },
-  { username: 'TreasureHunter', lastActive: '2d ago', level: 20, itemCount: 412, offer: { gems: [{ name: 'Radiant Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' }, { name: 'Shining Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' }, { name: 'Brilliant Emerald', rarity: 'emerald', shape: 'octahedron', color: '#50C878' }, { name: 'Perfect Sapphire', rarity: 'sapphire', shape: 'tetrahedron', color: '#0F52BA' }], totalValue: 45000 } },
-  { username: 'ShadowGoblin', lastActive: '3d ago', level: 6, itemCount: 52, offer: { gems: [{ name: 'Brilliant Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }, { name: 'Ruby Shard', rarity: 'ruby', shape: 'tetrahedron', color: '#E0115F' }], totalValue: 18000 } },
+  {
+    username: 'Bogsworth',
+    lastActive: '2h ago',
+    level: 15,
+    itemCount: 234,
+    offer: {
+      gems: [
+        { name: 'Perfect Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' },
+        { name: 'Rare Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' },
+        { name: 'Epic Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+      ],
+      totalValue: 30000,
+    },
+  },
+  {
+    username: 'CrystalMiner88',
+    lastActive: '5h ago',
+    level: 12,
+    itemCount: 187,
+    offer: {
+      gems: [
+        { name: 'Flawless Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' },
+        { name: 'Clear Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+      ],
+      totalValue: 24000,
+    },
+  },
+  {
+    username: 'CaveExplorer',
+    lastActive: '1d ago',
+    level: 8,
+    itemCount: 95,
+    offer: {
+      gems: [
+        { name: 'Pristine Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' },
+      ],
+      totalValue: 10000,
+    },
+  },
+  {
+    username: 'TreasureHunter',
+    lastActive: '2d ago',
+    level: 20,
+    itemCount: 412,
+    offer: {
+      gems: [
+        { name: 'Radiant Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' },
+        { name: 'Shining Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' },
+        { name: 'Brilliant Emerald', rarity: 'emerald', shape: 'octahedron', color: '#50C878' },
+        { name: 'Perfect Sapphire', rarity: 'sapphire', shape: 'tetrahedron', color: '#0F52BA' },
+      ],
+      totalValue: 45000,
+    },
+  },
+  {
+    username: 'ShadowGoblin',
+    lastActive: '3d ago',
+    level: 6,
+    itemCount: 52,
+    offer: {
+      gems: [
+        { name: 'Brilliant Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+        { name: 'Ruby Shard', rarity: 'ruby', shape: 'tetrahedron', color: '#E0115F' },
+      ],
+      totalValue: 18000,
+    },
+  },
   { username: 'DiamondSeeker', lastActive: '4d ago', level: 14, itemCount: 203 },
-  { username: 'DarkCaveDweller', lastActive: '5d ago', level: 10, itemCount: 134, offer: { gems: [{ name: 'Lustrous Topaz', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' }, { name: 'Green Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' }, { name: 'Blue Sapphire', rarity: 'sapphire', shape: 'octahedron', color: '#0F52BA' }], totalValue: 28000 } },
+  {
+    username: 'DarkCaveDweller',
+    lastActive: '5d ago',
+    level: 10,
+    itemCount: 134,
+    offer: {
+      gems: [
+        { name: 'Lustrous Topaz', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' },
+        { name: 'Green Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' },
+        { name: 'Blue Sapphire', rarity: 'sapphire', shape: 'octahedron', color: '#0F52BA' },
+      ],
+      totalValue: 28000,
+    },
+  },
   { username: 'MysticGatherer', lastActive: '6d ago', level: 18, itemCount: 325 },
-  { username: 'RubyCollector', lastActive: '1w ago', level: 7, itemCount: 78, offer: { gems: [{ name: 'Clear Aquamarine', rarity: 'sapphire', shape: 'tetrahedron', color: '#0F52BA' }, { name: 'Red Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' }, { name: 'Green Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' }, { name: 'White Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }, { name: 'Purple Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' }], totalValue: 52000 } },
+  {
+    username: 'RubyCollector',
+    lastActive: '1w ago',
+    level: 7,
+    itemCount: 78,
+    offer: {
+      gems: [
+        { name: 'Clear Aquamarine', rarity: 'sapphire', shape: 'tetrahedron', color: '#0F52BA' },
+        { name: 'Red Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' },
+        { name: 'Green Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' },
+        { name: 'White Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+        { name: 'Purple Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' },
+      ],
+      totalValue: 52000,
+    },
+  },
   { username: 'EmeraldFinder', lastActive: '1w ago', level: 13, itemCount: 196 },
-  { username: 'GemGoblin', lastActive: '2w ago', level: 9, itemCount: 115, offer: { gems: [{ name: 'Polished Citrine', rarity: 'emerald', shape: 'octahedron', color: '#50C878' }], totalValue: 8000 } },
-  { username: 'CrystalHoarder', lastActive: '2w ago', level: 16, itemCount: 267, offer: { gems: [{ name: 'Smoky Obsidian', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }, { name: 'Rare Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' }, { name: 'Epic Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' }, { name: 'Shiny Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' }, { name: 'Glowing Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' }, { name: 'Perfect Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }], totalValue: 68000 } },
+  {
+    username: 'GemGoblin',
+    lastActive: '2w ago',
+    level: 9,
+    itemCount: 115,
+    offer: {
+      gems: [
+        { name: 'Polished Citrine', rarity: 'emerald', shape: 'octahedron', color: '#50C878' },
+      ],
+      totalValue: 8000,
+    },
+  },
+  {
+    username: 'CrystalHoarder',
+    lastActive: '2w ago',
+    level: 16,
+    itemCount: 267,
+    offer: {
+      gems: [
+        { name: 'Smoky Obsidian', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+        { name: 'Rare Ruby', rarity: 'ruby', shape: 'dodecahedron', color: '#E0115F' },
+        { name: 'Epic Sapphire', rarity: 'sapphire', shape: 'dodecahedron', color: '#0F52BA' },
+        { name: 'Shiny Emerald', rarity: 'emerald', shape: 'dodecahedron', color: '#50C878' },
+        { name: 'Glowing Amethyst', rarity: 'amethyst', shape: 'octahedron', color: '#9966CC' },
+        { name: 'Perfect Diamond', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+      ],
+      totalValue: 68000,
+    },
+  },
   { username: 'TunnelRaider', lastActive: '3w ago', level: 5, itemCount: 43 },
-  { username: 'ShinySeeker', lastActive: '3w ago', level: 11, itemCount: 156, offer: { gems: [{ name: 'Rough Quartz', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' }, { name: 'Small Ruby', rarity: 'ruby', shape: 'tetrahedron', color: '#E0115F' }], totalValue: 16000 } },
+  {
+    username: 'ShinySeeker',
+    lastActive: '3w ago',
+    level: 11,
+    itemCount: 156,
+    offer: {
+      gems: [
+        { name: 'Rough Quartz', rarity: 'diamond', shape: 'octahedron', color: '#E8F5F5' },
+        { name: 'Small Ruby', rarity: 'ruby', shape: 'tetrahedron', color: '#E0115F' },
+      ],
+      totalValue: 16000,
+    },
+  },
   { username: 'VaultKeeper', lastActive: '1mo ago', level: 19, itemCount: 389 },
 ];
 
@@ -150,20 +291,21 @@ router.post<{ postId: string }, DecrementResponse | { status: string; message: s
   }
 );
 
-router.post<{ postId: string }, IncrementBy5Response | { status: string; message: string }, unknown>(
-  '/api/increment-by-5',
-  async (_req, res): Promise<void> => {
-    const currentCount = parseInt(mockStorage.get('count') || '0');
-    const newCount = currentCount + 5;
-    mockStorage.set('count', newCount.toString());
+router.post<
+  { postId: string },
+  IncrementBy5Response | { status: string; message: string },
+  unknown
+>('/api/increment-by-5', async (_req, res): Promise<void> => {
+  const currentCount = parseInt(mockStorage.get('count') || '0');
+  const newCount = currentCount + 5;
+  mockStorage.set('count', newCount.toString());
 
-    res.json({
-      count: newCount,
-      postId: mockContext.postId,
-      type: 'incrementBy5',
-    });
-  }
-);
+  res.json({
+    count: newCount,
+    postId: mockContext.postId,
+    type: 'incrementBy5',
+  });
+});
 
 router.get<{}, GetColorMapResponse | { status: string; message: string }>(
   '/api/color-map',
@@ -185,49 +327,50 @@ router.get<{}, GetColorMapResponse | { status: string; message: string }>(
   }
 );
 
-router.post<{}, UpdateColorMapResponse | { status: string; message: string }, { row: number; col: number }>(
-  '/api/color-map/update',
-  async (req, res): Promise<void> => {
-    try {
-      const { row, col } = req.body;
+router.post<
+  {},
+  UpdateColorMapResponse | { status: string; message: string },
+  { row: number; col: number }
+>('/api/color-map/update', async (req, res): Promise<void> => {
+  try {
+    const { row, col } = req.body;
 
-      const colorMapJson = mockStorage.get('colorMap') || JSON.stringify(initializeColorMap());
-      const colorMap = JSON.parse(colorMapJson) as ColorMap;
+    const colorMapJson = mockStorage.get('colorMap') || JSON.stringify(initializeColorMap());
+    const colorMap = JSON.parse(colorMapJson) as ColorMap;
 
-      // Validate row and col
-      if (row < 0 || row >= colorMap.length || col < 0 || col >= colorMap[0].length) {
-        res.status(400).json({ status: 'error', message: 'Invalid row or column' });
-        return;
-      }
-
-      // Generate new random color
-      const newColor = generateRandomColor();
-      colorMap[row][col] = newColor;
-
-      // Save updated color map
-      mockStorage.set('colorMap', JSON.stringify(colorMap));
-
-      res.json({
-        type: 'updateColorMap',
-        postId: mockContext.postId,
-        colorMap: colorMap,
-        row: row,
-        col: col,
-        newColor: newColor,
-      });
-    } catch (error) {
-      console.error('API Update Color Map Error:', error);
-      res.status(400).json({ status: 'error', message: 'Failed to update color map' });
+    // Validate row and col
+    if (row < 0 || row >= colorMap.length || col < 0 || col >= colorMap[0].length) {
+      res.status(400).json({ status: 'error', message: 'Invalid row or column' });
+      return;
     }
+
+    // Generate new random color
+    const newColor = generateRandomColor();
+    colorMap[row][col] = newColor;
+
+    // Save updated color map
+    mockStorage.set('colorMap', JSON.stringify(colorMap));
+
+    res.json({
+      type: 'updateColorMap',
+      postId: mockContext.postId,
+      colorMap: colorMap,
+      row: row,
+      col: col,
+      newColor: newColor,
+    });
+  } catch (error) {
+    console.error('API Update Color Map Error:', error);
+    res.status(400).json({ status: 'error', message: 'Failed to update color map' });
   }
-);
+});
 
 router.get<{}, GetFollowedUsersResponse | { status: string; message: string }>(
   '/api/followed-users',
   async (req, res): Promise<void> => {
     try {
-      const cursor = parseInt(req.query.cursor as string || '0');
-      const limit = parseInt(req.query.limit as string || '5');
+      const cursor = parseInt((req.query.cursor as string) || '0');
+      const limit = parseInt((req.query.limit as string) || '5');
 
       // Get paginated slice of users
       const startIndex = cursor;
@@ -253,46 +396,47 @@ router.get<{}, GetFollowedUsersResponse | { status: string; message: string }>(
 // Player State Persistence APIs
 // ============================================================================
 
-router.post<{}, SavePlayerStateResponse | { status: string; message: string }, SavePlayerStateRequest>(
-  '/api/player-state/save',
-  async (req, res): Promise<void> => {
-    try {
-      const { playerState } = req.body;
-      const username = req.headers['x-username'] as string || mockContext.username;
+router.post<
+  {},
+  SavePlayerStateResponse | { status: string; message: string },
+  SavePlayerStateRequest
+>('/api/player-state/save', async (req, res): Promise<void> => {
+  try {
+    const { playerState } = req.body;
+    const username = (req.headers['x-username'] as string) || mockContext.username;
 
-      if (!playerState) {
-        res.status(400).json({ status: 'error', message: 'playerState is required' });
-        return;
-      }
-
-      // Save player state to mock storage
-      const playerStateKey = `playerState:${username}`;
-      mockStorage.set(playerStateKey, JSON.stringify(playerState));
-
-      console.log(`[SAVE] Player state saved for ${username}:`, {
-        coins: playerState.coins,
-        gemCount: playerState.gems.length,
-        growingGems: playerState.gems.filter(g => g.isGrowing).length,
-        offeringGems: playerState.gems.filter(g => g.isOffering).length,
-      });
-
-      res.json({
-        type: 'savePlayerState',
-        success: true,
-        message: 'Player state saved successfully',
-      });
-    } catch (error) {
-      console.error('API Save Player State Error:', error);
-      res.status(400).json({ status: 'error', message: 'Failed to save player state' });
+    if (!playerState) {
+      res.status(400).json({ status: 'error', message: 'playerState is required' });
+      return;
     }
+
+    // Save player state to mock storage
+    const playerStateKey = `playerState:${username}`;
+    mockStorage.set(playerStateKey, JSON.stringify(playerState));
+
+    console.log(`[SAVE] Player state saved for ${username}:`, {
+      coins: playerState.coins,
+      gemCount: playerState.gems.length,
+      growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+      offeringGems: playerState.gems.filter((g) => g.isOffering).length,
+    });
+
+    res.json({
+      type: 'savePlayerState',
+      success: true,
+      message: 'Player state saved successfully',
+    });
+  } catch (error) {
+    console.error('API Save Player State Error:', error);
+    res.status(400).json({ status: 'error', message: 'Failed to save player state' });
   }
-);
+});
 
 router.get<{}, LoadPlayerStateResponse | { status: string; message: string }>(
   '/api/player-state/load',
   async (req, res): Promise<void> => {
     try {
-      const username = req.headers['x-username'] as string || mockContext.username;
+      const username = (req.headers['x-username'] as string) || mockContext.username;
       const playerStateKey = `playerState:${username}`;
       const playerStateJson = mockStorage.get(playerStateKey);
 
@@ -310,8 +454,8 @@ router.get<{}, LoadPlayerStateResponse | { status: string; message: string }>(
       console.log(`[LOAD] Player state loaded for ${username}:`, {
         coins: playerState.coins,
         gemCount: playerState.gems.length,
-        growingGems: playerState.gems.filter(g => g.isGrowing).length,
-        offeringGems: playerState.gems.filter(g => g.isOffering).length,
+        growingGems: playerState.gems.filter((g) => g.isGrowing).length,
+        offeringGems: playerState.gems.filter((g) => g.isOffering).length,
       });
 
       res.json({
@@ -334,33 +478,33 @@ router.get<{}, LoadPlayerStateResponse | { status: string; message: string }>(
 function calculateGemValue(gem: Gem): number {
   // Gem type base values (from client/utils/gemValue.ts)
   const GEM_TYPE_VALUES: Record<string, number> = {
-    emerald: 10,    // Lowest tier
-    sapphire: 25,   // Low-mid tier
-    amethyst: 50,   // Mid tier
-    ruby: 100,      // High tier
-    diamond: 200,   // Highest tier
+    emerald: 10, // Lowest tier
+    sapphire: 25, // Low-mid tier
+    amethyst: 50, // Mid tier
+    ruby: 100, // High tier
+    diamond: 200, // Highest tier
   };
 
   // Shape multipliers
   const SHAPE_MULTIPLIERS: Record<string, number> = {
-    tetrahedron: 1.0,   // Basic shape (4 faces)
-    octahedron: 1.5,    // Medium complexity (8 faces)
-    dodecahedron: 2.0,  // Highest complexity (12 faces)
+    tetrahedron: 1.0, // Basic shape (4 faces)
+    octahedron: 1.5, // Medium complexity (8 faces)
+    dodecahedron: 2.0, // Highest complexity (12 faces)
   };
 
   // Rarity multipliers
   const RARITY_MULTIPLIERS: Record<string, number> = {
-    common: 1.0,      // Base multiplier
-    uncommon: 1.5,    // 50% increase
-    rare: 2.0,        // 2x value
-    epic: 3.0,        // 3x value
-    legendary: 5.0,   // 5x value
+    common: 1.0, // Base multiplier
+    uncommon: 1.5, // 50% increase
+    rare: 2.0, // 2x value
+    epic: 3.0, // 3x value
+    legendary: 5.0, // 5x value
   };
 
   const baseValue = GEM_TYPE_VALUES[gem.type] || 10;
   const shapeMultiplier = SHAPE_MULTIPLIERS[gem.shape] || 1.0;
   const rarityMultiplier = RARITY_MULTIPLIERS[gem.rarity] || 1.0;
-  const levelBonus = 1 + (gem.level * 0.1); // +10% per level
+  const levelBonus = 1 + gem.level * 0.1; // +10% per level
 
   // Size is in world units (e.g., 0.06), convert to mm and normalize
   const sizeInMm = gem.size * 1000;
@@ -394,12 +538,11 @@ router.get<{}, GetActiveOffersResponse | { status: string; message: string }>(
   '/api/offers',
   async (req, res): Promise<void> => {
     try {
-      const cursor = parseInt(req.query.cursor as string || '0');
-      const limit = parseInt(req.query.limit as string || '10');
+      const cursor = parseInt((req.query.cursor as string) || '0');
+      const limit = parseInt((req.query.limit as string) || '10');
 
       // Convert activeOffers Map to array
-      const allOffers = Array.from(activeOffers.values())
-        .sort((a, b) => b.timestamp - a.timestamp); // Most recent first
+      const allOffers = Array.from(activeOffers.values()).sort((a, b) => b.timestamp - a.timestamp); // Most recent first
 
       // Paginate
       const startIndex = cursor;
@@ -409,13 +552,13 @@ router.get<{}, GetActiveOffersResponse | { status: string; message: string }>(
       const nextCursor = hasMore ? endIndex : null;
 
       // Transform to response format
-      const offers = paginatedOffers.map(offer => ({
+      const offers = paginatedOffers.map((offer) => ({
         username: offer.username,
         lastActive: formatLastActive(offer.timestamp),
         level: offer.level,
         itemCount: offer.itemCount,
         offer: {
-          gems: offer.gems.map(gem => ({
+          gems: offer.gems.map((gem) => ({
             name: `${gem.rarity} ${gem.type}`,
             rarity: gem.rarity,
             shape: gem.shape,
@@ -446,15 +589,17 @@ router.post<{}, UpdateOfferResponse | { status: string; message: string }, Updat
   async (req, res): Promise<void> => {
     try {
       const { gems } = req.body;
-      const username = req.headers['x-username'] as string || mockContext.username;
+      const username = (req.headers['x-username'] as string) || mockContext.username;
 
       if (!gems || !Array.isArray(gems) || gems.length === 0) {
-        res.status(400).json({ status: 'error', message: 'gems array is required and cannot be empty' });
+        res
+          .status(400)
+          .json({ status: 'error', message: 'gems array is required and cannot be empty' });
         return;
       }
 
       // Validate all gems have isOffering = true
-      const invalidGems = gems.filter(g => !g.isOffering);
+      const invalidGems = gems.filter((g) => !g.isOffering);
       if (invalidGems.length > 0) {
         res.status(400).json({ status: 'error', message: 'All gems must have isOffering = true' });
         return;
@@ -514,7 +659,7 @@ router.delete<{}, UpdateOfferResponse | { status: string; message: string }>(
   '/api/offers/remove',
   async (req, res): Promise<void> => {
     try {
-      const username = req.headers['x-username'] as string || mockContext.username;
+      const username = (req.headers['x-username'] as string) || mockContext.username;
 
       const hadOffer = activeOffers.has(username);
       activeOffers.delete(username);
@@ -539,7 +684,7 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
   async (req, res): Promise<void> => {
     try {
       const { sellerUsername } = req.body;
-      const buyerUsername = req.headers['x-username'] as string || mockContext.username;
+      const buyerUsername = (req.headers['x-username'] as string) || mockContext.username;
 
       // Validation: Can't trade with yourself
       if (buyerUsername === sellerUsername) {
@@ -591,8 +736,8 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       const sellerState = JSON.parse(sellerStateJson) as PlayerState;
 
       // Validation: Seller still has the gems
-      const sellerGemIds = new Set(sellerState.gems.map(g => g.id));
-      const missingGems = offer.gems.filter(g => !sellerGemIds.has(g.id));
+      const sellerGemIds = new Set(sellerState.gems.map((g) => g.id));
+      const missingGems = offer.gems.filter((g) => !sellerGemIds.has(g.id));
       if (missingGems.length > 0) {
         res.status(400).json({
           type: 'executeTrade',
@@ -603,9 +748,8 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       }
 
       // Validation: Buyer has enough coins
-      const buyerBronzeTotal = buyerState.coins.bronze +
-                               buyerState.coins.silver * 100 +
-                               buyerState.coins.gold * 10000;
+      const buyerBronzeTotal =
+        buyerState.coins.bronze + buyerState.coins.silver * 100 + buyerState.coins.gold * 10000;
 
       if (buyerBronzeTotal < offer.totalValue) {
         res.status(400).json({
@@ -619,13 +763,12 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       // Execute trade (atomic in Map operations)
 
       // 1. Remove gems from seller and mark as not offering
-      const offerGemIds = new Set(offer.gems.map(g => g.id));
-      const updatedSellerGems = sellerState.gems.filter(g => !offerGemIds.has(g.id));
+      const offerGemIds = new Set(offer.gems.map((g) => g.id));
+      const updatedSellerGems = sellerState.gems.filter((g) => !offerGemIds.has(g.id));
 
       // 2. Add coins to seller
-      let sellerBronzeTotal = sellerState.coins.bronze +
-                               sellerState.coins.silver * 100 +
-                               sellerState.coins.gold * 10000;
+      let sellerBronzeTotal =
+        sellerState.coins.bronze + sellerState.coins.silver * 100 + sellerState.coins.gold * 10000;
       sellerBronzeTotal += offer.totalValue;
 
       const newSellerCoins = {
@@ -643,7 +786,7 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       };
 
       // 4. Add gems to buyer (mark as not offering)
-      const acquiredGems = offer.gems.map(gem => ({
+      const acquiredGems = offer.gems.map((gem) => ({
         ...gem,
         isOffering: false,
         isGrowing: false,
@@ -669,7 +812,9 @@ router.post<{}, ExecuteTradeResponse | { status: string; message: string }, Exec
       // 6. Remove seller's offer
       activeOffers.delete(sellerUsername);
 
-      console.log(`[TRADE] ${buyerUsername} bought ${acquiredGems.length} gems from ${sellerUsername} for ${offer.totalValue} bronze`);
+      console.log(
+        `[TRADE] ${buyerUsername} bought ${acquiredGems.length} gems from ${sellerUsername} for ${offer.totalValue} bronze`
+      );
 
       res.json({
         type: 'executeTrade',

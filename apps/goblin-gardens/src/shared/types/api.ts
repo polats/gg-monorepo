@@ -1,24 +1,24 @@
 export type InitResponse = {
-  type: "init";
+  type: 'init';
   postId: string;
   count: number;
   username: string;
 };
 
 export type IncrementResponse = {
-  type: "increment";
+  type: 'increment';
   postId: string;
   count: number;
 };
 
 export type DecrementResponse = {
-  type: "decrement";
+  type: 'decrement';
   postId: string;
   count: number;
 };
 
 export type IncrementBy5Response = {
-  type: "incrementBy5";
+  type: 'incrementBy5';
   postId: string;
   count: number;
 };
@@ -26,14 +26,14 @@ export type IncrementBy5Response = {
 export type ColorMap = string[][];
 
 export type GetColorMapResponse = {
-  type: "getColorMap";
+  type: 'getColorMap';
   postId: string;
   colorMap: ColorMap;
   username: string;
 };
 
 export type UpdateColorMapResponse = {
-  type: "updateColorMap";
+  type: 'updateColorMap';
   postId: string;
   colorMap: ColorMap;
   row: number;
@@ -58,7 +58,7 @@ export type FollowedUser = {
 };
 
 export type GetFollowedUsersResponse = {
-  type: "getFollowedUsers";
+  type: 'getFollowedUsers';
   users: FollowedUser[];
   hasMore: boolean;
   nextCursor: number | null;
@@ -101,13 +101,13 @@ export type SavePlayerStateRequest = {
 };
 
 export type SavePlayerStateResponse = {
-  type: "savePlayerState";
+  type: 'savePlayerState';
   success: boolean;
   message?: string;
 };
 
 export type LoadPlayerStateResponse = {
-  type: "loadPlayerState";
+  type: 'loadPlayerState';
   playerState: PlayerState | null;
 };
 
@@ -118,16 +118,16 @@ export type LoadPlayerStateResponse = {
 // Active offer structure stored in database
 export type ActiveOffer = {
   username: string;
-  gems: Gem[];  // Full gem objects being offered
-  totalValue: number;  // 2x multiplier already applied
+  gems: Gem[]; // Full gem objects being offered
+  totalValue: number; // 2x multiplier already applied
   timestamp: number;
-  level: number;  // Player level for display
-  itemCount: number;  // Total items for display
+  level: number; // Player level for display
+  itemCount: number; // Total items for display
 };
 
 // Get active offers response (replaces GetFollowedUsersResponse for trading)
 export type GetActiveOffersResponse = {
-  type: "getActiveOffers";
+  type: 'getActiveOffers';
   offers: Array<{
     username: string;
     lastActive: string;
@@ -149,11 +149,11 @@ export type GetActiveOffersResponse = {
 
 // Update/create player's active offer
 export type UpdateOfferRequest = {
-  gems: Gem[];  // Offering gems with full details
+  gems: Gem[]; // Offering gems with full details
 };
 
 export type UpdateOfferResponse = {
-  type: "updateOffer";
+  type: 'updateOffer';
   success: boolean;
   offer?: ActiveOffer;
   message?: string;
@@ -165,11 +165,11 @@ export type ExecuteTradeRequest = {
 };
 
 export type ExecuteTradeResponse = {
-  type: "executeTrade";
+  type: 'executeTrade';
   success: boolean;
   message?: string;
   transaction?: {
-    gems: Gem[];  // Gems acquired
-    coinsSpent: number;  // Bronze coins paid
+    gems: Gem[]; // Gems acquired
+    coinsSpent: number; // Bronze coins paid
   };
 };

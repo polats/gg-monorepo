@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,8 +13,9 @@
       }
 
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-          Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+          sans-serif;
         background-color: #1a1a1a;
         color: #ffffff;
         overflow: hidden;
@@ -247,16 +248,11 @@
           this.config = config;
 
           // Create physics world with gravity
-          const gravity = new RAPIER.Vector3(
-            config.gravity.x,
-            config.gravity.y,
-            config.gravity.z
-          );
+          const gravity = new RAPIER.Vector3(config.gravity.x, config.gravity.y, config.gravity.z);
           this.world = new RAPIER.World(gravity);
 
           // Configure solver iterations
-          this.world.integrationParameters.numSolverIterations =
-            config.velocityIterations;
+          this.world.integrationParameters.numSolverIterations = config.velocityIterations;
           this.world.integrationParameters.numAdditionalFrictionIterations =
             config.stabilizationIterations;
 
@@ -319,9 +315,7 @@
                 -size / 3,
                 -size * 1.5, // back
               ]);
-              const indices = new Uint32Array([
-                0, 1, 2, 0, 2, 3, 0, 3, 1, 1, 3, 2,
-              ]);
+              const indices = new Uint32Array([0, 1, 2, 0, 2, 3, 0, 3, 1, 1, 3, 2]);
               colliderDesc = RAPIER.ColliderDesc.convexMesh(vertices, indices);
               mass = 0.1;
               restitution = 0.4;
@@ -352,8 +346,7 @@
                 -size, // back
               ]);
               const indices = new Uint32Array([
-                0, 4, 2, 0, 2, 5, 0, 5, 3, 0, 3, 4, 1, 2, 4, 1, 5, 2, 1, 3, 5,
-                1, 4, 3,
+                0, 4, 2, 0, 2, 5, 0, 5, 3, 0, 3, 4, 1, 2, 4, 1, 5, 2, 1, 3, 5, 1, 4, 3,
               ]);
               colliderDesc = RAPIER.ColliderDesc.convexMesh(vertices, indices);
               mass = 0.15;
@@ -537,16 +530,14 @@
           }
 
           if (newConfig.velocityIterations !== undefined) {
-            this.world.integrationParameters.numSolverIterations =
-              newConfig.velocityIterations;
+            this.world.integrationParameters.numSolverIterations = newConfig.velocityIterations;
             this.config.velocityIterations = newConfig.velocityIterations;
           }
 
           if (newConfig.stabilizationIterations !== undefined) {
             this.world.integrationParameters.numAdditionalFrictionIterations =
               newConfig.stabilizationIterations;
-            this.config.stabilizationIterations =
-              newConfig.stabilizationIterations;
+            this.config.stabilizationIterations = newConfig.stabilizationIterations;
           }
 
           console.log('Physics config updated:', this.config);
@@ -666,9 +657,7 @@
           }
 
           // Perform raycast
-          const intersects = this.raycaster.intersectObjects(
-            meshes.map((m) => m.mesh)
-          );
+          const intersects = this.raycaster.intersectObjects(meshes.map((m) => m.mesh));
 
           if (intersects.length > 0) {
             // Find the corresponding body data for the intersected mesh
@@ -719,10 +708,7 @@
 
             // Create drag plane perpendicular to camera view
             this.dragPlaneNormal.set(0, 0, 1).applyQuaternion(this.camera.quaternion);
-            this.dragPlane.setFromNormalAndCoplanarPoint(
-              this.dragPlaneNormal,
-              intersected.point
-            );
+            this.dragPlane.setFromNormalAndCoplanarPoint(this.dragPlaneNormal, intersected.point);
 
             // Calculate offset from object center to intersection point
             this.dragOffset.copy(intersected.mesh.position).sub(intersected.point);
@@ -792,12 +778,18 @@
           const intersected = this.raycastObjects();
 
           // Clear previous hover if different object
-          if (this.hoveredObject && (!intersected || this.hoveredObject.bodyId !== intersected.bodyId)) {
+          if (
+            this.hoveredObject &&
+            (!intersected || this.hoveredObject.bodyId !== intersected.bodyId)
+          ) {
             this.clearHover();
           }
 
           // Apply hover to new object
-          if (intersected && (!this.hoveredObject || this.hoveredObject.bodyId !== intersected.bodyId)) {
+          if (
+            intersected &&
+            (!this.hoveredObject || this.hoveredObject.bodyId !== intersected.bodyId)
+          ) {
             this.hoveredObject = {
               bodyId: intersected.bodyId,
               mesh: intersected.mesh,
@@ -1063,14 +1055,8 @@
 
           // Create floor physics collider
           const RAPIER = this.physicsWorld.RAPIER;
-          const floorBodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(
-            0,
-            0,
-            0
-          );
-          const floorBody = this.physicsWorld.world.createRigidBody(
-            floorBodyDesc
-          );
+          const floorBodyDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0, 0);
+          const floorBody = this.physicsWorld.world.createRigidBody(floorBodyDesc);
 
           const floorColliderDesc = RAPIER.ColliderDesc.cuboid(10, 0.1, 10)
             .setFriction(0.7)
@@ -1119,8 +1105,7 @@
           }
 
           // Get material for color
-          const material =
-            this.materials[color] || this.materials.emerald;
+          const material = this.materials[color] || this.materials.emerald;
 
           // Create mesh
           const mesh = new THREE.Mesh(geometry, material);
@@ -1211,11 +1196,11 @@
 
           // Wait for dat.GUI to be available
           console.log('Waiting for dat.GUI...');
-          
+
           if (typeof dat === 'undefined') {
             throw new Error('dat.GUI not loaded. Make sure the dat.GUI script tag is present.');
           }
-          
+
           console.log('dat.GUI available');
 
           // Initialize physics world
@@ -1275,7 +1260,7 @@
           function spawnObjects() {
             const count = spawnState.spawnCount;
             const type = spawnState.objectType;
-            
+
             console.log(`Spawning ${count} ${type} objects...`);
 
             // Determine color based on object type
@@ -1312,12 +1297,7 @@
               const mesh = renderingEngine.createMesh('object', type, color);
 
               // Create physics body
-              const bodyId = physicsWorld.createRigidBody(
-                'object',
-                type,
-                position,
-                mesh
-              );
+              const bodyId = physicsWorld.createRigidBody('object', type, position, mesh);
 
               // Add mesh to scene
               renderingEngine.addMesh(bodyId, mesh);
@@ -1415,12 +1395,7 @@
               const mesh = renderingEngine.createMesh(obj.type, obj.shape, obj.color);
 
               // Create physics body
-              const bodyId = physicsWorld.createRigidBody(
-                obj.type,
-                obj.shape,
-                position,
-                mesh
-              );
+              const bodyId = physicsWorld.createRigidBody(obj.type, obj.shape, position, mesh);
 
               // Add mesh to scene
               renderingEngine.addMesh(bodyId, mesh);
@@ -1542,7 +1517,7 @@
               guiState.objectType = config.spawn.objectType;
               guiState.spawnCount = config.spawn.spawnCount;
               guiState.spawnRate = config.spawn.spawnRate;
-              
+
               // Update GUI display
               gui.updateDisplay();
 
@@ -1567,21 +1542,21 @@
             timestepFPS: 60,
             velocityIterations: 8,
             stabilizationIterations: 4,
-            
+
             // Spawn
             objectType: 'tetrahedron',
             spawnCount: 10,
             spawnRate: 5,
-            
+
             // Debug
             showColliders: false,
             showVelocities: false,
             showSleeping: true,
             showContactPoints: false,
-            
+
             // Performance Tier
             tierPreset: 'high',
-            
+
             // Actions
             spawnObjects: () => spawnObjects(),
             reset: () => resetSimulation(),
@@ -1592,43 +1567,76 @@
 
           // Physics Settings folder
           const physicsFolder = gui.addFolder('Physics Settings');
-          physicsFolder.add(guiState, 'gravityX', -20, 20, 0.1).name('Gravity X').onChange((value) => {
-            physicsWorld.updateConfig({
-              gravity: { x: value, y: guiState.gravityY, z: guiState.gravityZ },
+          physicsFolder
+            .add(guiState, 'gravityX', -20, 20, 0.1)
+            .name('Gravity X')
+            .onChange((value) => {
+              physicsWorld.updateConfig({
+                gravity: { x: value, y: guiState.gravityY, z: guiState.gravityZ },
+              });
             });
-          });
-          physicsFolder.add(guiState, 'gravityY', -20, 20, 0.1).name('Gravity Y').onChange((value) => {
-            physicsWorld.updateConfig({
-              gravity: { x: guiState.gravityX, y: value, z: guiState.gravityZ },
+          physicsFolder
+            .add(guiState, 'gravityY', -20, 20, 0.1)
+            .name('Gravity Y')
+            .onChange((value) => {
+              physicsWorld.updateConfig({
+                gravity: { x: guiState.gravityX, y: value, z: guiState.gravityZ },
+              });
             });
-          });
-          physicsFolder.add(guiState, 'gravityZ', -20, 20, 0.1).name('Gravity Z').onChange((value) => {
-            physicsWorld.updateConfig({
-              gravity: { x: guiState.gravityX, y: guiState.gravityY, z: value },
+          physicsFolder
+            .add(guiState, 'gravityZ', -20, 20, 0.1)
+            .name('Gravity Z')
+            .onChange((value) => {
+              physicsWorld.updateConfig({
+                gravity: { x: guiState.gravityX, y: guiState.gravityY, z: value },
+              });
             });
-          });
-          physicsFolder.add(guiState, 'timestepFPS', [30, 45, 60, 120]).name('Timestep (FPS)').onChange((value) => {
-            physicsWorld.updateConfig({ timestep: 1 / value });
-          });
-          physicsFolder.add(guiState, 'velocityIterations', 1, 16, 1).name('Velocity Iterations').onChange((value) => {
-            physicsWorld.updateConfig({ velocityIterations: value });
-          });
-          physicsFolder.add(guiState, 'stabilizationIterations', 1, 8, 1).name('Stabilization Iterations').onChange((value) => {
-            physicsWorld.updateConfig({ stabilizationIterations: value });
-          });
+          physicsFolder
+            .add(guiState, 'timestepFPS', [30, 45, 60, 120])
+            .name('Timestep (FPS)')
+            .onChange((value) => {
+              physicsWorld.updateConfig({ timestep: 1 / value });
+            });
+          physicsFolder
+            .add(guiState, 'velocityIterations', 1, 16, 1)
+            .name('Velocity Iterations')
+            .onChange((value) => {
+              physicsWorld.updateConfig({ velocityIterations: value });
+            });
+          physicsFolder
+            .add(guiState, 'stabilizationIterations', 1, 8, 1)
+            .name('Stabilization Iterations')
+            .onChange((value) => {
+              physicsWorld.updateConfig({ stabilizationIterations: value });
+            });
           physicsFolder.open();
 
           // Spawn Settings folder
           const spawnFolder = gui.addFolder('Spawn Settings');
-          spawnFolder.add(guiState, 'objectType', ['tetrahedron', 'octahedron', 'dodecahedron', 'coin', 'rock']).name('Object Type').onChange((value) => {
-            spawnState.objectType = value;
-          });
-          spawnFolder.add(guiState, 'spawnCount', 1, 100, 1).name('Spawn Count').onChange((value) => {
-            spawnState.spawnCount = value;
-          });
-          spawnFolder.add(guiState, 'spawnRate', 1, 20, 1).name('Spawn Rate (obj/s)').onChange((value) => {
-            spawnState.spawnRate = value;
-          });
+          spawnFolder
+            .add(guiState, 'objectType', [
+              'tetrahedron',
+              'octahedron',
+              'dodecahedron',
+              'coin',
+              'rock',
+            ])
+            .name('Object Type')
+            .onChange((value) => {
+              spawnState.objectType = value;
+            });
+          spawnFolder
+            .add(guiState, 'spawnCount', 1, 100, 1)
+            .name('Spawn Count')
+            .onChange((value) => {
+              spawnState.spawnCount = value;
+            });
+          spawnFolder
+            .add(guiState, 'spawnRate', 1, 20, 1)
+            .name('Spawn Rate (obj/s)')
+            .onChange((value) => {
+              spawnState.spawnRate = value;
+            });
           spawnFolder.add(guiState, 'spawnObjects').name('Spawn Objects');
           spawnFolder.open();
 
@@ -1640,11 +1648,13 @@
             spawnBrightWarrens: () => spawnLocationObjects('bright-warrens'),
             spawnCrystalCaves: () => spawnLocationObjects('crystal-caves'),
           };
-          locationFolder.add(locationState, 'location', {
-            'Rockfall (Free)': 'rockfall',
-            'Bright Warrens (Silver-rich)': 'bright-warrens',
-            'Crystal Caves (Gold-rich)': 'crystal-caves',
-          }).name('Location');
+          locationFolder
+            .add(locationState, 'location', {
+              'Rockfall (Free)': 'rockfall',
+              'Bright Warrens (Silver-rich)': 'bright-warrens',
+              'Crystal Caves (Gold-rich)': 'crystal-caves',
+            })
+            .name('Location');
           locationFolder.add(locationState, 'spawnRockfall').name('Spawn Rockfall');
           locationFolder.add(locationState, 'spawnBrightWarrens').name('Spawn Bright Warrens');
           locationFolder.add(locationState, 'spawnCrystalCaves').name('Spawn Crystal Caves');
@@ -1659,22 +1669,25 @@
 
           // Performance Tier folder
           const tierFolder = gui.addFolder('Performance Tier');
-          tierFolder.add(guiState, 'tierPreset', ['low', 'medium', 'high', 'custom']).name('Tier Preset').onChange((value) => {
-            if (value !== 'custom') {
-              const preset = tierPresets[value];
-              physicsWorld.updateConfig(preset);
+          tierFolder
+            .add(guiState, 'tierPreset', ['low', 'medium', 'high', 'custom'])
+            .name('Tier Preset')
+            .onChange((value) => {
+              if (value !== 'custom') {
+                const preset = tierPresets[value];
+                physicsWorld.updateConfig(preset);
 
-              // Update GUI controls to reflect preset values
-              guiState.timestepFPS = Math.round(1 / preset.timestep);
-              guiState.velocityIterations = preset.velocityIterations;
-              guiState.stabilizationIterations = preset.stabilizationIterations;
-              
-              // Update GUI display
-              gui.updateDisplay();
+                // Update GUI controls to reflect preset values
+                guiState.timestepFPS = Math.round(1 / preset.timestep);
+                guiState.velocityIterations = preset.velocityIterations;
+                guiState.stabilizationIterations = preset.stabilizationIterations;
 
-              console.log(`Applied ${value} tier preset`);
-            }
-          });
+                // Update GUI display
+                gui.updateDisplay();
+
+                console.log(`Applied ${value} tier preset`);
+              }
+            });
 
           // Actions folder
           const actionsFolder = gui.addFolder('Actions');
@@ -1713,9 +1726,7 @@
             // Update FPS counter
             frameCount++;
             if (currentTime - fpsUpdateTime >= 500) {
-              const fps = Math.round(
-                (frameCount * 1000) / (currentTime - fpsUpdateTime)
-              );
+              const fps = Math.round((frameCount * 1000) / (currentTime - fpsUpdateTime));
               document.getElementById('fps-value').textContent = fps;
               frameCount = 0;
               fpsUpdateTime = currentTime;
@@ -1725,12 +1736,9 @@
             const stats = physicsWorld.getStats();
             document.getElementById('physics-time-value').textContent =
               stats.physicsTime.toFixed(2) + 'ms';
-            document.getElementById('object-count-value').textContent =
-              stats.totalBodies;
-            document.getElementById('active-count-value').textContent =
-              stats.activeBodies;
-            document.getElementById('sleeping-count-value').textContent =
-              stats.sleepingBodies;
+            document.getElementById('object-count-value').textContent = stats.totalBodies;
+            document.getElementById('active-count-value').textContent = stats.activeBodies;
+            document.getElementById('sleeping-count-value').textContent = stats.sleepingBodies;
           }
 
           animate();

@@ -1,17 +1,17 @@
-import { Box, Sphere } from "@react-three/drei";
-import { createRef, forwardRef, ReactNode, RefObject, useRef } from "react";
+import { Box, Sphere } from '@react-three/drei';
+import { createRef, forwardRef, ReactNode, RefObject, useRef } from 'react';
 import {
   RigidBody,
   RapierRigidBody,
   RigidBodyTypeString,
   useSphericalJoint,
   Vector3Tuple,
-  usePrismaticJoint
-} from "@react-three/rapier";
-import { useFrame } from "@react-three/fiber";
-import { Demo } from "../../DemoApp";
-import { Mesh, Quaternion } from "three";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  usePrismaticJoint,
+} from '@react-three/rapier';
+import { useFrame } from '@react-three/fiber';
+import { Demo } from '../../DemoApp';
+import { Mesh, Quaternion } from 'three';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const ShadowElement = forwardRef<Mesh>((_, ref) => (
   <Sphere castShadow ref={ref} args={[0.5]}>
@@ -35,16 +35,10 @@ const RopeSegment = forwardRef<RapierRigidBody, RopeSegmentProps>(
   }
 );
 
-const RopeJoint = ({
-  a,
-  b
-}: {
-  a: RefObject<RapierRigidBody>;
-  b: RefObject<RapierRigidBody>;
-}) => {
+const RopeJoint = ({ a, b }: { a: RefObject<RapierRigidBody>; b: RefObject<RapierRigidBody> }) => {
   const joint = useSphericalJoint(a, b, [
     [-0.5, 0, 0],
-    [0.5, 0, 0]
+    [0.5, 0, 0],
   ]);
 
   return null;
@@ -72,14 +66,11 @@ const Rope = (props: { component: ReactNode; length: number }) => {
           key={i}
           position={[i * 1, 0, 0]}
           component={<ShadowElement />}
-          type={i === 0 ? "kinematicPosition" : "dynamic"}
+          type={i === 0 ? 'kinematicPosition' : 'dynamic'}
         />
       ))}
       {refs.current.map(
-        (ref, i) =>
-          i > 0 && (
-            <RopeJoint a={refs.current[i]} b={refs.current[i - 1]} key={i} />
-          )
+        (ref, i) => i > 0 && <RopeJoint a={refs.current[i]} b={refs.current[i - 1]} key={i} />
       )}
     </group>
   );
@@ -92,7 +83,7 @@ const PrismaticExample = () => {
     [-4, 0, 0],
     [0, 4, 0],
     [1, 0, 0],
-    [-2, 2]
+    [-2, 2],
   ]);
 
   return (

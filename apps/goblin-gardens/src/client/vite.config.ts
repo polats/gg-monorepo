@@ -22,9 +22,11 @@ export default defineConfig(({ command }) => ({
   publicDir: 'public',
   resolve: {
     alias: {
-      ...(command === 'serve' ? {
-        '@devvit/client': path.resolve(__dirname, './devvit-shim.ts'),
-      } : {}),
+      ...(command === 'serve'
+        ? {
+            '@devvit/client': path.resolve(__dirname, './devvit-shim.ts'),
+          }
+        : {}),
       // Force React to resolve to the local node_modules to avoid duplicates
       'react': path.resolve(__dirname, '../../node_modules/react'),
       'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),

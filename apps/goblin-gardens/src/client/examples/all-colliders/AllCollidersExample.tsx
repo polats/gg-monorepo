@@ -1,5 +1,5 @@
-import { Box, Cone, Cylinder, Html, Sphere } from "@react-three/drei";
-import { ThreeElements } from "@react-three/fiber";
+import { Box, Cone, Cylinder, Html, Sphere } from '@react-three/drei';
+import { ThreeElements } from '@react-three/fiber';
 import {
   BallCollider,
   CapsuleCollider,
@@ -13,18 +13,18 @@ import {
   RigidBodyProps,
   RapierCollider,
   RoundConeCollider,
-  RoundCylinderCollider
-} from "@react-three/rapier";
-import { useSuzanne } from "../all-shapes/AllShapesExample";
-import { RoundedBoxGeometry } from "three-stdlib";
-import { PlaneGeometry } from "three";
-import { useEffect, useRef } from "react";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  RoundCylinderCollider,
+} from '@react-three/rapier';
+import { useSuzanne } from '../all-shapes/AllShapesExample';
+import { RoundedBoxGeometry } from 'three-stdlib';
+import { PlaneGeometry } from 'three';
+import { useEffect, useRef } from 'react';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
-type Object3DProps = ThreeElements["object3D"];
-type MeshProps = ThreeElements["mesh"];
+type Object3DProps = ThreeElements['object3D'];
+type MeshProps = ThreeElements['mesh'];
 
-const CuteBox = (props: Omit<MeshProps, "args" | "ref">) => (
+const CuteBox = (props: Omit<MeshProps, 'args' | 'ref'>) => (
   <Box castShadow receiveShadow {...props}>
     <meshPhysicalMaterial color="orange" />
   </Box>
@@ -42,20 +42,13 @@ const RigidBodyBox = (props: RigidBodyProps) => {
 
 const Suzanne = (props?: Object3DProps) => {
   const { nodes: suzanne } = useSuzanne();
-  return (
-    <primitive
-      object={suzanne.Suzanne.clone()}
-      castShadow
-      receiveShadow
-      {...props}
-    />
-  );
+  return <primitive object={suzanne.Suzanne.clone()} castShadow receiveShadow {...props} />;
 };
 
 const heightFieldHeight = 10;
 const heightFieldWidth = 10;
 const heightField = Array.from({
-  length: heightFieldHeight * heightFieldWidth
+  length: heightFieldHeight * heightFieldWidth,
 }).map((_, index) => {
   return Math.random();
 });
@@ -82,7 +75,7 @@ export const AllCollidersExample = () => {
   const roundCuboidCollider = useRef<RapierCollider>(null);
 
   useEffect(() => {
-    console.log("roundCuboidCollider", roundCuboidCollider.current);
+    console.log('roundCuboidCollider', roundCuboidCollider.current);
   }, []);
 
   useResetOrbitControls(30);
@@ -100,10 +93,7 @@ export const AllCollidersExample = () => {
         <mesh geometry={roundBoxGeometry} castShadow receiveShadow>
           <meshPhysicalMaterial color="orange" />
         </mesh>
-        <RoundCuboidCollider
-          ref={roundCuboidCollider}
-          args={[0.5, 0.5, 0.5, 0.2]}
-        />
+        <RoundCuboidCollider ref={roundCuboidCollider} args={[0.5, 0.5, 0.5, 0.2]} />
 
         <Html>RoundCuboidCollider</Html>
       </RigidBody>
@@ -188,7 +178,7 @@ export const AllCollidersExample = () => {
             heightFieldWidth - 1,
             heightFieldHeight - 1,
             heightField,
-            { x: heightFieldWidth, y: 1, z: heightFieldHeight }
+            { x: heightFieldWidth, y: 1, z: heightFieldHeight },
           ]}
         />
         <Html>HeightfieldCollider</Html>

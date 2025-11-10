@@ -9,11 +9,13 @@ Goblin Gardens is a cozy, chaotic game where you play as a goblin collecting "sh
 ### Core Gameplay
 
 1. **Scrounge**: Visit different locations to collect falling gems and coins
+
    - Drag objects with physics-based controls
    - Different locations yield different treasures
    - Premium locations cost coins to access
 
 2. **Garden**: Manage your collection
+
    - **Appraise**: View and organize your gems
    - **Grow**: Level up gems over time to increase their value
    - **Trade**: Create offers to sell gems to other players
@@ -50,6 +52,7 @@ Goblin Gardens is a cozy, chaotic game where you play as a goblin collecting "sh
 
 1. Clone the repository
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -62,25 +65,31 @@ Goblin Gardens is a cozy, chaotic game where you play as a goblin collecting "sh
 ### Development
 
 **Full Devvit Testing** (with Reddit integration):
+
 ```bash
 npm run dev
 ```
+
 Opens a playtest URL with real Reddit authentication and Redis persistence.
 
 **Local Development** (faster iteration):
+
 ```bash
 npm run dev:local
 ```
+
 Runs client and mock API server locally without Reddit dependency.
 
 ### Deployment
 
 1. Build the project:
+
    ```bash
    npm run build
    ```
 
 2. Deploy to Reddit:
+
    ```bash
    npm run deploy
    ```

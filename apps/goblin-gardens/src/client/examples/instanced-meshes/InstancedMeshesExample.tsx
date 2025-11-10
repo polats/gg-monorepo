@@ -1,31 +1,27 @@
 import {
   InstancedRigidBodies,
   InstancedRigidBodyProps,
-  RapierRigidBody
-} from "@react-three/rapier";
-import { useEffect, useRef, useState } from "react";
-import { Color, InstancedMesh } from "three";
-import { useSuzanne } from "../all-shapes/AllShapesExample";
-import { Demo } from "../../DemoApp";
-import { button, useControls } from "leva";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  RapierRigidBody,
+} from '@react-three/rapier';
+import { useEffect, useRef, useState } from 'react';
+import { Color, InstancedMesh } from 'three';
+import { useSuzanne } from '../all-shapes/AllShapesExample';
+import { Demo } from '../../DemoApp';
+import { button, useControls } from 'leva';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
 const MAX_COUNT = 2000;
 
 const createBody = (): InstancedRigidBodyProps => ({
   key: Math.random(),
   position: [Math.random() * 20, Math.random() * 20, Math.random() * 20],
-  rotation: [
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2,
-    Math.random() * Math.PI * 2
-  ],
-  scale: [0.5 + Math.random(), 0.5 + Math.random(), 0.5 + Math.random()]
+  rotation: [Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2],
+  scale: [0.5 + Math.random(), 0.5 + Math.random(), 0.5 + Math.random()],
 });
 
 export const InstancedMeshes: Demo = () => {
   const {
-    nodes: { Suzanne }
+    nodes: { Suzanne },
   } = useSuzanne();
 
   useResetOrbitControls(30);
@@ -34,7 +30,7 @@ export const InstancedMeshes: Demo = () => {
 
   const [bodies, setBodies] = useState<InstancedRigidBodyProps[]>(() =>
     Array.from({
-      length: 100
+      length: 100,
     }).map(() => createBody())
   );
 
@@ -56,7 +52,7 @@ export const InstancedMeshes: Demo = () => {
   };
 
   const removeMesh = () => {
-    console.log("removeMesh", bodies.length);
+    console.log('removeMesh', bodies.length);
 
     if (bodies.length > 0) {
       setBodies((bodies) => bodies.slice(0, bodies.length - 1));
@@ -65,8 +61,8 @@ export const InstancedMeshes: Demo = () => {
 
   useControls(
     {
-      "add instanced mesh": button(addMesh),
-      "remove instanced mesh": button(removeMesh)
+      'add instanced mesh': button(addMesh),
+      'remove instanced mesh': button(removeMesh),
     },
     [bodies]
   );
@@ -84,7 +80,7 @@ export const InstancedMeshes: Demo = () => {
               {
                 x: 0,
                 y: 50,
-                z: 0
+                z: 0,
               },
               true
             );

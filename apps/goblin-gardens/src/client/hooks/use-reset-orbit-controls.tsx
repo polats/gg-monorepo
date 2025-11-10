@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import { useDemo } from "../DemoApp";
-import { Vector3 } from "three";
+import { useEffect } from 'react';
+import { useDemo } from '../DemoApp';
+import { Vector3 } from 'three';
 
 const directionVector = new Vector3();
 

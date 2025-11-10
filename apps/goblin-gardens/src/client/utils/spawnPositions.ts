@@ -71,10 +71,7 @@ export function isInDragZone(x: number, y: number, z: number): boolean {
   const halfWidth = DRAG_ZONE_WIDTH / 2;
   const halfDepth = DRAG_ZONE_DEPTH / 2;
 
-  return (
-    Math.abs(localX) <= halfWidth &&
-    Math.abs(localZ) <= halfDepth
-  );
+  return Math.abs(localX) <= halfWidth && Math.abs(localZ) <= halfDepth;
 }
 
 /**

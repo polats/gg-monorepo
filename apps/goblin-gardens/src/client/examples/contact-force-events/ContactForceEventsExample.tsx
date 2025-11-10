@@ -1,19 +1,19 @@
-import { Box, Sphere } from "@react-three/drei";
-import { ThreeElements } from "@react-three/fiber";
+import { Box, Sphere } from '@react-three/drei';
+import { ThreeElements } from '@react-three/fiber';
 import {
   RigidBody,
   RapierRigidBody,
   RigidBodyProps,
-  ContactForceHandler
-} from "@react-three/rapier";
-import { useCallback, useRef, useState } from "react";
-import { Color } from "three";
-import { Demo } from "../../DemoApp";
-import { useResetOrbitControls } from "../../hooks/use-reset-orbit-controls";
+  ContactForceHandler,
+} from '@react-three/rapier';
+import { useCallback, useRef, useState } from 'react';
+import { Color } from 'three';
+import { Demo } from '../../DemoApp';
+import { useResetOrbitControls } from '../../hooks/use-reset-orbit-controls';
 
-type MeshPhysicalMaterialProps = ThreeElements["meshPhysicalMaterial"];
+type MeshPhysicalMaterialProps = ThreeElements['meshPhysicalMaterial'];
 
-type BallProps = { onContactForce: RigidBodyProps["onContactForce"] };
+type BallProps = { onContactForce: RigidBodyProps['onContactForce'] };
 const Ball = ({ onContactForce }: BallProps) => {
   const ball = useRef<RapierRigidBody>(null);
 
@@ -29,10 +29,10 @@ const Ball = ({ onContactForce }: BallProps) => {
           ball.current?.applyImpulse({ x: 0, y: 65, z: 0 }, true);
         }
         onContactForce?.(payload);
-        console.log("contact force", totalForceMagnitude);
+        console.log('contact force', totalForceMagnitude);
       }}
       onCollisionEnter={() => {
-        console.log("collision enter");
+        console.log('collision enter');
       }}
     >
       <Sphere castShadow receiveShadow>
@@ -41,7 +41,7 @@ const Ball = ({ onContactForce }: BallProps) => {
     </RigidBody>
   );
 };
-type FloorProps = { color: MeshPhysicalMaterialProps["color"] };
+type FloorProps = { color: MeshPhysicalMaterialProps['color'] };
 const Floor = ({ color }: FloorProps) => {
   return (
     <RigidBody colliders="cuboid" type="fixed">
@@ -56,15 +56,10 @@ const startColor = new Color(0xffffff);
 export const ContactForceEventsExample: Demo = () => {
   const [floorColor, setFloorColor] = useState(0x000000);
 
-  const handleContactForce = useCallback<ContactForceHandler>(
-    ({ totalForceMagnitude }) => {
-      const color = startColor
-        .clone()
-        .multiplyScalar(1 - totalForceMagnitude / startForce);
-      setFloorColor(color.getHex());
-    },
-    []
-  );
+  const handleContactForce = useCallback<ContactForceHandler>(({ totalForceMagnitude }) => {
+    const color = startColor.clone().multiplyScalar(1 - totalForceMagnitude / startForce);
+    setFloorColor(color.getHex());
+  }, []);
 
   useResetOrbitControls(10);
 
