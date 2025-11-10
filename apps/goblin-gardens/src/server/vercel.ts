@@ -23,13 +23,17 @@ if (environment !== Environment.VERCEL) {
 const redis = createRedisAdapter(environment);
 const auth = createAuthAdapter(environment);
 
-// Create routes with context
-const routes = createRoutes({ redis, auth });
+// Create routes with context (no postId for Vercel mode)
+const routes = createRoutes({ redis, auth, postId: 'vercel-deployment' });
 app.use(routes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', environment });
+  res.json({ 
+    status: 'ok', 
+    environment,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Export for Vercel

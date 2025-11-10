@@ -1,7 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:vercel",
-  "outputDirectory": "dist/client",
+  "builds": [
+    {
+      "src": "src/client/**",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/client"
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -9,19 +16,12 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/dist/client/$1"
     }
   ],
   "functions": {
     "api/**/*.ts": {
-      "maxDuration": 10,
-      "memory": 1024
+      "maxDuration": 10
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    }
-  ]
+  }
 }
