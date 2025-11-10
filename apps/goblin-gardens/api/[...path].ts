@@ -1,5 +1,22 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
+
+// Redis client singleton
+let redisClient: ReturnType<typeof createClient> | null = null;
+
+async function getRedisClient() {
+  if (!redisClient) {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is required');
+    }
+
+    redisClient = createClient({ url: redisUrl });
+    redisClient.on('error', (err) => console.error('Redis Client Error:', err));
+    await redisClient.connect();
+  }
+  return redisClient;
+}
 
 // Simple auth helper for Vercel
 function getUsername(req: VercelRequest): string {
@@ -34,12 +51,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Init endpoint
     if (path.includes('/init')) {
       const username = getUsername(req);
-      const count = await kv.get<string>('count');
+      const redis = await getRedisClient();
+      const countValue = await redis.get('count');
+      const count = countValue ? parseInt(countValue.toString()) : 0;
       
       res.status(200).json({
         type: 'init',
         postId: 'vercel-deployment',
-        count: count ? parseInt(count) : 0,
+        count,
         username,
       });
       return;
@@ -55,8 +74,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
+      const redis = await getRedisClient();
       const playerStateKey = `playerState:${username}`;
-      await kv.set(playerStateKey, JSON.stringify(playerState));
+      await redis.set(playerStateKey, JSON.stringify(playerState));
 
       res.status(200).json({
         type: 'savePlayerState',
@@ -69,10 +89,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Player state - load
     if (path.includes('/player-state/load') && req.method === 'GET') {
       const username = getUsername(req);
+      const redis = await getRedisClient();
       const playerStateKey = `playerState:${username}`;
-      const playerStateJson = await kv.get<string>(playerStateKey);
+      const playerStateValue = await redis.get(playerStateKey);
 
-      if (!playerStateJson) {
+      if (!playerStateValue) {
         res.status(200).json({
           type: 'loadPlayerState',
           playerState: null,
@@ -80,6 +101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return;
       }
 
+      const playerStateJson = playerStateValue.toString();
       const playerState = JSON.parse(playerStateJson);
       res.status(200).json({
         type: 'loadPlayerState',

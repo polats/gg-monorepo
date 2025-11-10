@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { createClient, RedisClientType } from 'redis';
 import { redis as devvitRedis } from '@devvit/web/server';
 import { Environment } from './environment';
 
@@ -18,26 +18,53 @@ export interface RedisAdapter {
   incrBy(key: string, increment: number): Promise<number>;
 }
 
-class VercelKVAdapter implements RedisAdapter {
+class VercelRedisAdapter implements RedisAdapter {
+  private client: RedisClientType;
+  private connected: boolean = false;
+
+  constructor() {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is required for Vercel deployment');
+    }
+
+    this.client = createClient({
+      url: redisUrl,
+    });
+
+    this.client.on('error', (err) => console.error('Redis Client Error:', err));
+  }
+
+  private async ensureConnected(): Promise<void> {
+    if (!this.connected) {
+      await this.client.connect();
+      this.connected = true;
+    }
+  }
+
   async get(key: string): Promise<string | null> {
-    const result = await kv.get<string>(key);
-    return result ?? null;
+    await this.ensureConnected();
+    return await this.client.get(key);
   }
 
   async set(key: string, value: string): Promise<void> {
-    await kv.set(key, value);
+    await this.ensureConnected();
+    await this.client.set(key, value);
   }
 
   async del(key: string): Promise<void> {
-    await kv.del(key);
+    await this.ensureConnected();
+    await this.client.del(key);
   }
 
   async zAdd(key: string, member: { member: string; score: number }): Promise<void> {
-    await kv.zadd(key, { score: member.score, member: member.member });
+    await this.ensureConnected();
+    await this.client.zAdd(key, { score: member.score, value: member.member });
   }
 
   async zRem(key: string, members: string[]): Promise<void> {
-    await kv.zrem(key, ...members);
+    await this.ensureConnected();
+    await this.client.zRem(key, members);
   }
 
   async zRange(
@@ -46,27 +73,26 @@ class VercelKVAdapter implements RedisAdapter {
     stop: number,
     options?: { by?: 'rank'; reverse?: boolean }
   ): Promise<Array<{ member: string; score: number }>> {
+    await this.ensureConnected();
+    
     const results = options?.reverse
-      ? await kv.zrange(key, start, stop, { rev: true, withScores: true })
-      : await kv.zrange(key, start, stop, { withScores: true });
+      ? await this.client.zRangeWithScores(key, start, stop, { REV: true })
+      : await this.client.zRangeWithScores(key, start, stop);
 
-    // Convert to expected format
-    const formatted: Array<{ member: string; score: number }> = [];
-    for (let i = 0; i < results.length; i += 2) {
-      formatted.push({
-        member: results[i] as string,
-        score: results[i + 1] as number,
-      });
-    }
-    return formatted;
+    return results.map((item) => ({
+      member: item.value,
+      score: item.score,
+    }));
   }
 
   async zCard(key: string): Promise<number> {
-    return await kv.zcard(key);
+    await this.ensureConnected();
+    return await this.client.zCard(key);
   }
 
   async incrBy(key: string, increment: number): Promise<number> {
-    return await kv.incrby(key, increment);
+    await this.ensureConnected();
+    return await this.client.incrBy(key, increment);
   }
 }
 
@@ -182,7 +208,7 @@ class InMemoryAdapter implements RedisAdapter {
 export function createRedisAdapter(environment: Environment): RedisAdapter {
   switch (environment) {
     case Environment.VERCEL:
-      return new VercelKVAdapter();
+      return new VercelRedisAdapter();
     case Environment.REDDIT:
       return new DevvitRedisAdapter();
     case Environment.LOCAL:
