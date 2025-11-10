@@ -621,23 +621,23 @@ export const PileDemo = ({
   // Debug mode - for testing garden features
   const [debugMode, setDebugMode] = useState(false);
 
-  // Local dev username generation (for multi-tab testing)
-  // Only generate unique usernames when running against local dev server
+  // Session-based username generation (for local dev and Vercel)
+  // Only generate unique usernames when not authenticated via Reddit
   const [effectiveUsername] = useState(() => {
-    // Check if we're in local dev mode (username is "LocalDevUser")
-    const isLocalDev = username === 'LocalDevUser' || !username;
+    // Check if we have a real Reddit username (not anonymous, not LocalDevUser, not undefined)
+    const hasRealUsername = username && username !== 'LocalDevUser' && username !== 'anonymous';
 
-    if (!isLocalDev) {
-      // Production mode - use username from Reddit API
-      const prodUsername = username!;
-      setApiUsername(prodUsername);
-      return prodUsername;
+    if (hasRealUsername) {
+      // Reddit/Devvit mode - use username from Reddit API
+      console.log(`[AUTH] Using Reddit username: ${username}`);
+      setApiUsername(username);
+      return username;
     }
 
-    // Local dev mode - generate or retrieve session-specific username
-    const storedUsername = sessionStorage.getItem('localDevUsername');
+    // Local dev or Vercel mode - generate or retrieve session-specific username
+    const storedUsername = sessionStorage.getItem('sessionUsername');
     if (storedUsername) {
-      console.log(`[LOCAL DEV] Using stored username: ${storedUsername}`);
+      console.log(`[SESSION] Using stored username: ${storedUsername}`);
       setApiUsername(storedUsername);
       return storedUsername;
     }
@@ -645,8 +645,8 @@ export const PileDemo = ({
     // Generate random username like "Player_ABC123"
     const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
     const newUsername = `Player_${randomId}`;
-    sessionStorage.setItem('localDevUsername', newUsername);
-    console.log(`[LOCAL DEV] Generated new username: ${newUsername}`);
+    sessionStorage.setItem('sessionUsername', newUsername);
+    console.log(`[SESSION] Generated new username: ${newUsername}`);
     setApiUsername(newUsername);
     return newUsername;
   });

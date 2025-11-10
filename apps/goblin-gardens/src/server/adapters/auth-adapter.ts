@@ -8,12 +8,15 @@ export interface AuthAdapter {
 
 class VercelAuthAdapter implements AuthAdapter {
   async getUsername(req: Request): Promise<string> {
-    // For Vercel, we'll use session-based auth or header-based for now
-    // This can be enhanced with proper JWT or session management
+    // For Vercel, we use session-based usernames from the client
+    // The client generates unique usernames per browser tab using sessionStorage
     const username = req.headers['x-username'] as string;
 
     if (!username) {
-      throw new Error('Authentication required');
+      // Fallback to anonymous if no username provided
+      // This shouldn't happen in normal operation since the client always sets it
+      console.warn('[Auth] No username provided in request, using anonymous');
+      return 'anonymous';
     }
 
     return username;

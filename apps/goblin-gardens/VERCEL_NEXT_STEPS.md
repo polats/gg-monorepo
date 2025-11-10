@@ -11,6 +11,7 @@ The backend refactoring is complete! The adapter pattern is fully implemented an
 - ✅ Centralized routes (environment-agnostic)
 - ✅ Vercel serverless entry point
 - ✅ Client API client with environment detection
+- ✅ Session-based usernames for Vercel/Local
 - ✅ Deployment documentation
 
 ## Testing the Implementation
@@ -27,9 +28,10 @@ npm run dev:local
 
 **What to test:**
 - Game loads and runs
+- Each browser tab gets unique username (check console)
 - Can collect gems and coins
 - Player state persists during session
-- Trading works between browser tabs
+- Trading works between browser tabs (different usernames)
 
 ### 2. Test Reddit Mode (Current Production)
 
@@ -60,10 +62,11 @@ vercel
 
 **What to test:**
 - Client loads from Vercel
+- Each browser tab gets unique username (e.g., `Player_ABC123`)
 - API endpoints respond correctly
 - Health check: `/api/health`
 - Player state persists in Vercel KV
-- Trading works
+- Trading works between different tabs/users
 
 ## Remaining Tasks
 
@@ -189,12 +192,19 @@ Open `https://your-app.vercel.app` in browser and play the game!
 
 ### Authentication errors
 
-**Note:** Vercel uses `X-Username` header for demo purposes. For production, implement proper authentication.
+**Note:** Vercel uses session-based usernames (e.g., `Player_ABC123`) for demo purposes. Each browser tab gets a unique username stored in sessionStorage. For production, consider implementing proper authentication or linking to Reddit accounts.
+
+### All players share same inventory
+
+**Solution:** This was fixed! Each browser tab now gets a unique session username. Open multiple tabs to test multi-user features. See `docs/session-usernames.md` for details.
 
 ## Documentation
 
 - **Deployment Guide:** `docs/vercel-deployment.md`
 - **Implementation Summary:** `docs/vercel-backend-implementation-summary.md`
+- **Session Usernames:** `docs/session-usernames.md`
+- **Username Fix:** `docs/vercel-session-usernames-fix.md`
+- **Testing Guide:** `docs/vercel-username-testing.md`
 - **Design Document:** `.kiro/specs/vercel-backend-deployment/design.md`
 - **Requirements:** `.kiro/specs/vercel-backend-deployment/requirements.md`
 
