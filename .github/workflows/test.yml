@@ -21,8 +21,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: apps/goblin-gardens/package-lock.json
       
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
         working-directory: apps/goblin-gardens
       
       - name: Run client tests
