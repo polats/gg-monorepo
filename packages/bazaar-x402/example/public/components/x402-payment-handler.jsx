@@ -124,6 +124,19 @@ async function createAndSignTransaction(wallet, requirements) {
     throw new Error('Wallet does not support transaction signing');
   }
   
+  // Validate requirements
+  if (!requirements.payTo) {
+    throw new Error('Missing payTo address in payment requirements');
+  }
+  
+  if (!requirements.asset) {
+    throw new Error('Missing asset (USDC mint) in payment requirements');
+  }
+  
+  if (!requirements.maxAmountRequired) {
+    throw new Error('Missing maxAmountRequired in payment requirements');
+  }
+  
   const connection = new Connection(
     requirements.network === 'solana-mainnet'
       ? 'https://api.mainnet-beta.solana.com'
@@ -131,10 +144,22 @@ async function createAndSignTransaction(wallet, requirements) {
     'confirmed'
   );
   
-  // Parse addresses
+  // Parse addresses with validation
   const fromPubkey = wallet.publicKey;
-  const toPubkey = new PublicKey(requirements.payTo);
-  const mintPubkey = new PublicKey(requirements.asset);
+  
+  let toPubkey;
+  try {
+    toPubkey = new PublicKey(requirements.payTo);
+  } catch (error) {
+    throw new Error(`Invalid recipient address: ${requirements.payTo}`);
+  }
+  
+  let mintPubkey;
+  try {
+    mintPubkey = new PublicKey(requirements.asset);
+  } catch (error) {
+    throw new Error(`Invalid USDC mint address: ${requirements.asset}`);
+  }
   
   // Convert amount to BigInt - handle both string and number
   const amountValue = typeof requirements.maxAmountRequired === 'string' 
@@ -146,24 +171,75 @@ async function createAndSignTransaction(wallet, requirements) {
     from: fromPubkey.toBase58(),
     to: toPubkey.toBase58(),
     mint: mintPubkey.toBase58(),
-    amount: amount.toString()
+    amount: amount.toString(),
+    amountUSDC: (Number(amount) / 1_000_000).toFixed(6) + ' USDC',
+    network: requirements.network
   });
   
-  // Get associated token accounts
-  const fromTokenAccount = await getAssociatedTokenAddress(
-    mintPubkey,
-    fromPubkey
-  );
+  // Validate that addresses are valid Solana public keys
+  if (!PublicKey.isOnCurve(fromPubkey.toBytes())) {
+    throw new Error('Buyer wallet address is not a valid Solana public key');
+  }
   
-  const toTokenAccount = await getAssociatedTokenAddress(
-    mintPubkey,
-    toPubkey
-  );
+  if (!PublicKey.isOnCurve(toPubkey.toBytes())) {
+    throw new Error(`Seller wallet address is not a valid Solana public key: ${requirements.payTo}`);
+  }
   
-  console.log('Token accounts:', {
-    from: fromTokenAccount.toBase58(),
-    to: toTokenAccount.toBase58()
-  });
+  // Get associated token accounts with error handling
+  let fromTokenAccount;
+  let toTokenAccount;
+  
+  try {
+    // Get the associated token account addresses
+    // These are deterministic addresses derived from the wallet and mint
+    fromTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      fromPubkey,
+      false // allowOwnerOffCurve = false (strict validation)
+    );
+    
+    toTokenAccount = await getAssociatedTokenAddress(
+      mintPubkey,
+      toPubkey,
+      false
+    );
+    
+    console.log('Token accounts:', {
+      from: fromTokenAccount.toBase58(),
+      to: toTokenAccount.toBase58()
+    });
+    
+    // Check if token accounts exist
+    console.log('Checking if token accounts exist...');
+    const fromAccountInfo = await connection.getAccountInfo(fromTokenAccount);
+    const toAccountInfo = await connection.getAccountInfo(toTokenAccount);
+    
+    if (!fromAccountInfo) {
+      throw new Error(
+        `Your wallet doesn't have a USDC token account. Please create one first by receiving some USDC.`
+      );
+    }
+    
+    if (!toAccountInfo) {
+      console.warn('Recipient does not have a USDC token account. Transaction may fail.');
+      // Note: In production, you might want to add an instruction to create the account
+      // For now, we'll let the transaction fail with a clear error
+    }
+    
+    console.log('Token accounts verified');
+  } catch (error) {
+    console.error('Error with token accounts:', error);
+    
+    // Provide helpful error messages
+    if (error.message && error.message.includes("doesn't have a USDC token account")) {
+      throw error; // Re-throw our custom error
+    }
+    
+    throw new Error(
+      `Failed to prepare USDC transfer. ${error.message || 'Unknown error'}. ` +
+      `Make sure you have a USDC token account and the recipient address is valid.`
+    );
+  }
   
   // Create transaction
   const transaction = new Transaction();

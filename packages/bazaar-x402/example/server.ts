@@ -21,6 +21,13 @@ import { SimpleItemAdapter } from './simple-item-adapter.js';
 const app = express();
 const PORT = 3001;
 
+const WALLET_WITH_NO_USDC_ACCOUNT = '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd'
+const WALLET_WITH_USDC = '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd'
+const TEST_WALLET_1 = '9gJenaJYRCFbahPMtcfaWZ4LnCFtaqzriw5tcMwWBiuW'
+const TEST_WALLET_2 = '5JegAwbg2qKjCxJNvrKw6bFhVY4okC5spyhHYs6jrit2'
+const TEST_WALLET_3 = '4BTPWUuMRRu1iibuqEPKvGQK8EE8ZwEtz923J8oHVmap'
+
+
 // Load and validate configuration from environment
 console.log('\n🔍 DEBUG: Loading configuration...');
 console.log('🔍 DEBUG: process.env.PAYMENT_MODE =', process.env.PAYMENT_MODE);
@@ -129,7 +136,7 @@ async function initializeSampleListings() {
       itemType: 'weapon',
       itemData: { description: 'Legendary Dragon Slayer Sword' },
       sellerUsername: 'SampleSeller1',
-      sellerWallet: '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd',
+      sellerWallet: WALLET_WITH_USDC,
       priceUSDC: 0.025,
     },
     {
@@ -137,7 +144,7 @@ async function initializeSampleListings() {
       itemType: 'armor',
       itemData: { description: 'Epic Titanium Shield of Protection' },
       sellerUsername: 'SampleSeller2',
-      sellerWallet: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs', // Sample devnet wallet 2
+      sellerWallet: WALLET_WITH_NO_USDC_ACCOUNT,
       priceUSDC: 0.015,
     },
     {
@@ -145,7 +152,7 @@ async function initializeSampleListings() {
       itemType: 'consumable',
       itemData: { description: 'Rare Health Restoration Potion' },
       sellerUsername: 'SampleSeller3',
-      sellerWallet: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK', // Sample devnet wallet 3
+      sellerWallet: TEST_WALLET_1,
       priceUSDC: 0.005,
     },
     {
@@ -153,7 +160,7 @@ async function initializeSampleListings() {
       itemType: 'weapon',
       itemData: { description: 'Ancient Staff of Wisdom' },
       sellerUsername: 'SampleSeller1',
-      sellerWallet: '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd',
+      sellerWallet: TEST_WALLET_2,
       priceUSDC: 0.05,
     },
     {
@@ -161,7 +168,7 @@ async function initializeSampleListings() {
       itemType: 'armor',
       itemData: { description: 'Enchanted Boots of Speed' },
       sellerUsername: 'SampleSeller4',
-      sellerWallet: 'GjwcWFQYzemBtpUoN5fMAP2FZviTtMRWCmrppGuTthJS', // Sample devnet wallet 4
+      sellerWallet: TEST_WALLET_3,
       priceUSDC: 1.0,
     },
   ];
