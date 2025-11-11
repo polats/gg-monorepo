@@ -13,3 +13,6 @@ export * from './payment.js';
 
 // Currency adapter
 export * from './currency.js';
+
+// Mock currency adapter
+export * from './mock-currency.js';

@@ -7,8 +7,8 @@
   - Add configuration types for mock and production modes
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 2. Implement MockCurrencyAdapter
-  - [ ] 2.1 Create MockCurrencyAdapter class implementing CurrencyAdapter interface
+- [x] 2. Implement MockCurrencyAdapter
+  - [x] 2.1 Create MockCurrencyAdapter class implementing CurrencyAdapter interface
     - Implement in-memory Map storage for balances
     - Implement getBalance() with default balance initialization
     - Implement deduct() with balance validation
@@ -16,13 +16,13 @@
     - Generate mock transaction IDs with timestamp and random suffix
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-  - [ ] 2.2 Add transaction history tracking to MockCurrencyAdapter
+  - [x] 2.2 Add transaction history tracking to MockCurrencyAdapter
     - Store transactions in memory Map
     - Implement getTransactions() with pagination support
     - Record transaction type, amount, timestamp, and IDs
     - _Requirements: 7.1, 7.2, 7.3, 7.5, 7.6, 7.7_
 
-  - [ ] 2.3 Add Redis support for persistent mock mode (optional)
+  - [x] 2.3 Add Redis support for persistent mock mode (optional)
     - Add Redis client integration
     - Implement balance storage in Redis
     - Implement transaction storage in Redis
@@ -37,29 +37,66 @@
     - Test transaction history retrieval
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 3. Implement x402 payment protocol types and utilities
-  - [ ] 3.1 Create x402 protocol types
+- [x] 3. Integrate MockCurrencyAdapter with example application
+  - [x] 3.1 Update example server to initialize MockCurrencyAdapter
+    - Import MockCurrencyAdapter from @bazaar-x402/core
+    - Create adapter instance with default configuration (1000 USDC starting balance)
+    - Pass adapter to marketplace initialization
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.2 Add balance display to example UI
+    - Create balance display component showing current USDC balance
+    - Fetch balance from new GET /api/balance endpoint
+    - Update balance after purchases
+    - Show loading state during balance queries
+    - Display balance in header next to wallet button
+    - _Requirements: 6.1, 6.2, 6.3_
+
+  - [x] 3.3 Add balance checking to purchase flows
+    - Check balance before mystery box purchases
+    - Check balance before listing purchases
+    - Show "Insufficient Balance" error if balance too low
+    - Deduct balance on successful purchase
+    - Add balance to seller on listing sales
+    - _Requirements: 2.2, 2.3, 4.3, 5.4_
+
+  - [x] 3.4 Add balance API endpoints to example server
+    - Create GET /api/balance/:userId endpoint
+    - Create POST /api/balance/add endpoint (for testing)
+    - Return balance in USDC format with currency type
+    - Handle errors gracefully
+    - _Requirements: 6.1, 6.2, 6.3_
+
+  - [x] 3.5 Update mystery box and listing purchase to use currency
+    - Integrate currency deduction in mystery box purchases
+    - Integrate currency transfer in listing purchases
+    - Record transactions with proper metadata
+    - Show transaction confirmation messages
+    - _Requirements: 4.3, 4.4, 5.4, 5.5, 7.1, 7.2_
+
+- [ ] 4. Implement x402 payment protocol types and utilities
+  - [ ] 4.1 Create x402 protocol types
     - Define PaymentRequirements interface
     - Define PaymentPayload interface
     - Define PaymentRequiredResponse interface
     - Add x402 version constant and header constants
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 3.2 Implement payment header encoding/decoding utilities
+  - [ ] 4.2 Implement payment header encoding/decoding utilities
     - Create encodePaymentHeader() function for Base64 encoding
     - Create decodePaymentHeader() function for Base64 decoding
     - Add payload validation function
     - Handle encoding/decoding errors gracefully
     - _Requirements: 3.2, 10.1, 10.2_
 
-  - [ ] 3.3 Create payment requirements builder
+  - [ ] 4.3 Create payment requirements builder
     - Implement createPaymentRequirements() function
     - Convert USDC amount to smallest unit (6 decimals)
     - Include network-specific USDC mint address
     - Add resource, description, and timeout fields
     - _Requirements: 3.2, 8.1, 8.2, 8.3_
 
-  - [ ]* 3.4 Write unit tests for x402 utilities
+  - [ ]* 4.4 Write unit tests for x402 utilities
     - Test payment header encoding/decoding
     - Test payment requirements creation
     - Test payload validation
@@ -67,15 +104,15 @@
     - _Requirements: 3.1, 3.2, 10.1_
 
 
-- [ ] 4. Implement X402Facilitator for payment verification
-  - [ ] 4.1 Create X402Facilitator class
+- [ ] 5. Implement X402Facilitator for payment verification
+  - [ ] 5.1 Create X402Facilitator class
     - Initialize Solana Connection with network-specific RPC
     - Implement verifyPayment() method
     - Decode and validate payment payload
     - Verify network, amount, and recipient match requirements
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 8.5_
 
-  - [ ] 4.2 Implement on-chain transaction verification
+  - [ ] 5.2 Implement on-chain transaction verification
     - Create verifyTransactionOnChain() method
     - Poll Solana blockchain for transaction confirmation
     - Implement retry logic with configurable attempts and intervals
@@ -83,14 +120,14 @@
     - Return verification result with transaction hash
     - _Requirements: 3.3, 3.7, 3.8, 8.5, 10.6_
 
-  - [ ] 4.3 Add network-specific configuration
+  - [ ] 5.3 Add network-specific configuration
     - Support devnet and mainnet RPC endpoints
     - Use network-specific USDC mint addresses
     - Validate transactions against correct network
     - Prevent cross-network verification
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.6, 8.7_
 
-  - [ ]* 4.4 Write unit tests for X402Facilitator
+  - [ ]* 5.4 Write unit tests for X402Facilitator
     - Test payment verification with valid transaction
     - Test payment verification with invalid signature
     - Test amount validation
@@ -99,22 +136,22 @@
     - Test transaction polling with timeout
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 5. Implement X402CurrencyAdapter
-  - [ ] 5.1 Create X402CurrencyAdapter class implementing CurrencyAdapter interface
+- [ ] 6. Implement X402CurrencyAdapter
+  - [ ] 6.1 Create X402CurrencyAdapter class implementing CurrencyAdapter interface
     - Initialize with X402Facilitator and configuration
     - Implement getBalance() to query on-chain USDC balance
     - Cache balance queries for 30 seconds
     - Use network-specific USDC mint address
     - _Requirements: 1.1, 1.2, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 5.2 Implement purchase initiation (402 response)
+  - [ ] 6.2 Implement purchase initiation (402 response)
     - Implement initiatePurchase() method
     - Create payment requirements with seller wallet
     - Return 402 status with payment requirements
     - Include resource URL and description
     - _Requirements: 3.2, 4.1, 4.2_
 
-  - [ ] 5.3 Implement payment verification and completion
+  - [ ] 6.3 Implement payment verification and completion
     - Implement verifyPurchase() method
     - Extract X-Payment header from request
     - Call X402Facilitator to verify payment
@@ -122,14 +159,14 @@
     - Handle verification errors appropriately
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.1, 10.2, 10.3_
 
-  - [ ] 5.4 Implement transaction history for x402 mode
+  - [ ] 6.4 Implement transaction history for x402 mode
     - Store transaction records with blockchain tx hash
     - Include network ID in transaction records
     - Implement getTransactions() method
     - Support pagination for transaction queries
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [ ]* 5.5 Write unit tests for X402CurrencyAdapter
+  - [ ]* 6.5 Write unit tests for X402CurrencyAdapter
     - Test balance queries with mocked Solana connection
     - Test purchase initiation returns 402
     - Test payment verification with valid payment

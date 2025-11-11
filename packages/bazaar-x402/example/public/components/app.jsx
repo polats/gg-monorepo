@@ -23,6 +23,8 @@ export function App() {
   const [listings, setListings] = useState([]);
   const [mysteryBoxes, setMysteryBoxes] = useState([]);
   const [itemPrices, setItemPrices] = useState({}); // Track price for each item
+  const [balance, setBalance] = useState(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
   
   // Message states
   const [inventoryMessage, setInventoryMessage] = useState(null);
@@ -36,6 +38,30 @@ export function App() {
     setter({ message, type });
     setTimeout(() => setter(null), 5000);
   }, []);
+  
+  /**
+   * Load user balance
+   */
+  const loadBalance = useCallback(async () => {
+    if (!username) return;
+    
+    setBalanceLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/balance/${username}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load balance');
+      }
+      
+      const balanceData = await response.json();
+      setBalance(balanceData);
+    } catch (error) {
+      console.error('Error loading balance:', error);
+      setBalance(null);
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, [username]);
   
   /**
    * Load user inventory
@@ -151,7 +177,7 @@ export function App() {
     
     try {
       const response = await fetch(
-        `${API_BASE}/bazaar/purchase/${listingId}?buyer=${username}&buyerWallet=${walletAddress}`
+        `${API_BASE}/bazaar/purchase-with-currency/${listingId}?buyer=${username}&buyerWallet=${walletAddress}`
       );
       
       if (!response.ok) {
@@ -162,11 +188,12 @@ export function App() {
       const result = await response.json();
       showMessage(
         setListingsMessage, 
-        `✅ Purchase successful! Got ${result.item.name || result.item.id}`, 
+        `✅ Purchase successful! Got ${result.item.name || result.item.id}. New balance: $${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...)`, 
         'success'
       );
       loadInventory();
       loadListings();
+      loadBalance(); // Update balance after purchase
     } catch (error) {
       showMessage(setListingsMessage, `❌ Error: ${error.message}`, 'error');
     }
@@ -182,7 +209,9 @@ export function App() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/bazaar/mystery-box/${tierId}`);
+      const response = await fetch(
+        `${API_BASE}/bazaar/mystery-box-with-currency/${tierId}?buyer=${username}&buyerWallet=${walletAddress}`
+      );
       
       if (!response.ok) {
         const error = await response.json();
@@ -193,9 +222,10 @@ export function App() {
       const item = result.item;
       showMessage(
         setMysteryMessage,
-        `✅ You got a ${item.rarity} ${item.name}! 🎉`, 
+        `✅ You got a ${item.rarity} ${item.name}! New balance: $${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...) 🎉`, 
         'success'
       );
+      loadBalance(); // Update balance after purchase
     } catch (error) {
       showMessage(setMysteryMessage, `❌ Error: ${error.message}`, 'error');
     }
@@ -214,11 +244,12 @@ export function App() {
   // Load data when wallet connects
   useEffect(() => {
     if (connected && username) {
+      loadBalance();
       loadInventory();
       loadListings();
       loadMysteryBoxes();
     }
-  }, [connected, username, loadInventory, loadListings, loadMysteryBoxes]);
+  }, [connected, username, loadBalance, loadInventory, loadListings, loadMysteryBoxes]);
   
   // Initial load of public data
   useEffect(() => {
@@ -232,7 +263,27 @@ export function App() {
       <header>
         <h1>🎪 Bazaar x402 Marketplace</h1>
         <p className="badge">🔧 Mock Mode - No Real Payments Required</p>
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'center' }}>
+          {connected && balance && (
+            <div style={{ 
+              padding: '8px 16px', 
+              background: '#2a2a2a', 
+              borderRadius: '8px',
+              border: '1px solid #444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '20px' }}>💰</span>
+              <div>
+                <div style={{ fontSize: '12px', color: '#999' }}>Balance</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#4CAF50' }}>
+                  {balanceLoading ? '...' : `$${balance.amount.toFixed(2)}`}
+                </div>
+                <div style={{ fontSize: '10px', color: '#666' }}>{balance.currency}</div>
+              </div>
+            </div>
+          )}
           <WalletButton />
         </div>
       </header>
