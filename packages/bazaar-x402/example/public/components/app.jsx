@@ -204,9 +204,26 @@ export function App() {
         setPaymentStatus(status);
       });
       
+      console.log('📦 Purchase result:', result);
+      console.log('📦 Item data:', result.item);
+      
+      const itemName = result.item?.name || result.item?.id || result.item?.itemId || 'item';
+      const balanceText = result.newBalance !== undefined 
+        ? ` New balance: ${result.newBalance.toFixed(2)}` 
+        : '';
+      
+      const txSignature = result.txId || result.txHash;
+      let txText = '';
+      if (txSignature) {
+        // Determine network for explorer link (devnet or mainnet)
+        const network = window.location.hostname === 'localhost' ? 'devnet' : 'mainnet-beta';
+        const explorerUrl = `https://solscan.io/tx/${txSignature}?cluster=${network}`;
+        txText = ` <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color: #4CAF50; text-decoration: underline;">View on Solscan</a>`;
+      }
+      
       showMessage(
         setListingsMessage, 
-        `✅ Purchase successful! Got ${result.item.name || result.item.id}. New balance: ${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...)`, 
+        `✅ Purchase successful! Got ${itemName}.${balanceText}${txText}`, 
         'success'
       );
       setPaymentStatus(null);
@@ -237,9 +254,24 @@ export function App() {
       });
       
       const item = result.item;
+      const itemName = item?.name || item?.id || item?.itemId || 'item';
+      const itemRarity = item?.rarity || 'mystery';
+      const balanceText = result.newBalance !== undefined 
+        ? ` New balance: ${result.newBalance.toFixed(2)}` 
+        : '';
+      
+      const txSignature = result.txId || result.txHash;
+      let txText = '';
+      if (txSignature) {
+        // Determine network for explorer link (devnet or mainnet)
+        const network = window.location.hostname === 'localhost' ? 'devnet' : 'mainnet-beta';
+        const explorerUrl = `https://solscan.io/tx/${txSignature}?cluster=${network}`;
+        txText = ` <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" style="color: #4CAF50; text-decoration: underline;">View on Solscan</a>`;
+      }
+      
       showMessage(
         setMysteryMessage,
-        `✅ You got a ${item.rarity} ${item.name}! New balance: ${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...) 🎉`, 
+        `✅ You got a ${itemRarity} ${itemName}!${balanceText}${txText} 🎉`, 
         'success'
       );
       setPaymentStatus(null);
@@ -390,9 +422,10 @@ export function App() {
         <div className="card">
           <h2>🛍️ Active Marketplace</h2>
           {listingsMessage && (
-            <div className={`message ${listingsMessage.type}`}>
-              {listingsMessage.message}
-            </div>
+            <div 
+              className={`message ${listingsMessage.type}`}
+              dangerouslySetInnerHTML={{ __html: listingsMessage.message }}
+            />
           )}
           <button onClick={loadListings} style={{ marginBottom: '16px' }}>
             Refresh Listings
@@ -435,9 +468,10 @@ export function App() {
       <div className="card full-width">
         <h2>🎁 Mystery Boxes</h2>
         {mysteryMessage && (
-          <div className={`message ${mysteryMessage.type}`}>
-            {mysteryMessage.message}
-          </div>
+          <div 
+            className={`message ${mysteryMessage.type}`}
+            dangerouslySetInnerHTML={{ __html: mysteryMessage.message }}
+          />
         )}
         {!connected ? (
           <div style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
