@@ -123,7 +123,9 @@ export function createBazaarRoutes(marketplace: BazaarMarketplace, router: Route
   router.get('/purchase/:listingId', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { listingId } = req.params;
-      const result = await marketplace.handlePurchaseRequest(listingId);
+      const buyerUsername = req.query.buyer as string | undefined;
+      const buyerWallet = req.query.buyerWallet as string | undefined;
+      const result = await marketplace.handlePurchaseRequest(listingId, buyerUsername, buyerWallet);
       
       if (result.requiresPayment) {
         // Real mode: Return 402 Payment Required

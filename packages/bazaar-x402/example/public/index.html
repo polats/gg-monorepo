@@ -169,9 +169,25 @@
     <header>
       <h1>🎪 Bazaar x402 Marketplace</h1>
       <p class="badge">🔧 Mock Mode - No Real Payments Required</p>
+      <div style="margin-top: 20px;">
+        <label style="color: white; margin-right: 10px;">Current User:</label>
+        <select id="userSelect" style="padding: 8px; border-radius: 6px; border: none; font-size: 14px;">
+          <option value="player1">Player 1</option>
+          <option value="player2">Player 2</option>
+          <option value="player3">Player 3</option>
+        </select>
+        <span id="currentUser" style="color: white; margin-left: 10px; font-weight: bold;">player1</span>
+      </div>
     </header>
 
     <div class="grid">
+      <!-- My Inventory Card -->
+      <div class="card">
+        <h2>🎒 My Inventory</h2>
+        <div id="inventoryMessage"></div>
+        <button id="refreshInventory" style="margin-bottom: 16px;">Refresh Inventory</button>
+        <ul id="inventoryList" class="listings"></ul>
+      </div>
       <!-- Create Listing Card -->
       <div class="card">
         <h2>📝 Create Listing</h2>
@@ -195,11 +211,11 @@
           </div>
           <div class="form-group">
             <label>Your Username</label>
-            <input type="text" id="sellerUsername" value="player1" required>
+            <input type="text" id="sellerUsername" value="player1" readonly style="background: #f5f5f5;">
           </div>
           <div class="form-group">
             <label>Your Wallet</label>
-            <input type="text" id="sellerWallet" value="MockWallet123" required>
+            <input type="text" id="sellerWallet" value="wallet-player1" readonly style="background: #f5f5f5;">
           </div>
           <button type="submit">Create Listing</button>
         </form>

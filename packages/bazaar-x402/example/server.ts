@@ -33,7 +33,14 @@ const marketplace = new BazaarMarketplace({
 // Create router and add bazaar routes
 const router = express.Router();
 createBazaarRoutes(marketplace, router);
-app.use('/api', router);
+app.use('/api/bazaar', router);
+
+// Add inventory endpoint
+app.get('/api/inventory/:username', (req, res) => {
+  const { username } = req.params;
+  const items = itemAdapter.getItemsByOwner(username);
+  res.json(items);
+});
 
 // Start server
 app.listen(PORT, () => {

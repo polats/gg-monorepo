@@ -5,6 +5,10 @@
 
 const API_BASE = 'http://localhost:3001/api';
 
+// Current user state
+let currentUser = 'player1';
+let currentWallet = 'wallet-player1';
+
 // Helper to show messages
 function showMessage(elementId, message, type = 'success') {
   const el = document.getElementById(elementId);
@@ -13,6 +17,55 @@ function showMessage(elementId, message, type = 'success') {
     el.innerHTML = '';
   }, 5000);
 }
+
+// User switching
+document.getElementById('userSelect').addEventListener('change', (e) => {
+  currentUser = e.target.value;
+  currentWallet = `wallet-${currentUser}`;
+  document.getElementById('currentUser').textContent = currentUser;
+  document.getElementById('sellerUsername').value = currentUser;
+  document.getElementById('sellerWallet').value = currentWallet;
+  loadInventory();
+  loadListings();
+});
+
+// Load Inventory
+async function loadInventory() {
+  try {
+    const response = await fetch(`${API_BASE}/inventory/${currentUser}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to load inventory');
+    }
+    
+    const items = await response.json();
+    const listEl = document.getElementById('inventoryList');
+    
+    if (items.length === 0) {
+      listEl.innerHTML = '<li style="color: #999;">No items in inventory</li>';
+      return;
+    }
+
+    listEl.innerHTML = items.map(item => `
+      <li class="listing-item">
+        <div class="listing-info">
+          <strong>${item.name}</strong><br>
+          <small>${item.description} | Rarity: ${item.rarity}</small>
+        </div>
+        <button class="buy-btn" onclick="selectItemForListing('${item.id}', '${item.name}', '${item.description}')">List</button>
+      </li>
+    `).join('');
+  } catch (error) {
+    showMessage('inventoryMessage', `❌ Error loading inventory: ${error.message}`, 'error');
+  }
+}
+
+// Select item for listing
+window.selectItemForListing = function(itemId, name, description) {
+  document.getElementById('itemId').value = itemId;
+  document.getElementById('itemDescription').value = description;
+  showMessage('createMessage', `✅ Selected ${name} for listing`, 'success');
+};
 
 // Create Listing
 document.getElementById('createListingForm').addEventListener('submit', async (e) => {
@@ -24,8 +77,8 @@ document.getElementById('createListingForm').addEventListener('submit', async (e
     itemData: {
       description: document.getElementById('itemDescription').value,
     },
-    sellerUsername: document.getElementById('sellerUsername').value,
-    sellerWallet: document.getElementById('sellerWallet').value,
+    sellerUsername: currentUser,
+    sellerWallet: currentWallet,
     priceUSDC: parseFloat(document.getElementById('price').value),
   };
 
@@ -43,6 +96,7 @@ document.getElementById('createListingForm').addEventListener('submit', async (e
 
     const result = await response.json();
     showMessage('createMessage', `✅ Listing created! ID: ${result.id}`, 'success');
+    loadInventory();
     loadListings();
   } catch (error) {
     showMessage('createMessage', `❌ Error: ${error.message}`, 'error');
@@ -62,16 +116,22 @@ async function loadListings() {
       return;
     }
 
-    listEl.innerHTML = data.items.map(listing => `
-      <li class="listing-item">
-        <div class="listing-info">
-          <strong>${listing.itemData?.description || listing.itemType}</strong><br>
-          <small>Seller: ${listing.sellerUsername} | ID: ${listing.id.slice(0, 8)}...</small>
-        </div>
-        <span class="listing-price">$${listing.priceUSDC.toFixed(2)}</span>
-        <button class="buy-btn" onclick="purchaseItem('${listing.id}')">Buy</button>
-      </li>
-    `).join('');
+    listEl.innerHTML = data.items.map(listing => {
+      const isOwnListing = listing.sellerUsername === currentUser;
+      return `
+        <li class="listing-item">
+          <div class="listing-info">
+            <strong>${listing.itemData?.description || listing.itemType}</strong><br>
+            <small>Seller: ${listing.sellerUsername} | ID: ${listing.id.slice(0, 8)}...</small>
+          </div>
+          <span class="listing-price">$${listing.priceUSDC.toFixed(2)}</span>
+          ${isOwnListing 
+            ? '<button class="buy-btn" style="background: #999;" disabled>Your Item</button>'
+            : `<button class="buy-btn" onclick="purchaseItem('${listing.id}')">Buy</button>`
+          }
+        </li>
+      `;
+    }).join('');
   } catch (error) {
     showMessage('listingsMessage', `❌ Error loading listings: ${error.message}`, 'error');
   }
@@ -80,7 +140,7 @@ async function loadListings() {
 // Purchase Item
 window.purchaseItem = async function(listingId) {
   try {
-    const response = await fetch(`${API_BASE}/bazaar/purchase/${listingId}`);
+    const response = await fetch(`${API_BASE}/bazaar/purchase/${listingId}?buyer=${currentUser}&buyerWallet=${currentWallet}`);
     
     if (!response.ok) {
       const error = await response.json();
@@ -88,7 +148,8 @@ window.purchaseItem = async function(listingId) {
     }
 
     const result = await response.json();
-    showMessage('listingsMessage', `✅ Purchase successful! Item: ${result.item.id}`, 'success');
+    showMessage('listingsMessage', `✅ Purchase successful! Got ${result.item.name || result.item.id}`, 'success');
+    loadInventory();
     loadListings();
   } catch (error) {
     showMessage('listingsMessage', `❌ Error: ${error.message}`, 'error');
@@ -137,9 +198,11 @@ window.purchaseMysteryBox = async function(tierId) {
   }
 };
 
-// Refresh button
+// Refresh buttons
 document.getElementById('refreshListings').addEventListener('click', loadListings);
+document.getElementById('refreshInventory').addEventListener('click', loadInventory);
 
 // Initial load
+loadInventory();
 loadListings();
 loadMysteryBoxes();

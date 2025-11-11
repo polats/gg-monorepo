@@ -139,9 +139,15 @@ export class BazaarMarketplace {
    * In real mode: Returns 402 with payment requirements
    * 
    * @param listingId - The listing ID
+   * @param buyerUsername - The buyer's username (for mock mode)
+   * @param buyerWallet - The buyer's wallet (for mock mode)
    * @returns Purchase request result
    */
-  async handlePurchaseRequest(listingId: string): Promise<PurchaseRequestResult> {
+  async handlePurchaseRequest(
+    listingId: string,
+    buyerUsername?: string,
+    buyerWallet?: string
+  ): Promise<PurchaseRequestResult> {
     // Get listing
     const listing = await this.listingManager.getListing(listingId);
     
@@ -163,7 +169,12 @@ export class BazaarMarketplace {
     
     // Mock mode: Complete purchase immediately
     if (this.mockMode) {
-      const result = await this.verifyAndCompletePurchase(listingId, '');
+      const result = await this.verifyAndCompletePurchase(
+        listingId,
+        '',
+        buyerUsername,
+        buyerWallet
+      );
       return {
         requiresPayment: false,
         purchaseResult: result,
@@ -189,11 +200,15 @@ export class BazaarMarketplace {
    * 
    * @param listingId - The listing ID
    * @param paymentHeader - The X-Payment header (empty in mock mode)
+   * @param buyerUsername - The buyer's username (for mock mode)
+   * @param buyerWallet - The buyer's wallet (for mock mode)
    * @returns Purchase result
    */
   async verifyAndCompletePurchase(
     listingId: string,
-    paymentHeader: string
+    paymentHeader: string,
+    buyerUsername?: string,
+    buyerWallet?: string
   ): Promise<{ success: boolean; message: string; item: any; txHash?: string }> {
     // Get listing
     const listing = await this.listingManager.getListing(listingId);
@@ -257,8 +272,13 @@ export class BazaarMarketplace {
       },
     ]);
     
-    // Transfer item (handled by item adapter)
-    // This would be called by the game after receiving the purchase result
+    // Transfer item to buyer
+    const buyer = buyerUsername || 'buyer';
+    await this.config.itemAdapter.transferItem(
+      listing.itemId,
+      listing.sellerUsername,
+      buyer
+    );
     
     return {
       success: true,

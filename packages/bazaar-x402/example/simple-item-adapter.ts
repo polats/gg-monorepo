@@ -51,14 +51,18 @@ export class SimpleItemAdapter implements ItemAdapter<SimpleItem> {
     return item?.owner === username;
   }
 
-  async lockItem(itemId: string): Promise<void> {
+  async validateItemExists(itemId: string): Promise<boolean> {
+    return this.items.has(itemId);
+  }
+
+  async lockItem(itemId: string, username: string): Promise<void> {
     if (this.lockedItems.has(itemId)) {
       throw new Error(`Item ${itemId} is already locked`);
     }
     this.lockedItems.add(itemId);
   }
 
-  async unlockItem(itemId: string): Promise<void> {
+  async unlockItem(itemId: string, username: string): Promise<void> {
     this.lockedItems.delete(itemId);
   }
 
@@ -100,5 +104,23 @@ export class SimpleItemAdapter implements ItemAdapter<SimpleItem> {
   async grantItemToUser(item: SimpleItem, username: string): Promise<void> {
     item.owner = username;
     this.items.set(item.id, item);
+  }
+
+  serializeItem(item: SimpleItem): any {
+    return item;
+  }
+
+  deserializeItem(data: any): SimpleItem {
+    return data as SimpleItem;
+  }
+
+  getItemsByOwner(username: string): SimpleItem[] {
+    const items: SimpleItem[] = [];
+    for (const item of this.items.values()) {
+      if (item.owner === username && !this.lockedItems.has(item.id)) {
+        items.push(item);
+      }
+    }
+    return items;
   }
 }
