@@ -1,38 +1,38 @@
 # Implementation Plan
 
-- [ ] 1. Set up Bazaar package structure
-  - Create monorepo structure under `packages/bazaar/`
+- [x] 1. Set up Bazaar package structure
+  - Create monorepo structure under `packages/bazaar-x402/`
   - Set up three packages: `core`, `server`, and `client`
   - Configure TypeScript with project references
   - Set up package.json files with dependencies
   - Configure build scripts for all packages
   - _Requirements: 1.1, 1.4_
 
-- [ ] 2. Implement core types and interfaces
-- [ ] 2.1 Create listing and payment types
+- [x] 2. Implement core types and interfaces
+- [x] 2.1 Create listing and payment types
   - Define `Listing` interface with all properties
   - Define `PaymentRequirements` and `PaymentPayload` types
   - Define `MysteryBoxTier` and `MysteryBoxPurchase` types
   - Define `Transaction` type for purchase records
-  - Export all types from `@bazaar/core`
+  - Export all types from `@bazaar-x402/core`
   - _Requirements: 1.4, 2.1, 4.1_
 
-- [ ] 2.2 Create adapter interfaces
+- [x] 2.2 Create adapter interfaces
   - Define `StorageAdapter` interface with all methods
   - Define `ItemAdapter` interface with generic type support
   - Define `PaymentAdapter` interface for mock/real payment handling
   - Add JSDoc comments for all interface methods
   - _Requirements: 1.3, 5.1, 6.1_
 
-- [ ] 2.3 Create utility functions
+- [x] 2.3 Create utility functions
   - Implement USDC decimal conversion utilities
   - Implement validation helpers for listings and payments
   - Implement error classes with error codes
   - Add unit tests for all utilities
   - _Requirements: 1.4, 7.2_
 
-- [ ] 3. Implement server SDK with mock payment support
-- [ ] 3.1 Create mock payment adapter
+- [x] 3. Implement server SDK with mock payment support
+- [x] 3.1 Create mock payment adapter
   - Implement `MockPaymentAdapter` class
   - Add payment verification bypass logic
   - Add mock transaction hash generation
@@ -40,7 +40,7 @@
   - Write unit tests for mock adapter
   - _Requirements: 3.1, 3.2_
 
-- [ ] 3.2 Create memory storage adapter
+- [x] 3.2 Create memory storage adapter
   - Implement `MemoryStorageAdapter` for testing
   - Use Map/Set for in-memory storage
   - Implement all `StorageAdapter` methods
@@ -48,7 +48,7 @@
   - Write unit tests for memory adapter
   - _Requirements: 5.3_
 
-- [ ] 3.3 Implement listing manager
+- [x] 3.3 Implement listing manager
   - Create `ListingManager` class
   - Implement `createListing` with item validation and locking
   - Implement `cancelListing` with item unlocking
@@ -58,7 +58,7 @@
   - Write unit tests with mock adapters
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 3.4 Implement mystery box manager
+- [x] 3.4 Implement mystery box manager
   - Create `MysteryBoxManager` class
   - Implement tier configuration loading
   - Implement random item generation with weighted rarities
@@ -67,7 +67,7 @@
   - Write unit tests with mock item adapter
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 3.5 Create main marketplace class
+- [x] 3.5 Create main marketplace class
   - Implement `BazaarMarketplace` class with constructor
   - Integrate `ListingManager` and `MysteryBoxManager`
   - Implement `handlePurchaseRequest` (returns 200 in mock mode)
@@ -77,7 +77,7 @@
   - Write integration tests
   - _Requirements: 1.1, 1.2, 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 3.6 Create Express middleware integration
+- [x] 3.6 Create Express middleware integration
   - Implement `createBazaarRoutes` function
   - Add GET `/api/bazaar/listings` endpoint
   - Add POST `/api/bazaar/listings` endpoint
@@ -88,8 +88,8 @@
   - Write integration tests for all routes
   - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 4. Implement client SDK with mock wallet support
-- [ ] 4.1 Create mock wallet adapter
+- [x] 4. Implement client SDK with mock wallet support
+- [x] 4.1 Create mock wallet adapter
   - Implement `MockWalletAdapter` class
   - Add mock public key generation
   - Add mock transaction signing
@@ -97,7 +97,7 @@
   - Write unit tests for mock wallet
   - _Requirements: 8.4_
 
-- [ ] 4.2 Create BazaarClient class
+- [x] 4.2 Create BazaarClient class
   - Implement constructor with configuration
   - Implement `getActiveListings` method
   - Implement `createListing` method
@@ -107,7 +107,7 @@
   - Write unit tests with mock fetch
   - _Requirements: 8.1, 8.2, 8.3_
 
-- [ ] 4.3 Implement mock purchase flow
+- [x] 4.3 Implement mock purchase flow
   - Implement `purchaseItem` with mock mode check
   - In mock mode: simple GET request without payment
   - Add error handling and retry logic
@@ -115,12 +115,22 @@
   - Write integration tests
   - _Requirements: 3.1, 3.2, 8.4_
 
-- [ ] 4.4 Implement mystery box client methods
+- [x] 4.4 Implement mystery box client methods
   - Implement `getMysteryBoxTiers` method
   - Integrate with purchase flow
   - Add UI-friendly error messages
   - Write unit tests
   - _Requirements: 4.1, 4.2, 8.4_
+
+- [x] 4.5 Create standalone example application
+  - Create `packages/bazaar-x402/example` directory
+  - Set up simple Express server with bazaar routes
+  - Create HTML/JS client demo page
+  - Demonstrate listing creation and browsing
+  - Demonstrate item purchase flow (mock mode)
+  - Demonstrate mystery box purchase
+  - Add README with setup instructions
+  - _Requirements: 8.4, 10.2, 10.3_
 
 - [ ] 5. Create Goblin Gardens integration example
 - [ ] 5.1 Implement GemItemAdapter

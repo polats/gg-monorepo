@@ -1,0 +1,24 @@
+{
+  "name": "bazaar-x402-example",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Example application demonstrating Bazaar x402 marketplace",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx server.ts"
+  },
+  "dependencies": {
+    "@bazaar-x402/server": "workspace:*",
+    "@bazaar-x402/client": "workspace:*",
+    "@bazaar-x402/core": "workspace:*",
+    "express": "^5.0.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.2"
+  }
+}

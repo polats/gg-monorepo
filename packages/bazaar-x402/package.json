@@ -1,0 +1,23 @@
+{
+  "name": "bazaar-x402",
+  "version": "0.1.0",
+  "private": true,
+  "description": "P2P marketplace library for virtual item trading with x402 payments",
+  "scripts": {
+    "build": "pnpm --filter @bazaar-x402/core build && pnpm --filter @bazaar-x402/server build && pnpm --filter @bazaar-x402/client build",
+    "dev": "pnpm --filter @bazaar-x402/core --filter @bazaar-x402/server --filter @bazaar-x402/client --parallel dev",
+    "clean": "pnpm --filter @bazaar-x402/core --filter @bazaar-x402/server --filter @bazaar-x402/client clean",
+    "type-check": "pnpm --filter @bazaar-x402/core --filter @bazaar-x402/server --filter @bazaar-x402/client type-check"
+  },
+  "keywords": [
+    "marketplace",
+    "x402",
+    "solana",
+    "usdc",
+    "p2p",
+    "trading",
+    "virtual-items"
+  ],
+  "author": "",
+  "license": "MIT"
+}
