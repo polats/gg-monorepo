@@ -1,0 +1,49 @@
+name: Test
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['main', 'develop']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/goblin-gardens/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/goblin-gardens
+      
+      - name: Run client tests
+        run: npm run test:client
+        working-directory: apps/goblin-gardens
+      
+      - name: Run server tests
+        run: npm run test:server
+        working-directory: apps/goblin-gardens
+      
+      - name: Generate coverage report
+        run: npm run test:coverage
+        working-directory: apps/goblin-gardens
+      
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: apps/goblin-gardens/coverage/
+      
+      - name: Check coverage thresholds
+        run: npm run test:coverage -- --reporter=json --reporter=text
+        working-directory: apps/goblin-gardens

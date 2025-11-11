@@ -86,19 +86,19 @@
   - Support headers, body, query, params
   - _Requirements: 8.4_
 
-- [ ] 3. Implement API client tests
+- [x] 3. Implement API client tests
   - Test HTTP request construction
   - Test response handling
   - Test error scenarios
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8_
 
-- [ ] 3.1 Create API client test file
+- [x] 3.1 Create API client test file
   - Create src/client/utils/__tests__/api-client.test.ts
   - Set up test suite with beforeEach hooks
   - Mock global fetch function
   - _Requirements: 2.1, 2.2_
 
-- [ ] 3.2 Test init endpoint
+- [x] 3.2 Test init endpoint
   - Test successful init request
   - Test correct URL and headers
   - Test response parsing
@@ -106,28 +106,28 @@
   - Test HTTP error handling
   - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 3.3 Test savePlayerState endpoint
+- [x] 3.3 Test savePlayerState endpoint
   - Test successful save request
   - Test correct headers including X-Username
   - Test request body serialization
   - Test error handling
   - _Requirements: 2.2, 2.3, 2.7_
 
-- [ ] 3.4 Test loadPlayerState endpoint
+- [x] 3.4 Test loadPlayerState endpoint
   - Test successful load request
   - Test response deserialization
   - Test null state handling
   - Test error handling
   - _Requirements: 2.3, 2.8_
 
-- [ ] 3.5 Test offers endpoints
+- [x] 3.5 Test offers endpoints
   - Test getOffers with pagination
   - Test updateOffer request
   - Test removeOffer request
   - Test error handling for all offer operations
   - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 3.6 Test trade execution endpoint
+- [x] 3.6 Test trade execution endpoint
   - Test executeTrade request
   - Test request payload structure
   - Test success response handling
@@ -313,57 +313,57 @@
   - Test error logging for debugging
   - _Requirements: 10.8_
 
-- [ ] 7. Set up GitHub Actions CI/CD
+- [x] 7. Set up GitHub Actions CI/CD
   - Create workflow file
   - Configure test execution
   - Set up coverage reporting
   - Configure failure notifications
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 9.10_
 
-- [ ] 7.1 Create GitHub Actions workflow file
+- [x] 7.1 Create GitHub Actions workflow file
   - Create .github/workflows/test.yml
   - Configure triggers for push and pull_request
   - Set up Ubuntu runner
   - _Requirements: 9.1, 9.2_
 
-- [ ] 7.2 Configure Node.js setup
+- [x] 7.2 Configure Node.js setup
   - Use actions/setup-node@v4
   - Set Node.js version to 20
   - Enable npm caching
   - _Requirements: 9.3_
 
-- [ ] 7.3 Add dependency installation step
+- [x] 7.3 Add dependency installation step
   - Run npm ci in goblin-gardens directory
   - Ensure clean install from package-lock.json
   - _Requirements: 9.3_
 
-- [ ] 7.4 Add client test execution step
+- [x] 7.4 Add client test execution step
   - Run npm run test:client
   - Execute in goblin-gardens directory
   - _Requirements: 9.4_
 
-- [ ] 7.5 Add server test execution step
+- [x] 7.5 Add server test execution step
   - Run npm run test:server
   - Execute in goblin-gardens directory
   - _Requirements: 9.5_
 
-- [ ] 7.6 Add coverage report generation
+- [x] 7.6 Add coverage report generation
   - Run npm run test:coverage
   - Generate HTML and LCOV reports
   - _Requirements: 9.8_
 
-- [ ] 7.7 Configure coverage artifact upload
+- [x] 7.7 Configure coverage artifact upload
   - Use actions/upload-artifact@v4
   - Upload coverage directory
   - Name artifact "coverage-report"
   - _Requirements: 9.8_
 
-- [ ] 7.8 Add coverage threshold check
+- [x] 7.8 Add coverage threshold check
   - Run coverage with JSON reporter
   - Fail workflow if thresholds not met
   - _Requirements: 9.9_
 
-- [ ] 7.9 Configure workflow status reporting
+- [x] 7.9 Configure workflow status reporting
   - Ensure failed tests mark workflow as failed
   - Ensure passed tests mark workflow as successful
   - Display test summary in Actions tab
