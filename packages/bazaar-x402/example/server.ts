@@ -1,17 +1,31 @@
 /**
  * Example Bazaar x402 server
- * Demonstrates how to set up a marketplace with mock payment support
+ * Demonstrates how to set up a marketplace with configurable payment modes
  */
 
 import express from 'express';
 import cors from 'cors';
 import { BazaarMarketplace, createBazaarRoutes } from '@bazaar-x402/server';
 import { MemoryStorageAdapter, MockPaymentAdapter } from '@bazaar-x402/server';
-import { MockCurrencyAdapter } from '@bazaar-x402/core';
+import {
+  loadAndValidateConfig,
+  getConfigSummary,
+  createCurrencyAdapter,
+} from '@bazaar-x402/core';
 import { SimpleItemAdapter } from './simple-item-adapter.js';
 
 const app = express();
 const PORT = 3001;
+
+// Load and validate configuration from environment
+let config;
+try {
+  config = loadAndValidateConfig(process.env);
+  console.log(getConfigSummary(config));
+} catch (error) {
+  console.error('❌ Configuration error:', error instanceof Error ? error.message : error);
+  process.exit(1);
+}
 
 // Middleware
 app.use(cors());
@@ -23,19 +37,19 @@ const storageAdapter = new MemoryStorageAdapter();
 const paymentAdapter = new MockPaymentAdapter();
 const itemAdapter = new SimpleItemAdapter();
 
-// Create currency adapter with default configuration (1000 USDC starting balance)
-const currencyAdapter = new MockCurrencyAdapter({
-  defaultBalance: 1000,
-  useRedis: false,
-  txIdPrefix: 'MOCK',
+// Create currency adapter based on configuration
+const currencyAdapter = createCurrencyAdapter({
+  config,
+  verbose: true,
 });
 
 // Create marketplace instance
+// mockMode should match the payment mode from configuration
 const marketplace = new BazaarMarketplace({
   storageAdapter,
   paymentAdapter,
   itemAdapter,
-  mockMode: true, // Enable mock mode for easy testing
+  mockMode: config.mode === 'mock', // Use config to determine mock mode
 });
 
 // Initialize sample listings for testing
@@ -147,8 +161,16 @@ initializeSampleListings().catch(console.error);
 
 // Create router and add bazaar routes
 const router = express.Router();
-createBazaarRoutes(marketplace, router);
+createBazaarRoutes(marketplace, router as any); // Type assertion to handle Express version mismatch
 app.use('/api/bazaar', router);
+
+// Configuration endpoint
+app.get('/api/config', (req, res) => {
+  res.json({
+    mode: config.mode,
+    network: config.mode === 'production' ? config.x402Config?.network : undefined,
+  });
+});
 
 // Add inventory endpoint
 app.get('/api/inventory/:username', (req, res) => {
@@ -193,6 +215,52 @@ app.post('/api/balance/add', async (req, res) => {
     console.error('Error adding balance:', error);
     res.status(500).json({
       error: 'Failed to add balance',
+      message: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Transaction history endpoint
+app.get('/api/transactions/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { page, limit, sortOrder } = req.query;
+    
+    // Parse pagination parameters
+    const options = {
+      page: page ? parseInt(page as string, 10) : 1,
+      limit: limit ? parseInt(limit as string, 10) : 20,
+      sortOrder: (sortOrder as 'asc' | 'desc') || 'desc',
+    };
+    
+    // Validate pagination parameters
+    if (options.page < 1) {
+      return res.status(400).json({
+        error: 'Invalid page',
+        message: 'Page must be greater than 0',
+      });
+    }
+    
+    if (options.limit < 1 || options.limit > 100) {
+      return res.status(400).json({
+        error: 'Invalid limit',
+        message: 'Limit must be between 1 and 100',
+      });
+    }
+    
+    // Get transactions
+    const transactions = await currencyAdapter.getTransactions(userId, options);
+    
+    res.json({
+      transactions,
+      page: options.page,
+      limit: options.limit,
+      count: transactions.length,
+    });
+  } catch (error) {
+    console.error('Error getting transactions:', error);
+    res.status(500).json({
+      error: 'Failed to get transactions',
       message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
@@ -388,7 +456,16 @@ app.get('/api/bazaar/mystery-box-with-currency/:tierId', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🎪 Bazaar example server running on http://localhost:${PORT}`);
-  console.log(`📖 Open http://localhost:${PORT} to see the demo`);
-  console.log(`🔧 Mock mode enabled - no real payments required`);
+  console.log(`\n🎪 Bazaar example server running on http://localhost:${PORT}`);
+  console.log(`\n💳 Payment Mode: ${config.mode}`);
+  
+  if (config.mode === 'mock') {
+    console.log(`🔧 Mock mode enabled - no real payments required`);
+    console.log(`💰 Default balance: ${config.mockConfig?.defaultBalance} USDC`);
+  } else if (config.mode === 'production') {
+    console.log(`⚡ Production mode - real USDC payments via x402`);
+    console.log(`🌐 Network: ${config.x402Config?.network}`);
+  }
+  
+  console.log('');
 });

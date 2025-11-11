@@ -7,6 +7,7 @@
 import type {
   StorageAdapter,
   ItemAdapter,
+  CurrencyAdapter,
   Listing,
   PaginationOptions,
   PaginatedResult,
@@ -40,11 +41,58 @@ export interface CreateListingParams {
 }
 
 /**
+ * Parameters for purchasing a listing
+ */
+export interface PurchaseListingParams {
+  /** Listing ID to purchase */
+  listingId: string;
+  
+  /** Buyer's username */
+  buyerUsername: string;
+  
+  /** Buyer's wallet address */
+  buyerWallet: string;
+  
+  /** Optional payment header (for x402 mode) */
+  paymentHeader?: string;
+}
+
+/**
+ * Result of listing purchase
+ */
+export interface PurchaseListingResult {
+  /** Whether purchase was successful */
+  success: boolean;
+  
+  /** HTTP status code (402 if payment required, 200 if success) */
+  status: number;
+  
+  /** Payment requirements (if status is 402) */
+  paymentRequired?: any;
+  
+  /** Transaction hash (if successful) */
+  txHash?: string;
+  
+  /** Network ID (if successful) */
+  networkId?: string;
+  
+  /** Purchased listing details (if successful) */
+  listing?: Listing;
+  
+  /** Error message (if failed) */
+  error?: string;
+}
+
+/**
  * Listing manager class
  * 
  * @example
  * ```typescript
- * const listingManager = new ListingManager(storageAdapter, itemAdapter);
+ * const listingManager = new ListingManager(
+ *   storageAdapter,
+ *   itemAdapter,
+ *   currencyAdapter
+ * );
  * 
  * const listing = await listingManager.createListing({
  *   itemId: 'gem-123',
@@ -58,7 +106,8 @@ export interface CreateListingParams {
 export class ListingManager {
   constructor(
     private storageAdapter: StorageAdapter,
-    private itemAdapter: ItemAdapter
+    private itemAdapter: ItemAdapter,
+    private currencyAdapter: CurrencyAdapter
   ) {}
   
   /**
@@ -224,6 +273,188 @@ export class ListingManager {
    */
   async getListing(listingId: string): Promise<Listing | null> {
     return await this.storageAdapter.getListing(listingId);
+  }
+  
+  /**
+   * Purchase a listing
+   * 
+   * This method handles both mock and x402 payment modes:
+   * 
+   * Mock mode:
+   * 1. Checks buyer balance
+   * 2. Deducts currency from buyer
+   * 3. Adds currency to seller
+   * 4. Transfers item ownership
+   * 5. Marks listing as sold
+   * 6. Creates transaction records
+   * 
+   * x402 mode (without payment header):
+   * 1. Returns 402 Payment Required with payment requirements
+   * 
+   * x402 mode (with payment header):
+   * 1. Verifies payment on-chain
+   * 2. Transfers item ownership
+   * 3. Marks listing as sold
+   * 4. Creates transaction records
+   * 
+   * @param params - Purchase parameters
+   * @returns Purchase result
+   * @throws {BazaarError} If validation fails or purchase cannot be completed
+   */
+  async purchaseListing(params: PurchaseListingParams): Promise<PurchaseListingResult> {
+    // Get listing
+    const listing = await this.storageAdapter.getListing(params.listingId);
+    
+    if (!listing) {
+      throw new BazaarError(
+        'LISTING_NOT_FOUND',
+        `Listing ${params.listingId} not found`,
+        404
+      );
+    }
+    
+    // Validate listing is active
+    if (listing.status !== 'active') {
+      throw new BazaarError(
+        'LISTING_NOT_ACTIVE',
+        `Listing ${params.listingId} is not active (status: ${listing.status})`,
+        400
+      );
+    }
+    
+    // Validate buyer is not seller
+    if (listing.sellerUsername === params.buyerUsername) {
+      throw new BazaarError(
+        'CANNOT_BUY_OWN_LISTING',
+        'Cannot purchase your own listing',
+        400
+      );
+    }
+    
+    // Handle payment based on mode
+    let txHash: string;
+    let networkId: string;
+    
+    if (!params.paymentHeader) {
+      // No payment header: initiate purchase
+      const initiation = await this.currencyAdapter.initiatePurchase({
+        buyerId: params.buyerUsername,
+        sellerId: listing.sellerUsername,
+        amount: listing.priceUSDC,
+        resource: `/api/listings/${params.listingId}`,
+        description: `Purchase ${listing.itemType} from ${listing.sellerUsername}`,
+      });
+      
+      // If payment is required (x402 mode), return 402
+      if (initiation.paymentRequired) {
+        return {
+          success: false,
+          status: 402,
+          paymentRequired: initiation.requirements,
+        };
+      }
+      
+      // Mock mode: payment already processed
+      // Deduct from buyer and add to seller
+      try {
+        const deduction = await this.currencyAdapter.deduct(
+          params.buyerUsername,
+          listing.priceUSDC
+        );
+        txHash = deduction.txId;
+        networkId = 'mock';
+        
+        // Add currency to seller
+        await this.currencyAdapter.add(
+          listing.sellerUsername,
+          listing.priceUSDC
+        );
+      } catch (error) {
+        throw new BazaarError(
+          'CURRENCY_TRANSFER_FAILED',
+          `Failed to transfer currency: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          500
+        );
+      }
+    } else {
+      // x402 mode with payment header: verify payment
+      try {
+        const verification = await this.currencyAdapter.verifyPurchase({
+          paymentHeader: params.paymentHeader,
+          expectedAmount: listing.priceUSDC,
+          expectedRecipient: listing.sellerWallet,
+        });
+        
+        if (!verification.success) {
+          throw new BazaarError(
+            'PAYMENT_VERIFICATION_FAILED',
+            verification.error || 'Payment verification failed',
+            400
+          );
+        }
+        
+        txHash = verification.txHash;
+        networkId = verification.networkId;
+      } catch (error) {
+        throw new BazaarError(
+          'PAYMENT_VERIFICATION_ERROR',
+          `Payment verification error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          500
+        );
+      }
+    }
+    
+    // Transfer item ownership
+    try {
+      await this.itemAdapter.transferItem(
+        listing.itemId,
+        listing.sellerUsername,
+        params.buyerUsername
+      );
+    } catch (error) {
+      throw new BazaarError(
+        'ITEM_TRANSFER_FAILED',
+        `Failed to transfer item: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        500
+      );
+    }
+    
+    // Mark listing as sold
+    await this.storageAdapter.updateListingStatus(params.listingId, 'sold');
+    
+    // Create transaction record for buyer
+    await this.currencyAdapter.recordTransaction({
+      id: `${txHash}-buyer`,
+      userId: params.buyerUsername,
+      type: 'listing_purchase',
+      amount: listing.priceUSDC,
+      txId: txHash,
+      networkId,
+      timestamp: Date.now(),
+      listingId: params.listingId,
+      itemId: listing.itemId,
+    });
+    
+    // Create transaction record for seller
+    await this.currencyAdapter.recordTransaction({
+      id: `${txHash}-seller`,
+      userId: listing.sellerUsername,
+      type: 'listing_sale',
+      amount: listing.priceUSDC,
+      txId: txHash,
+      networkId,
+      timestamp: Date.now(),
+      listingId: params.listingId,
+      itemId: listing.itemId,
+    });
+    
+    return {
+      success: true,
+      status: 200,
+      txHash,
+      networkId,
+      listing,
+    };
   }
   
   // ===== Private Helper Methods =====

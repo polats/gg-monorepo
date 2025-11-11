@@ -74,22 +74,22 @@
     - Show transaction confirmation messages
     - _Requirements: 4.3, 4.4, 5.4, 5.5, 7.1, 7.2_
 
-- [ ] 4. Implement x402 payment protocol types and utilities
-  - [ ] 4.1 Create x402 protocol types
+- [x] 4. Implement x402 payment protocol types and utilities
+  - [x] 4.1 Create x402 protocol types
     - Define PaymentRequirements interface
     - Define PaymentPayload interface
     - Define PaymentRequiredResponse interface
     - Add x402 version constant and header constants
     - _Requirements: 3.1, 3.2_
 
-  - [ ] 4.2 Implement payment header encoding/decoding utilities
+  - [x] 4.2 Implement payment header encoding/decoding utilities
     - Create encodePaymentHeader() function for Base64 encoding
     - Create decodePaymentHeader() function for Base64 decoding
     - Add payload validation function
     - Handle encoding/decoding errors gracefully
     - _Requirements: 3.2, 10.1, 10.2_
 
-  - [ ] 4.3 Create payment requirements builder
+  - [x] 4.3 Create payment requirements builder
     - Implement createPaymentRequirements() function
     - Convert USDC amount to smallest unit (6 decimals)
     - Include network-specific USDC mint address
@@ -104,15 +104,15 @@
     - _Requirements: 3.1, 3.2, 10.1_
 
 
-- [ ] 5. Implement X402Facilitator for payment verification
-  - [ ] 5.1 Create X402Facilitator class
+- [x] 5. Implement X402Facilitator for payment verification
+  - [x] 5.1 Create X402Facilitator class
     - Initialize Solana Connection with network-specific RPC
     - Implement verifyPayment() method
     - Decode and validate payment payload
     - Verify network, amount, and recipient match requirements
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 8.5_
 
-  - [ ] 5.2 Implement on-chain transaction verification
+  - [x] 5.2 Implement on-chain transaction verification
     - Create verifyTransactionOnChain() method
     - Poll Solana blockchain for transaction confirmation
     - Implement retry logic with configurable attempts and intervals
@@ -120,7 +120,7 @@
     - Return verification result with transaction hash
     - _Requirements: 3.3, 3.7, 3.8, 8.5, 10.6_
 
-  - [ ] 5.3 Add network-specific configuration
+  - [x] 5.3 Add network-specific configuration
     - Support devnet and mainnet RPC endpoints
     - Use network-specific USDC mint addresses
     - Validate transactions against correct network
@@ -136,22 +136,22 @@
     - Test transaction polling with timeout
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 6. Implement X402CurrencyAdapter
-  - [ ] 6.1 Create X402CurrencyAdapter class implementing CurrencyAdapter interface
+- [x] 6. Implement X402CurrencyAdapter
+  - [x] 6.1 Create X402CurrencyAdapter class implementing CurrencyAdapter interface
     - Initialize with X402Facilitator and configuration
     - Implement getBalance() to query on-chain USDC balance
     - Cache balance queries for 30 seconds
     - Use network-specific USDC mint address
     - _Requirements: 1.1, 1.2, 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 6.2 Implement purchase initiation (402 response)
+  - [x] 6.2 Implement purchase initiation (402 response)
     - Implement initiatePurchase() method
     - Create payment requirements with seller wallet
     - Return 402 status with payment requirements
     - Include resource URL and description
     - _Requirements: 3.2, 4.1, 4.2_
 
-  - [ ] 6.3 Implement payment verification and completion
+  - [x] 6.3 Implement payment verification and completion
     - Implement verifyPurchase() method
     - Extract X-Payment header from request
     - Call X402Facilitator to verify payment
@@ -159,7 +159,7 @@
     - Handle verification errors appropriately
     - _Requirements: 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 10.1, 10.2, 10.3_
 
-  - [ ] 6.4 Implement transaction history for x402 mode
+  - [x] 6.4 Implement transaction history for x402 mode
     - Store transaction records with blockchain tx hash
     - Include network ID in transaction records
     - Implement getTransactions() method
@@ -208,8 +208,8 @@
     - Test rollback on failure
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-- [ ] 7. Integrate currency adapters with marketplace listings
-  - [ ] 7.1 Update ListingManager to accept CurrencyAdapter
+- [x] 7. Integrate currency adapters with marketplace listings
+  - [x] 7.1 Update ListingManager to accept CurrencyAdapter
     - Add currencyAdapter parameter to constructor
     - Update purchaseListing() to handle both mock and x402 modes
     - Check balance in mock mode
@@ -217,7 +217,7 @@
     - Verify payment in x402 mode with payment header
     - _Requirements: 5.1, 5.2, 5.3_
 
-  - [ ] 7.2 Implement listing purchase with currency transfer
+  - [x] 7.2 Implement listing purchase with currency transfer
     - Deduct currency from buyer (mock mode)
     - Add currency to seller (mock mode)
     - Verify payment on-chain (x402 mode)
@@ -225,7 +225,7 @@
     - Mark listing as sold
     - _Requirements: 5.4, 5.5, 5.6_
 
-  - [ ] 7.3 Create transaction records for buyer and seller
+  - [x] 7.3 Create transaction records for buyer and seller
     - Record buyer transaction with purchase details
     - Record seller transaction with sale details
     - Include blockchain tx hash for x402 mode
@@ -233,7 +233,7 @@
     - Store timestamp and amount
     - _Requirements: 5.7, 7.1, 7.2, 7.3, 7.4_
 
-  - [ ] 7.4 Update listing purchase API endpoint
+  - [x] 7.4 Update listing purchase API endpoint
     - Accept optional X-Payment header
     - Return 402 if using x402 and no payment header
     - Verify payment if payment header provided
@@ -251,8 +251,8 @@
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
 
 
-- [ ] 8. Add balance query API endpoints
-  - [ ] 8.1 Create GET /api/balance endpoint
+- [x] 8. Add balance query API endpoints
+  - [x] 8.1 Create GET /api/balance endpoint
     - Accept user ID from authentication
     - Query balance using currency adapter
     - Return balance in USDC format
@@ -260,7 +260,7 @@
     - Cache balance for 30 seconds in x402 mode
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 8.2 Create GET /api/transactions endpoint
+  - [x] 8.2 Create GET /api/transactions endpoint
     - Accept user ID from authentication
     - Support pagination parameters (page, limit)
     - Query transactions using currency adapter
@@ -276,8 +276,8 @@
     - Test transaction history filtering by type
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.5, 7.6, 7.7_
 
-- [ ] 9. Implement configuration and environment management
-  - [ ] 9.1 Create configuration loader
+- [x] 9. Implement configuration and environment management
+  - [x] 9.1 Create configuration loader
     - Load PAYMENT_MODE from environment
     - Load SOLANA_NETWORK from environment
     - Load RPC endpoints for devnet and mainnet
@@ -286,7 +286,7 @@
     - Load transaction polling parameters
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [ ] 9.2 Add configuration validation
+  - [x] 9.2 Add configuration validation
     - Validate payment mode is 'mock' or 'production'
     - Validate network is 'devnet' or 'mainnet'
     - Validate RPC URLs are valid
@@ -294,7 +294,7 @@
     - Fail fast on startup if configuration is invalid
     - _Requirements: 9.6_
 
-  - [ ] 9.3 Create currency adapter factory
+  - [x] 9.3 Create currency adapter factory
     - Implement factory function to create appropriate adapter
     - Return MockCurrencyAdapter if mode is 'mock'
     - Return X402CurrencyAdapter if mode is 'production'
@@ -302,7 +302,7 @@
     - Log active mode and network on initialization
     - _Requirements: 1.4, 9.7_
 
-  - [ ] 9.4 Add example .env file
+  - [x] 9.4 Add example .env file
     - Document all configuration variables
     - Provide example values for devnet
     - Provide example values for mainnet
@@ -357,15 +357,15 @@
     - Test error message sanitization
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.6, 11.7_
 
-- [ ] 11. Update example application
-  - [ ] 11.1 Update example server to use currency adapters
+- [x] 11. Update example application
+  - [x] 11.1 Update example server to use currency adapters
     - Initialize currency adapter based on configuration
     - Pass adapter to MysteryBoxManager and ListingManager
     - Update purchase endpoints to handle x402 flow
     - Add balance and transaction endpoints
     - _Requirements: 1.4, 4.1, 5.1, 6.1, 7.5_
 
-  - [ ] 11.2 Update example client for x402 payment flow
+  - [x] 11.2 Update example client for x402 payment flow
     - Add wallet connection UI component
     - Implement 402 response handling
     - Prompt user to sign transaction on 402
@@ -373,21 +373,21 @@
     - Display transaction confirmation
     - _Requirements: 3.2, 4.1, 5.1_
 
-  - [ ] 11.3 Add balance display to example UI
+  - [x] 11.3 Add balance display to example UI
     - Show current balance in header
     - Update balance after purchases
     - Show loading state during balance queries
     - Handle balance query errors
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 11.4 Add transaction history to example UI
+  - [x] 11.4 Add transaction history to example UI
     - Create transaction history page
     - Display transactions with type, amount, and timestamp
     - Show blockchain tx hash with explorer link
     - Implement pagination for long histories
     - _Requirements: 7.5, 7.6, 7.7_
 
-  - [ ] 11.5 Update example README
+  - [x] 11.5 Update example README
     - Document currency flow setup
     - Explain mock vs production modes
     - Provide devnet testing instructions

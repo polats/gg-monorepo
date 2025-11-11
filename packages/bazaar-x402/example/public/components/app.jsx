@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletButton } from './wallet-button.jsx';
+import { TransactionHistory } from './transaction-history.jsx';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -25,6 +26,7 @@ export function App() {
   const [itemPrices, setItemPrices] = useState({}); // Track price for each item
   const [balance, setBalance] = useState(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const [config, setConfig] = useState(null); // Server configuration
   
   // Message states
   const [inventoryMessage, setInventoryMessage] = useState(null);
@@ -37,6 +39,21 @@ export function App() {
   const showMessage = useCallback((setter, message, type = 'success') => {
     setter({ message, type });
     setTimeout(() => setter(null), 5000);
+  }, []);
+  
+  /**
+   * Load server configuration
+   */
+  const loadConfig = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/config`);
+      if (response.ok) {
+        const configData = await response.json();
+        setConfig(configData);
+      }
+    } catch (error) {
+      console.error('Error loading config:', error);
+    }
   }, []);
   
   /**
@@ -253,16 +270,25 @@ export function App() {
   
   // Initial load of public data
   useEffect(() => {
+    loadConfig();
     loadListings();
     loadMysteryBoxes();
-  }, [loadListings, loadMysteryBoxes]);
+  }, [loadConfig, loadListings, loadMysteryBoxes]);
   
   return (
     <div className="container">
       {/* Header */}
       <header>
         <h1>🎪 Bazaar x402 Marketplace</h1>
-        <p className="badge">🔧 Mock Mode - No Real Payments Required</p>
+        {config && (
+          <p className="badge">
+            {config.mode === 'mock' ? (
+              <>🔧 Mock Mode - No Real Payments Required</>
+            ) : (
+              <>⚡ Production Mode - {config.network === 'solana-mainnet' ? 'Mainnet' : 'Devnet'}</>
+            )}
+          </p>
+        )}
         <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'center' }}>
           {connected && balance && (
             <div style={{ 
@@ -418,6 +444,9 @@ export function App() {
           </div>
         )}
       </div>
+
+      {/* Transaction History */}
+      <TransactionHistory username={username} connected={connected} />
     </div>
   );
 }

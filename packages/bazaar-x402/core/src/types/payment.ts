@@ -2,6 +2,29 @@
  * x402 payment protocol types
  */
 
+// ============================================
+// x402 Protocol Constants
+// ============================================
+
+/**
+ * x402 protocol version
+ */
+export const X402_VERSION = 1;
+
+/**
+ * HTTP header name for payment payload
+ */
+export const X_PAYMENT_HEADER = 'x-payment';
+
+/**
+ * HTTP header name for payment response
+ */
+export const X_PAYMENT_RESPONSE_HEADER = 'x-payment-response';
+
+// ============================================
+// Type Definitions
+// ============================================
+
 /**
  * Solana network identifier
  */

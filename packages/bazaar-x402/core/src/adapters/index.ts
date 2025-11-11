@@ -16,3 +16,6 @@ export * from './currency.js';
 
 // Mock currency adapter
 export * from './mock-currency.js';
+
+// X402 currency adapter
+export * from './x402-currency.js';

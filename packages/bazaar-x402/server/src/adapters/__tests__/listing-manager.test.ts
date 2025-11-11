@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ListingManager } from '../../listing-manager.js';
 import { MemoryStorageAdapter } from '../memory-storage.js';
-import type { ItemAdapter } from '@bazaar-x402/core';
+import type { ItemAdapter, CurrencyAdapter } from '@bazaar-x402/core';
 import { BazaarError } from '@bazaar-x402/core';
 
 // Mock item adapter for testing
@@ -70,15 +70,77 @@ class MockItemAdapter implements ItemAdapter {
   }
 }
 
+// Mock currency adapter for testing
+class MockCurrencyAdapter implements CurrencyAdapter {
+  private balances = new Map<string, number>();
+  private transactions: any[] = [];
+  
+  async getBalance(userId: string) {
+    return {
+      amount: this.balances.get(userId) || 1000,
+      currency: 'MOCK_USDC' as const,
+    };
+  }
+  
+  async deduct(userId: string, amount: number) {
+    const balance = this.balances.get(userId) || 1000;
+    if (balance < amount) {
+      throw new BazaarError('INSUFFICIENT_BALANCE', 'Insufficient balance', 402);
+    }
+    this.balances.set(userId, balance - amount);
+    return {
+      success: true,
+      newBalance: balance - amount,
+      txId: `mock-tx-${Date.now()}`,
+    };
+  }
+  
+  async add(userId: string, amount: number) {
+    const balance = this.balances.get(userId) || 1000;
+    this.balances.set(userId, balance + amount);
+    return {
+      success: true,
+      newBalance: balance + amount,
+      txId: `mock-tx-${Date.now()}`,
+    };
+  }
+  
+  async initiatePurchase(params: any) {
+    return {
+      status: 200,
+      paymentRequired: false,
+      txId: `mock-tx-${Date.now()}`,
+    };
+  }
+  
+  async verifyPurchase(params: any) {
+    return {
+      success: true,
+      txHash: `mock-tx-${Date.now()}`,
+      networkId: 'mock',
+    };
+  }
+  
+  async getTransactions(userId: string, options?: any) {
+    return this.transactions.filter(tx => tx.userId === userId);
+  }
+  
+  async recordTransaction(transaction: any) {
+    this.transactions.push(transaction);
+  }
+}
+
 describe('ListingManager', () => {
   let listingManager: ListingManager;
   let storageAdapter: MemoryStorageAdapter;
   let itemAdapter: MockItemAdapter;
+  let currencyAdapter: MockCurrencyAdapter;
   
   beforeEach(async () => {
     storageAdapter = new MemoryStorageAdapter();
     itemAdapter = new MockItemAdapter();
-    listingManager = new ListingManager(storageAdapter, itemAdapter);
+    currencyAdapter = new MockCurrencyAdapter();
+    listingManager = new ListingManager(storageAdapter, itemAdapter, currencyAdapter);
   });
   
   describe('createListing', () => {

@@ -7,11 +7,13 @@
 import type { Router, Request, Response, NextFunction } from 'express';
 import type { BazaarMarketplace } from './marketplace.js';
 import { BazaarError } from '@bazaar-x402/core';
+import express from 'express';
 
 /**
  * Create Express routes for Bazaar marketplace
  * 
  * @param marketplace - BazaarMarketplace instance
+ * @param router - Optional Express router (creates new one if not provided)
  * @returns Express router with all marketplace routes
  * 
  * @example
@@ -25,7 +27,12 @@ import { BazaarError } from '@bazaar-x402/core';
  * app.use('/api/bazaar', createBazaarRoutes(marketplace));
  * ```
  */
-export function createBazaarRoutes(marketplace: BazaarMarketplace, router: Router): Router {
+export function createBazaarRoutes(marketplace: BazaarMarketplace, router?: Router): Router {
+  // Create router if not provided
+  if (!router) {
+    router = express.Router();
+    router.use(express.json());
+  }
   
   // ===== Listing Routes =====
   
@@ -117,39 +124,61 @@ export function createBazaarRoutes(marketplace: BazaarMarketplace, router: Route
   // ===== Purchase Routes =====
   
   /**
-   * GET /api/bazaar/purchase/:listingId
-   * Initiate purchase (returns 402 in real mode, 200 in mock mode)
+   * POST /api/bazaar/listings/:id/purchase
+   * Purchase a listing
+   * 
+   * Handles both mock and x402 payment modes:
+   * - Without X-Payment header: Returns 402 (x402 mode) or completes purchase (mock mode)
+   * - With X-Payment header: Verifies payment and completes purchase (x402 mode)
    */
-  router.get('/purchase/:listingId', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/listings/:id/purchase', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { listingId } = req.params;
-      const buyerUsername = req.query.buyer as string | undefined;
-      const buyerWallet = req.query.buyerWallet as string | undefined;
-      const result = await marketplace.handlePurchaseRequest(listingId, buyerUsername, buyerWallet);
+      const { id: listingId } = req.params;
+      const { buyerUsername, buyerWallet } = req.body;
+      const paymentHeader = req.headers['x-payment'] as string | undefined;
       
-      if (result.requiresPayment) {
-        // Real mode: Return 402 Payment Required
-        res.status(402).json(result.paymentRequirements);
-      } else {
-        // Mock mode: Return 200 with purchase result
-        res.json(result.purchaseResult);
+      // Validate required fields
+      if (!buyerUsername || !buyerWallet) {
+        throw new BazaarError(
+          'MISSING_BUYER_INFO',
+          'buyerUsername and buyerWallet are required',
+          400
+        );
       }
-    } catch (error) {
-      next(error);
-    }
-  });
-  
-  /**
-   * POST /api/bazaar/purchase/:listingId
-   * Complete purchase with payment verification
-   */
-  router.post('/purchase/:listingId', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { listingId } = req.params;
-      const paymentHeader = req.headers['x-payment'] as string || '';
       
-      const result = await marketplace.verifyAndCompletePurchase(listingId, paymentHeader);
-      res.json(result);
+      // Purchase listing
+      const result = await marketplace.purchaseListing({
+        listingId,
+        buyerUsername,
+        buyerWallet,
+        paymentHeader,
+      });
+      
+      // Handle response based on status
+      if (result.status === 402) {
+        // x402 mode: Payment required
+        res.status(402).json({
+          error: 'PAYMENT_REQUIRED',
+          message: 'Payment required to complete purchase',
+          paymentRequired: result.paymentRequired,
+        });
+      } else if (result.success) {
+        // Purchase completed successfully
+        res.json({
+          success: true,
+          message: 'Listing purchased successfully',
+          listing: result.listing,
+          txHash: result.txHash,
+          networkId: result.networkId,
+        });
+      } else {
+        // Purchase failed
+        throw new BazaarError(
+          'PURCHASE_FAILED',
+          result.error || 'Purchase failed',
+          400
+        );
+      }
     } catch (error) {
       next(error);
     }

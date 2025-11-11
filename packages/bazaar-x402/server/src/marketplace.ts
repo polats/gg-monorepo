@@ -8,11 +8,17 @@ import type {
   StorageAdapter,
   ItemAdapter,
   PaymentAdapter,
+  CurrencyAdapter,
   Listing,
   Transaction,
 } from '@bazaar-x402/core';
 import { BazaarError } from '@bazaar-x402/core';
-import { ListingManager, type CreateListingParams } from './listing-manager.js';
+import {
+  ListingManager,
+  type CreateListingParams,
+  type PurchaseListingParams,
+  type PurchaseListingResult,
+} from './listing-manager.js';
 import { MysteryBoxManager, type PurchaseMysteryBoxParams } from './mystery-box-manager.js';
 
 /**
@@ -25,8 +31,11 @@ export interface BazaarMarketplaceConfig {
   /** Item adapter for game integration */
   itemAdapter: ItemAdapter;
   
-  /** Payment adapter (mock or real) */
-  paymentAdapter: PaymentAdapter;
+  /** Payment adapter (mock or real) - deprecated, use currencyAdapter */
+  paymentAdapter?: PaymentAdapter;
+  
+  /** Currency adapter for currency operations */
+  currencyAdapter?: CurrencyAdapter;
   
   /** Enable mock mode (bypasses payment verification) */
   mockMode?: boolean;
@@ -82,9 +91,19 @@ export class BazaarMarketplace {
   private mockMode: boolean;
   
   constructor(private config: BazaarMarketplaceConfig) {
+    // Use currencyAdapter if provided, otherwise fall back to paymentAdapter for backwards compatibility
+    if (!config.currencyAdapter && !config.paymentAdapter) {
+      throw new BazaarError(
+        'MISSING_ADAPTER',
+        'Either currencyAdapter or paymentAdapter must be provided',
+        500
+      );
+    }
+    
     this.listingManager = new ListingManager(
       config.storageAdapter,
-      config.itemAdapter
+      config.itemAdapter,
+      config.currencyAdapter!
     );
     this.mysteryBoxManager = new MysteryBoxManager(
       config.storageAdapter,
@@ -130,7 +149,22 @@ export class BazaarMarketplace {
     return await this.listingManager.getListing(listingId);
   }
   
-  // ===== Purchase Operations =====
+  /**
+   * Purchase a listing
+   * 
+   * Handles both mock and x402 payment modes:
+   * - Mock mode: Deducts from buyer, adds to seller, transfers item
+   * - x402 mode (no payment header): Returns 402 Payment Required
+   * - x402 mode (with payment header): Verifies payment and transfers item
+   * 
+   * @param params - Purchase parameters
+   * @returns Purchase result
+   */
+  async purchaseListing(params: PurchaseListingParams): Promise<PurchaseListingResult> {
+    return await this.listingManager.purchaseListing(params);
+  }
+  
+  // ===== Purchase Operations (Legacy) =====
   
   /**
    * Handle purchase request
@@ -182,6 +216,14 @@ export class BazaarMarketplace {
     }
     
     // Real mode: Return payment requirements
+    if (!this.config.paymentAdapter) {
+      throw new BazaarError(
+        'MISSING_ADAPTER',
+        'Payment adapter is required for real mode',
+        500
+      );
+    }
+    
     const paymentRequirements = this.config.paymentAdapter.createPaymentRequirements({
       priceUSDC: listing.priceUSDC,
       sellerWallet: listing.sellerWallet,
@@ -230,6 +272,14 @@ export class BazaarMarketplace {
     }
     
     // Verify payment
+    if (!this.config.paymentAdapter) {
+      throw new BazaarError(
+        'MISSING_ADAPTER',
+        'Payment adapter is required for payment verification',
+        500
+      );
+    }
+    
     const verificationResult = await this.config.paymentAdapter.verifyPayment({
       paymentHeader,
       expectedAmount: listing.priceUSDC,
@@ -329,6 +379,14 @@ export class BazaarMarketplace {
     }
     
     // Real mode: Return payment requirements
+    if (!this.config.paymentAdapter) {
+      throw new BazaarError(
+        'MISSING_ADAPTER',
+        'Payment adapter is required for real mode',
+        500
+      );
+    }
+    
     const paymentRequirements = this.config.paymentAdapter.createPaymentRequirements({
       priceUSDC: tier.priceUSDC,
       sellerWallet: 'platform-wallet', // Platform receives mystery box payments
@@ -367,6 +425,14 @@ export class BazaarMarketplace {
     }
     
     // Verify payment
+    if (!this.config.paymentAdapter) {
+      throw new BazaarError(
+        'MISSING_ADAPTER',
+        'Payment adapter is required for payment verification',
+        500
+      );
+    }
+    
     const verificationResult = await this.config.paymentAdapter.verifyPayment({
       paymentHeader,
       expectedAmount: tier.priceUSDC,
