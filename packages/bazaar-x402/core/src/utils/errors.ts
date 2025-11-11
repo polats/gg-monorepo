@@ -28,6 +28,13 @@ export const ErrorCodes = {
   TRANSACTION_NOT_FOUND: 'TRANSACTION_NOT_FOUND',
   INVALID_PAYMENT_PAYLOAD: 'INVALID_PAYMENT_PAYLOAD',
   
+  // Currency errors
+  INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
+  INVALID_AMOUNT: 'INVALID_AMOUNT',
+  CURRENCY_OPERATION_FAILED: 'CURRENCY_OPERATION_FAILED',
+  NETWORK_MISMATCH: 'NETWORK_MISMATCH',
+  BALANCE_QUERY_FAILED: 'BALANCE_QUERY_FAILED',
+  
   // Mystery box errors
   MYSTERY_BOX_TIER_NOT_FOUND: 'MYSTERY_BOX_TIER_NOT_FOUND',
   MYSTERY_BOX_GENERATION_FAILED: 'MYSTERY_BOX_GENERATION_FAILED',
@@ -204,4 +211,81 @@ export function createMysteryBoxTierNotFoundError(tierId: string): BazaarError {
     404,
     { tierId }
   );
+}
+
+/**
+ * Error for insufficient balance
+ */
+export class InsufficientBalanceError extends BazaarError {
+  public readonly currentBalance: number;
+  public readonly requiredAmount: number;
+  
+  constructor(currentBalance: number, requiredAmount: number) {
+    super(
+      ErrorCodes.INSUFFICIENT_BALANCE,
+      `Insufficient balance: have ${currentBalance} USDC, need ${requiredAmount} USDC`,
+      402,
+      { currentBalance, requiredAmount }
+    );
+    this.name = 'InsufficientBalanceError';
+    this.currentBalance = currentBalance;
+    this.requiredAmount = requiredAmount;
+  }
+}
+
+/**
+ * Error for payment verification failures
+ */
+export class PaymentVerificationError extends PaymentError {
+  public readonly reason: string;
+  
+  constructor(reason: string, details?: any) {
+    super(
+      ErrorCodes.PAYMENT_VERIFICATION_FAILED,
+      `Payment verification failed: ${reason}`,
+      { reason, ...details }
+    );
+    this.name = 'PaymentVerificationError';
+    this.reason = reason;
+  }
+}
+
+/**
+ * Error for network mismatches
+ */
+export class NetworkMismatchError extends BazaarError {
+  public readonly expectedNetwork: string;
+  public readonly actualNetwork: string;
+  
+  constructor(expectedNetwork: string, actualNetwork: string) {
+    super(
+      ErrorCodes.NETWORK_MISMATCH,
+      `Network mismatch: expected ${expectedNetwork}, got ${actualNetwork}`,
+      400,
+      { expectedNetwork, actualNetwork }
+    );
+    this.name = 'NetworkMismatchError';
+    this.expectedNetwork = expectedNetwork;
+    this.actualNetwork = actualNetwork;
+  }
+}
+
+/**
+ * Helper function to create an insufficient balance error
+ */
+export function createInsufficientBalanceError(
+  currentBalance: number,
+  requiredAmount: number
+): InsufficientBalanceError {
+  return new InsufficientBalanceError(currentBalance, requiredAmount);
+}
+
+/**
+ * Helper function to create a network mismatch error
+ */
+export function createNetworkMismatchError(
+  expectedNetwork: string,
+  actualNetwork: string
+): NetworkMismatchError {
+  return new NetworkMismatchError(expectedNetwork, actualNetwork);
 }

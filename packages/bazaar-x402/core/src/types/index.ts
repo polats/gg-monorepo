@@ -13,3 +13,6 @@ export * from './mystery.js';
 
 // Transaction types
 export * from './transaction.js';
+
+// Currency types
+export * from './currency.js';
