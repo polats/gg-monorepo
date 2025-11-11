@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletButton } from './wallet-button.jsx';
 import { TransactionHistory } from './transaction-history.jsx';
+import { handleX402Purchase } from './x402-payment-handler.jsx';
 
 const API_BASE = 'http://localhost:3001/api';
 
@@ -13,7 +14,8 @@ const API_BASE = 'http://localhost:3001/api';
  * and mystery box purchases.
  */
 export function App() {
-  const { publicKey, connected } = useWallet();
+  const wallet = useWallet();
+  const { publicKey, connected } = wallet;
   
   // Derive username from wallet address
   const username = publicKey ? publicKey.toBase58() : null;
@@ -32,6 +34,9 @@ export function App() {
   const [inventoryMessage, setInventoryMessage] = useState(null);
   const [listingsMessage, setListingsMessage] = useState(null);
   const [mysteryMessage, setMysteryMessage] = useState(null);
+  
+  // Payment status
+  const [paymentStatus, setPaymentStatus] = useState(null);
   
   /**
    * Show temporary message
@@ -166,8 +171,7 @@ export function App() {
         throw new Error(error.message || 'Failed to create listing');
       }
 
-      const result = await response.json();
-      showMessage(setInventoryMessage, `✅ Listed ${item.name} for $${priceNum}!`, 'success');
+      showMessage(setInventoryMessage, `✅ Listed ${item.name} for ${priceNum}!`, 'success');
       
       // Clear the price for this item
       setItemPrices(prev => {
@@ -193,25 +197,24 @@ export function App() {
     }
     
     try {
-      const response = await fetch(
-        `${API_BASE}/bazaar/purchase-with-currency/${listingId}?buyer=${username}&buyerWallet=${walletAddress}`
-      );
+      const url = `${API_BASE}/bazaar/purchase-with-currency/${listingId}?buyer=${username}&buyerWallet=${walletAddress}`;
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Purchase failed');
-      }
-
-      const result = await response.json();
+      // Use x402 payment handler which handles both mock and production modes
+      const result = await handleX402Purchase(url, wallet, (status) => {
+        setPaymentStatus(status);
+      });
+      
       showMessage(
         setListingsMessage, 
-        `✅ Purchase successful! Got ${result.item.name || result.item.id}. New balance: $${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...)`, 
+        `✅ Purchase successful! Got ${result.item.name || result.item.id}. New balance: ${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...)`, 
         'success'
       );
+      setPaymentStatus(null);
       loadInventory();
       loadListings();
       loadBalance(); // Update balance after purchase
     } catch (error) {
+      setPaymentStatus(null);
       showMessage(setListingsMessage, `❌ Error: ${error.message}`, 'error');
     }
   };
@@ -226,24 +229,23 @@ export function App() {
     }
     
     try {
-      const response = await fetch(
-        `${API_BASE}/bazaar/mystery-box-with-currency/${tierId}?buyer=${username}&buyerWallet=${walletAddress}`
-      );
+      const url = `${API_BASE}/bazaar/mystery-box-with-currency/${tierId}?buyer=${username}&buyerWallet=${walletAddress}`;
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Purchase failed');
-      }
-
-      const result = await response.json();
+      // Use x402 payment handler which handles both mock and production modes
+      const result = await handleX402Purchase(url, wallet, (status) => {
+        setPaymentStatus(status);
+      });
+      
       const item = result.item;
       showMessage(
         setMysteryMessage,
-        `✅ You got a ${item.rarity} ${item.name}! New balance: $${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...) 🎉`, 
+        `✅ You got a ${item.rarity} ${item.name}! New balance: ${result.newBalance.toFixed(2)} (Tx: ${result.txId.substring(0, 12)}...) 🎉`, 
         'success'
       );
+      setPaymentStatus(null);
       loadBalance(); // Update balance after purchase
     } catch (error) {
+      setPaymentStatus(null);
       showMessage(setMysteryMessage, `❌ Error: ${error.message}`, 'error');
     }
   };
@@ -304,7 +306,7 @@ export function App() {
               <div>
                 <div style={{ fontSize: '12px', color: '#999' }}>Balance</div>
                 <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#4CAF50' }}>
-                  {balanceLoading ? '...' : `$${balance.amount.toFixed(2)}`}
+                  {balanceLoading ? '...' : `${balance.amount.toFixed(2)}`}
                 </div>
                 <div style={{ fontSize: '10px', color: '#666' }}>{balance.currency}</div>
               </div>
@@ -312,6 +314,18 @@ export function App() {
           )}
           <WalletButton />
         </div>
+        {paymentStatus && (
+          <div style={{ 
+            marginTop: '12px', 
+            padding: '8px 16px', 
+            background: '#1a4d2e', 
+            borderRadius: '8px',
+            color: '#4CAF50',
+            fontSize: '14px'
+          }}>
+            {paymentStatus}
+          </div>
+        )}
       </header>
 
       {/* Main Content Grid - Two Columns */}

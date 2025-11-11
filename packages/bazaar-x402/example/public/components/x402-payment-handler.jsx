@@ -41,6 +41,8 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
   onStatusUpdate('Payment required. Preparing transaction...');
   const paymentRequirements = await initialResponse.json();
   
+  console.log('Payment requirements:', paymentRequirements);
+  
   if (!paymentRequirements.paymentRequired) {
     throw new Error('Invalid 402 response: missing payment requirements');
   }
@@ -49,10 +51,15 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
   
   // Step 3: Create and sign transaction
   onStatusUpdate('Please sign the transaction in your wallet...');
-  const { transaction, signature } = await createAndSignTransaction(
-    wallet,
-    requirements
-  );
+  let transaction, signature;
+  try {
+    const result = await createAndSignTransaction(wallet, requirements);
+    transaction = result.transaction;
+    signature = result.signature;
+  } catch (error) {
+    console.error('Transaction creation/signing error:', error);
+    throw new Error(`Failed to create transaction: ${error.message}`);
+  }
   
   // Step 4: Broadcast transaction to Solana
   onStatusUpdate('Broadcasting transaction to Solana...');
@@ -111,6 +118,12 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
  * @returns {Promise<{transaction: Transaction, signature: string}>}
  */
 async function createAndSignTransaction(wallet, requirements) {
+  console.log('Creating transaction with requirements:', requirements);
+  
+  if (!wallet.signTransaction) {
+    throw new Error('Wallet does not support transaction signing');
+  }
+  
   const connection = new Connection(
     requirements.network === 'solana-mainnet'
       ? 'https://api.mainnet-beta.solana.com'
@@ -122,7 +135,19 @@ async function createAndSignTransaction(wallet, requirements) {
   const fromPubkey = wallet.publicKey;
   const toPubkey = new PublicKey(requirements.payTo);
   const mintPubkey = new PublicKey(requirements.asset);
-  const amount = BigInt(requirements.maxAmountRequired);
+  
+  // Convert amount to BigInt - handle both string and number
+  const amountValue = typeof requirements.maxAmountRequired === 'string' 
+    ? parseInt(requirements.maxAmountRequired, 10)
+    : requirements.maxAmountRequired;
+  const amount = BigInt(amountValue);
+  
+  console.log('Transaction details:', {
+    from: fromPubkey.toBase58(),
+    to: toPubkey.toBase58(),
+    mint: mintPubkey.toBase58(),
+    amount: amount.toString()
+  });
   
   // Get associated token accounts
   const fromTokenAccount = await getAssociatedTokenAddress(
@@ -134,6 +159,11 @@ async function createAndSignTransaction(wallet, requirements) {
     mintPubkey,
     toPubkey
   );
+  
+  console.log('Token accounts:', {
+    from: fromTokenAccount.toBase58(),
+    to: toTokenAccount.toBase58()
+  });
   
   // Create transaction
   const transaction = new Transaction();
@@ -153,8 +183,12 @@ async function createAndSignTransaction(wallet, requirements) {
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPubkey;
   
+  console.log('Transaction created, requesting signature...');
+  
   // Sign transaction
   const signedTransaction = await wallet.signTransaction(transaction);
+  
+  console.log('Transaction signed successfully');
   
   return {
     transaction: signedTransaction,

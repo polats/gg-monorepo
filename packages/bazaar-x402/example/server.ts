@@ -129,7 +129,7 @@ async function initializeSampleListings() {
       itemType: 'weapon',
       itemData: { description: 'Legendary Dragon Slayer Sword' },
       sellerUsername: 'SampleSeller1',
-      sellerWallet: 'wallet-sample-1',
+      sellerWallet: '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd',
       priceUSDC: 0.025,
     },
     {
@@ -137,7 +137,7 @@ async function initializeSampleListings() {
       itemType: 'armor',
       itemData: { description: 'Epic Titanium Shield of Protection' },
       sellerUsername: 'SampleSeller2',
-      sellerWallet: 'wallet-sample-2',
+      sellerWallet: '7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs', // Sample devnet wallet 2
       priceUSDC: 0.015,
     },
     {
@@ -145,7 +145,7 @@ async function initializeSampleListings() {
       itemType: 'consumable',
       itemData: { description: 'Rare Health Restoration Potion' },
       sellerUsername: 'SampleSeller3',
-      sellerWallet: 'wallet-sample-3',
+      sellerWallet: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK', // Sample devnet wallet 3
       priceUSDC: 0.005,
     },
     {
@@ -153,7 +153,7 @@ async function initializeSampleListings() {
       itemType: 'weapon',
       itemData: { description: 'Ancient Staff of Wisdom' },
       sellerUsername: 'SampleSeller1',
-      sellerWallet: 'wallet-sample-1',
+      sellerWallet: '5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd',
       priceUSDC: 0.05,
     },
     {
@@ -161,7 +161,7 @@ async function initializeSampleListings() {
       itemType: 'armor',
       itemData: { description: 'Enchanted Boots of Speed' },
       sellerUsername: 'SampleSeller4',
-      sellerWallet: 'wallet-sample-4',
+      sellerWallet: 'GjwcWFQYzemBtpUoN5fMAP2FZviTtMRWCmrppGuTthJS', // Sample devnet wallet 4
       priceUSDC: 1.0,
     },
   ];
@@ -333,7 +333,25 @@ app.get('/api/bazaar/purchase-with-currency/:listingId', async (req, res) => {
       });
     }
     
-    // Check balance
+    // In production mode, return 402 Payment Required immediately (skip balance check)
+    if (config.mode === 'production') {
+      console.log('🔍 DEBUG: Production mode - returning 402 Payment Required');
+      const initiation = await currencyAdapter.initiatePurchase({
+        buyerId: buyer as string,
+        sellerId: listing.sellerWallet,
+        amount: listing.priceUSDC,
+        resource: `/api/bazaar/purchase/${listingId}`,
+        description: `Purchase ${listing.itemType} from ${listing.sellerUsername}`,
+      });
+      return res.status(402).json({
+        error: 'Payment Required',
+        message: 'Please sign the transaction with your wallet',
+        paymentRequired: true,
+        requirements: initiation.requirements,
+      });
+    }
+
+    // Mock mode: Check balance before proceeding
     const balance = await currencyAdapter.getBalance(buyer as string);
     if (balance.amount < listing.priceUSDC) {
       return res.status(400).json({
@@ -342,7 +360,8 @@ app.get('/api/bazaar/purchase-with-currency/:listingId', async (req, res) => {
       });
     }
     
-    // Deduct from buyer
+    
+    // Deduct from buyer (mock mode only)
     const deductionResult = await currencyAdapter.deduct(buyer as string, listing.priceUSDC);
     
     try {
@@ -427,7 +446,25 @@ app.get('/api/bazaar/mystery-box-with-currency/:tierId', async (req, res) => {
       });
     }
     
-    // Check balance
+    // In production mode, return 402 Payment Required immediately (skip balance check)
+    if (config.mode === 'production') {
+      console.log('🔍 DEBUG: Production mode - returning 402 Payment Required for mystery box');
+      const initiation = await currencyAdapter.initiatePurchase({
+        buyerId: buyer as string,
+        sellerId: 'platform', // Mystery boxes go to platform
+        amount: tier.priceUSDC,
+        resource: `/api/bazaar/mystery-box/${tierId}`,
+        description: `Purchase ${tier.name} mystery box`,
+      });
+      return res.status(402).json({
+        error: 'Payment Required',
+        message: 'Please sign the transaction with your wallet',
+        paymentRequired: true,
+        requirements: initiation.requirements,
+      });
+    }
+
+    // Mock mode: Check balance before proceeding
     const balance = await currencyAdapter.getBalance(buyer as string);
     if (balance.amount < tier.priceUSDC) {
       return res.status(400).json({
@@ -436,7 +473,8 @@ app.get('/api/bazaar/mystery-box-with-currency/:tierId', async (req, res) => {
       });
     }
     
-    // Deduct from buyer
+    
+    // Deduct from buyer (mock mode only)
     const deductionResult = await currencyAdapter.deduct(buyer as string, tier.priceUSDC);
     
     try {
