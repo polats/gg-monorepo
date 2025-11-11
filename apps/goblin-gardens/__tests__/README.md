@@ -281,3 +281,16 @@ These utilities support testing:
 - Redis operations (data persistence)
 - Authentication (username extraction)
 - Business logic (gem values, trading)
+
+## CI/CD Integration
+
+Tests run automatically in GitHub Actions on every push and pull request. For information on viewing test results in the CI/CD pipeline, see:
+
+📊 **[GitHub Test Results Guide](../docs/github-test-results.md)**
+
+This guide covers:
+- Viewing test summaries in GitHub Actions
+- Downloading test artifacts
+- Understanding test status indicators
+- Accessing coverage reports
+- Troubleshooting CI test failures

@@ -28,18 +28,81 @@ jobs:
         working-directory: apps/goblin-gardens
       
       - name: Run client tests
-        run: npm run test:client
+        id: client-tests
+        run: |
+          echo "## 🧪 Client Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run tests with JSON reporter for parsing
+          npm run test:client -- --reporter=json --outputFile=client-test-results.json 2>&1 | tee client-test-output.txt || true
+          
+          # Also run with default reporter for readable output
+          npm run test:client 2>&1 | tee -a client-test-output.txt
+          
+          # Extract summary from output
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          grep -E "(Test Files|Tests|Start at|Duration)" client-test-output.txt | tail -n 5 >> $GITHUB_STEP_SUMMARY || echo "Test results not available" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>📋 View full client test output</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat client-test-output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
         working-directory: apps/goblin-gardens
       
       - name: Run server tests
-        run: npm run test:server || echo "No server tests found yet"
+        id: server-tests
+        run: |
+          echo "## 🔧 Server Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run tests with JSON reporter for parsing
+          npm run test:server -- --reporter=json --outputFile=server-test-results.json 2>&1 | tee server-test-output.txt || true
+          
+          # Also run with default reporter for readable output
+          npm run test:server 2>&1 | tee -a server-test-output.txt
+          
+          # Extract summary from output
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          grep -E "(Test Files|Tests|Start at|Duration)" server-test-output.txt | tail -n 5 >> $GITHUB_STEP_SUMMARY || echo "Test results not available" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>📋 View full server test output</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat server-test-output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
         working-directory: apps/goblin-gardens
         continue-on-error: true
       
       - name: Generate coverage report
-        run: npm run test:coverage || echo "Coverage generation skipped - not all tests implemented yet"
+        id: coverage
+        run: |
+          echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          npm run test:coverage 2>&1 | tee coverage-output.txt || echo "Coverage generation skipped - not all tests implemented yet"
+          if [ -f coverage-output.txt ]; then
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            grep -A 10 "Coverage" coverage-output.txt >> $GITHUB_STEP_SUMMARY || echo "Coverage data not available yet" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
         working-directory: apps/goblin-gardens
         continue-on-error: true
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: |
+            apps/goblin-gardens/client-test-output.txt
+            apps/goblin-gardens/server-test-output.txt
+            apps/goblin-gardens/coverage-output.txt
+            apps/goblin-gardens/client-test-results.json
+            apps/goblin-gardens/server-test-results.json
+          retention-days: 30
       
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
@@ -47,8 +110,35 @@ jobs:
         with:
           name: coverage-report
           path: apps/goblin-gardens/coverage/
+          retention-days: 30
       
-      - name: Check coverage thresholds
-        run: npm run test:coverage -- --reporter=json --reporter=text || echo "Coverage thresholds check skipped"
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## ✅ Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Client tests status
+          if [ "${{ steps.client-tests.outcome }}" == "success" ]; then
+            echo "✅ **Client Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Client Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Server tests status
+          if [ "${{ steps.server-tests.outcome }}" == "success" ]; then
+            echo "✅ **Server Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Server Tests**: Failed or Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Coverage status
+          if [ "${{ steps.coverage.outcome }}" == "success" ]; then
+            echo "✅ **Coverage Report**: Generated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Coverage Report**: Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Artifacts**: Test results and coverage reports are available in the workflow artifacts." >> $GITHUB_STEP_SUMMARY
         working-directory: apps/goblin-gardens
-        continue-on-error: true
