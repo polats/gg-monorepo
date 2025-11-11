@@ -74,11 +74,9 @@ For detailed analysis, you can download test artifacts:
 ### Available Files
 
 **test-results artifact:**
-- `client-test-output.txt` - Full client test output
-- `server-test-output.txt` - Full server test output
-- `client-test-results.json` - Machine-readable client test results
-- `server-test-results.json` - Machine-readable server test results
-- `coverage-output.txt` - Coverage generation output
+- `client-test-output.txt` - Full client test output (ANSI codes stripped)
+- `server-test-output.txt` - Full server test output (ANSI codes stripped)
+- `coverage-output.txt` - Coverage generation output (ANSI codes stripped)
 
 **coverage-report artifact:**
 - `coverage/` - HTML coverage reports (open `index.html` in browser)

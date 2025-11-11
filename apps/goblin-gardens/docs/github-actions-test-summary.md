@@ -126,9 +126,10 @@ Uses GitHub Actions `$GITHUB_STEP_SUMMARY` to write markdown that appears in the
 
 ### Test Output Capture
 
-- Runs tests twice: once with JSON reporter, once with default reporter
-- Captures output with `tee` for both display and artifact storage
+- Runs tests and captures output with `tee`
+- Strips ANSI color codes using `sed` for clean, readable output
 - Extracts key metrics with `grep` for summary
+- Stores both raw and cleaned output files
 
 ### Artifact Management
 

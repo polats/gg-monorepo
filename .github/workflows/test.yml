@@ -33,13 +33,13 @@ jobs:
           echo "## 🧪 Client Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Run tests with JSON reporter for parsing
-          npm run test:client -- --reporter=json --outputFile=client-test-results.json 2>&1 | tee client-test-output.txt || true
+          # Run tests and capture output
+          npm run test:client 2>&1 | tee client-test-output-raw.txt || true
           
-          # Also run with default reporter for readable output
-          npm run test:client 2>&1 | tee -a client-test-output.txt
+          # Strip ANSI color codes for clean output
+          sed 's/\x1b\[[0-9;]*m//g' client-test-output-raw.txt > client-test-output.txt
           
-          # Extract summary from output
+          # Extract summary from output (last 5 lines with test info)
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           grep -E "(Test Files|Tests|Start at|Duration)" client-test-output.txt | tail -n 5 >> $GITHUB_STEP_SUMMARY || echo "Test results not available" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -58,13 +58,13 @@ jobs:
           echo "## 🔧 Server Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Run tests with JSON reporter for parsing
-          npm run test:server -- --reporter=json --outputFile=server-test-results.json 2>&1 | tee server-test-output.txt || true
+          # Run tests and capture output
+          npm run test:server 2>&1 | tee server-test-output-raw.txt || true
           
-          # Also run with default reporter for readable output
-          npm run test:server 2>&1 | tee -a server-test-output.txt
+          # Strip ANSI color codes for clean output
+          sed 's/\x1b\[[0-9;]*m//g' server-test-output-raw.txt > server-test-output.txt
           
-          # Extract summary from output
+          # Extract summary from output (last 5 lines with test info)
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           grep -E "(Test Files|Tests|Start at|Duration)" server-test-output.txt | tail -n 5 >> $GITHUB_STEP_SUMMARY || echo "Test results not available" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -82,8 +82,11 @@ jobs:
         id: coverage
         run: |
           echo "## 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
-          npm run test:coverage 2>&1 | tee coverage-output.txt || echo "Coverage generation skipped - not all tests implemented yet"
-          if [ -f coverage-output.txt ]; then
+          npm run test:coverage 2>&1 | tee coverage-output-raw.txt || echo "Coverage generation skipped - not all tests implemented yet"
+          
+          # Strip ANSI color codes
+          if [ -f coverage-output-raw.txt ]; then
+            sed 's/\x1b\[[0-9;]*m//g' coverage-output-raw.txt > coverage-output.txt
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             grep -A 10 "Coverage" coverage-output.txt >> $GITHUB_STEP_SUMMARY || echo "Coverage data not available yet" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -100,8 +103,6 @@ jobs:
             apps/goblin-gardens/client-test-output.txt
             apps/goblin-gardens/server-test-output.txt
             apps/goblin-gardens/coverage-output.txt
-            apps/goblin-gardens/client-test-results.json
-            apps/goblin-gardens/server-test-results.json
           retention-days: 30
       
       - name: Upload coverage to artifacts
