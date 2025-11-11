@@ -93,10 +93,16 @@ export class X402Facilitator {
    */
   async verifyPayment(params: FacilitatorVerifyParams): Promise<VerificationResult> {
     try {
+      console.log('🔍 FACILITATOR: Starting payment verification');
+      console.log('🔍 FACILITATOR: Expected amount:', params.expectedAmount);
+      console.log('🔍 FACILITATOR: Expected recipient:', params.expectedRecipient);
+      console.log('🔍 FACILITATOR: Network:', params.network);
+      
       // Decode payment header
       const payload = decodePaymentHeader(params.paymentHeader);
       
       if (!payload) {
+        console.error('🔍 FACILITATOR: Failed to decode payment header');
         return {
           success: false,
           txHash: '',
@@ -104,6 +110,8 @@ export class X402Facilitator {
           error: 'Invalid payment header encoding',
         };
       }
+      
+      console.log('🔍 FACILITATOR: Decoded payload:', JSON.stringify(payload, null, 2));
       
       // Validate payload structure
       if (!isValidPaymentPayload(payload)) {
@@ -182,9 +190,13 @@ export class X402Facilitator {
       // Check if we have a signed transaction to broadcast
       let txSignature = payload.payload.signature;
       
+      console.log('🔍 FACILITATOR: Checking for signed transaction');
+      console.log('🔍 FACILITATOR: Has signedTransaction:', !!payload.payload.signedTransaction);
+      console.log('🔍 FACILITATOR: Has signature:', !!txSignature);
+      
       if (payload.payload.signedTransaction) {
         // Client sent a signed transaction - we need to broadcast it
-        console.log('Broadcasting client-signed transaction...');
+        console.log('🔍 FACILITATOR: Broadcasting client-signed transaction...');
         
         try {
           // Decode the base64-encoded transaction
@@ -196,15 +208,19 @@ export class X402Facilitator {
             preflightCommitment: 'confirmed',
           });
           
-          console.log('Transaction broadcast successful:', txSignature);
+          console.log('🔍 FACILITATOR: Transaction broadcast successful:', txSignature);
           
           // Wait for confirmation
+          console.log('🔍 FACILITATOR: Waiting for confirmation...');
           const confirmation = await this.connection.confirmTransaction(
             txSignature,
             'confirmed'
           );
           
+          console.log('🔍 FACILITATOR: Confirmation result:', confirmation);
+          
           if (confirmation.value.err) {
+            console.error('🔍 FACILITATOR: Transaction failed on-chain:', confirmation.value.err);
             return {
               success: false,
               txHash: txSignature,
@@ -213,10 +229,11 @@ export class X402Facilitator {
             };
           }
           
-          console.log('Transaction confirmed on-chain');
+          console.log('🔍 FACILITATOR: Transaction confirmed on-chain');
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          console.error('Failed to broadcast transaction:', errorMessage);
+          console.error('🔍 FACILITATOR: Failed to broadcast transaction:', errorMessage);
+          console.error('🔍 FACILITATOR: Error details:', error);
           return {
             success: false,
             txHash: '',
@@ -226,7 +243,7 @@ export class X402Facilitator {
         }
       } else if (txSignature) {
         // Client already broadcast the transaction - verify it exists on-chain
-        console.log('Verifying existing transaction on-chain...');
+        console.log('🔍 FACILITATOR: Verifying existing transaction on-chain...');
         
         const isValidOnChain = await this.verifyTransactionOnChain(
           txSignature,
@@ -253,6 +270,9 @@ export class X402Facilitator {
         };
       }
       
+      console.log('🔍 FACILITATOR: Payment verification successful!');
+      console.log('🔍 FACILITATOR: Transaction signature:', txSignature);
+      
       return {
         success: true,
         txHash: txSignature,
@@ -260,6 +280,8 @@ export class X402Facilitator {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('🔍 FACILITATOR: Payment verification failed:', errorMessage);
+      console.error('🔍 FACILITATOR: Error details:', error);
       return {
         success: false,
         txHash: '',

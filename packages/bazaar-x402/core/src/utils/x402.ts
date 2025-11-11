@@ -52,6 +52,9 @@ export function encodePaymentHeader(payload: PaymentPayload): string {
  */
 export function decodePaymentHeader(encoded: string): PaymentPayload | null {
   try {
+    console.log('🔍 DECODE: Starting decode of payment header');
+    console.log('🔍 DECODE: Encoded length:', encoded.length);
+    
     let decoded: string;
     
     // Use Buffer in Node.js, atob in browser
@@ -63,16 +66,30 @@ export function decodePaymentHeader(encoded: string): PaymentPayload | null {
       throw new Error('No Base64 decoding method available');
     }
     
+    console.log('🔍 DECODE: Base64 decoded successfully');
+    console.log('🔍 DECODE: Decoded string length:', decoded.length);
+    
     const payload = JSON.parse(decoded) as PaymentPayload;
+    console.log('🔍 DECODE: JSON parsed successfully');
+    console.log('🔍 DECODE: Payload structure:', {
+      x402Version: payload.x402Version,
+      scheme: payload.scheme,
+      network: payload.network,
+      hasPayload: !!payload.payload,
+      payloadKeys: payload.payload ? Object.keys(payload.payload) : []
+    });
     
     // Validate the decoded payload
     if (!isValidPaymentPayload(payload)) {
+      console.error('🔍 DECODE: Payload validation failed');
+      console.error('🔍 DECODE: Payload:', JSON.stringify(payload, null, 2));
       return null;
     }
     
+    console.log('🔍 DECODE: Payload validation passed');
     return payload;
   } catch (error) {
-    console.error('Failed to decode payment header:', error);
+    console.error('🔍 DECODE: Failed to decode payment header:', error);
     return null;
   }
 }
@@ -115,14 +132,19 @@ export function isValidPaymentPayload(payload: any): payload is PaymentPayload {
     return false;
   }
   
-  // Validate non-empty strings
+  // Validate non-empty strings (except signature which can be empty if signedTransaction is provided)
   if (
-    !innerPayload.signature.trim() ||
     !innerPayload.from.trim() ||
     !innerPayload.to.trim() ||
     !innerPayload.amount.trim() ||
     !innerPayload.mint.trim()
   ) {
+    return false;
+  }
+  
+  // Signature can be empty if signedTransaction is provided
+  // At least one must be present
+  if (!innerPayload.signature.trim() && !innerPayload.signedTransaction) {
     return false;
   }
   

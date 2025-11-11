@@ -95,19 +95,30 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
   // Step 6: Send request with X-Payment header
   // Server will verify and broadcast the transaction
   onStatusUpdate('Verifying payment with server...');
+  
+  console.log('🔍 Sending payment to server...');
+  console.log('🔍 URL:', url);
+  console.log('🔍 Payment header length:', paymentHeader.length);
+  console.log('🔍 Payment header (first 100 chars):', paymentHeader.substring(0, 100));
+  
   const finalResponse = await fetch(url, {
     headers: {
       'X-Payment': paymentHeader,
     },
   });
   
+  console.log('🔍 Server response status:', finalResponse.status);
+  
   if (!finalResponse.ok) {
     const error = await finalResponse.json();
+    console.error('🔍 Server error response:', error);
     throw new Error(error.message || 'Payment verification failed');
   }
   
   onStatusUpdate('Purchase complete!');
-  return await finalResponse.json();
+  const result = await finalResponse.json();
+  console.log('🔍 Purchase result:', result);
+  return result;
 }
 
 /**

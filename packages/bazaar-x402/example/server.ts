@@ -309,6 +309,13 @@ app.get('/api/bazaar/purchase-with-currency/:listingId', async (req, res) => {
     const { listingId } = req.params;
     const { buyer, buyerWallet } = req.query;
     
+    console.log('\n🔍 ===== PURCHASE REQUEST =====');
+    console.log('🔍 Listing ID:', listingId);
+    console.log('🔍 Buyer:', buyer);
+    console.log('🔍 Buyer Wallet:', buyerWallet);
+    console.log('🔍 Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('🔍 X-Payment header present:', !!req.headers['x-payment']);
+    
     if (!buyer || !buyerWallet) {
       return res.status(400).json({
         error: 'Missing parameters',
@@ -340,22 +347,74 @@ app.get('/api/bazaar/purchase-with-currency/:listingId', async (req, res) => {
       });
     }
     
-    // In production mode, return 402 Payment Required immediately (skip balance check)
+    // Check for X-Payment header
+    const paymentHeader = req.headers['x-payment'] as string | undefined;
+    
+    // In production mode, check for payment header
     if (config.mode === 'production') {
-      console.log('🔍 DEBUG: Production mode - returning 402 Payment Required');
-      const initiation = await currencyAdapter.initiatePurchase({
-        buyerId: buyer as string,
-        sellerId: listing.sellerWallet,
-        amount: listing.priceUSDC,
-        resource: `/api/bazaar/purchase/${listingId}`,
-        description: `Purchase ${listing.itemType} from ${listing.sellerUsername}`,
-      });
-      return res.status(402).json({
-        error: 'Payment Required',
-        message: 'Please sign the transaction with your wallet',
-        paymentRequired: true,
-        requirements: initiation.requirements,
-      });
+      if (!paymentHeader) {
+        // No payment header - return 402 Payment Required
+        console.log('🔍 DEBUG: No X-Payment header - returning 402 Payment Required');
+        const initiation = await currencyAdapter.initiatePurchase({
+          buyerId: buyer as string,
+          sellerId: listing.sellerWallet,
+          amount: listing.priceUSDC,
+          resource: `/api/bazaar/purchase/${listingId}`,
+          description: `Purchase ${listing.itemType} from ${listing.sellerUsername}`,
+        });
+        return res.status(402).json({
+          error: 'Payment Required',
+          message: 'Please sign the transaction with your wallet',
+          paymentRequired: true,
+          requirements: initiation.requirements,
+        });
+      }
+      
+      // Payment header present - verify payment
+      console.log('🔍 DEBUG: X-Payment header present - verifying payment');
+      console.log('🔍 Payment header length:', paymentHeader.length);
+      console.log('🔍 Payment header (first 100 chars):', paymentHeader.substring(0, 100));
+      
+      try {
+        const verification = await currencyAdapter.verifyPurchase({
+          paymentHeader,
+          expectedAmount: listing.priceUSDC,
+          expectedRecipient: listing.sellerWallet,
+        });
+        
+        console.log('🔍 Verification result:', verification);
+        
+        if (!verification.success) {
+          console.error('🔍 Payment verification failed:', verification.error);
+          return res.status(400).json({
+            error: 'Payment verification failed',
+            message: verification.error || 'Unknown error',
+          });
+        }
+        
+        // Payment verified - complete the purchase
+        console.log('🔍 Payment verified - completing purchase');
+        const result = await marketplace.verifyAndCompletePurchase(
+          listingId,
+          verification.txHash || '',
+          buyer as string,
+          buyerWallet as string
+        );
+        
+        console.log('🔍 Purchase completed successfully');
+        return res.json({
+          success: true,
+          message: 'Purchase completed',
+          item: result.item,
+          txHash: verification.txHash,
+        });
+      } catch (error) {
+        console.error('🔍 Error during payment verification:', error);
+        return res.status(500).json({
+          error: 'Payment verification failed',
+          message: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
 
     // Mock mode: Check balance before proceeding
