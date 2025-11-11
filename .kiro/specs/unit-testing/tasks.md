@@ -134,26 +134,26 @@
   - Test error response handling
   - _Requirements: 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 4. Implement server adapter tests
+- [x] 4. Implement server adapter tests
   - Test Redis adapter operations
   - Test auth adapter username extraction
   - Test environment detection
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
 
-- [ ] 4.1 Create Redis adapter test file
+- [x] 4.1 Create Redis adapter test file
   - Create src/server/adapters/__tests__/redis-adapter.test.ts
   - Set up test suite for local environment
   - Initialize adapter before each test
   - _Requirements: 4.1_
 
-- [ ] 4.2 Test Redis basic operations
+- [x] 4.2 Test Redis basic operations
   - Test set and get operations
   - Test null return for non-existent keys
   - Test delete operation
   - Test increment operation
   - _Requirements: 4.3, 4.4, 4.5_
 
-- [ ] 4.3 Test Redis sorted set operations
+- [x] 4.3 Test Redis sorted set operations
   - Test zAdd for adding members
   - Test zRange for retrieving members
   - Test zCard for counting members
@@ -162,74 +162,74 @@
   - Test reverse ordering
   - _Requirements: 4.6, 4.7, 4.8_
 
-- [ ] 4.4 Create auth adapter test file
+- [x] 4.4 Create auth adapter test file
   - Create src/server/adapters/__tests__/auth-adapter.test.ts
   - Set up test suite for local environment
   - Create mock Express requests
   - _Requirements: 5.1_
 
-- [ ] 4.5 Test auth adapter username extraction
+- [x] 4.5 Test auth adapter username extraction
   - Test extraction from X-Username header
   - Test default username when header is missing
   - Test username sanitization
   - Test different environments (local, Vercel)
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 4.6 Create environment detection test file
+- [x] 4.6 Create environment detection test file
   - Create src/server/adapters/__tests__/environment.test.ts
   - Set up test suite with environment variable manipulation
   - Save and restore original process.env
   - _Requirements: 6.1, 6.2, 6.3_
 
-- [ ] 4.7 Test environment detection logic
+- [x] 4.7 Test environment detection logic
   - Test local environment detection (default)
   - Test Vercel environment detection (VERCEL=1)
   - Test Devvit environment detection (DEVVIT_EXECUTION_ID)
   - Test priority when multiple environments are set
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 4.8 Test environment configuration
+- [x] 4.8 Test environment configuration
   - Test getEnvironmentConfig for local
   - Test getEnvironmentConfig for Vercel
   - Test error handling for invalid config
   - _Requirements: 6.4, 6.5, 6.7_
 
-- [ ] 5. Implement server route tests
+- [x] 5. Implement server route tests
   - Test all API endpoints
   - Test request validation
   - Test response formatting
   - Test error handling
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14, 3.15_
 
-- [ ] 5.1 Create routes test file
+- [x] 5.1 Create routes test file
   - Create src/server/core/__tests__/routes.test.ts
   - Set up Express app with routes
   - Initialize mock Redis and auth adapters
   - Use supertest for HTTP testing
   - _Requirements: 3.1_
 
-- [ ] 5.2 Test /api/init endpoint
+- [x] 5.2 Test /api/init endpoint
   - Test successful init with postId and username
   - Test 400 error when postId is missing
   - Test Redis get operation is called
   - Test response structure
   - _Requirements: 3.1, 3.2_
 
-- [ ] 5.3 Test /api/player-state/save endpoint
+- [x] 5.3 Test /api/player-state/save endpoint
   - Test successful save with valid playerState
   - Test 400 error when playerState is missing
   - Test Redis set operation is called with correct key
   - Test response indicates success
   - _Requirements: 3.3, 3.4_
 
-- [ ] 5.4 Test /api/player-state/load endpoint
+- [x] 5.4 Test /api/player-state/load endpoint
   - Test loading existing player state
   - Test returning null for new user
   - Test Redis get operation is called with correct key
   - Test response structure
   - _Requirements: 3.5, 3.6_
 
-- [ ] 5.5 Test /api/offers endpoint
+- [x] 5.5 Test /api/offers endpoint
   - Test returning paginated offers
   - Test cursor-based pagination
   - Test limit parameter
@@ -237,7 +237,7 @@
   - Test Redis zRange operation
   - _Requirements: 3.7, 3.8_
 
-- [ ] 5.6 Test /api/offers/update endpoint
+- [x] 5.6 Test /api/offers/update endpoint
   - Test creating offer with valid gems
   - Test 400 error with empty gems array
   - Test 400 error when gems don't have isOffering=true
@@ -245,13 +245,13 @@
   - Test 2x value multiplier is applied
   - _Requirements: 3.9, 3.10_
 
-- [ ] 5.7 Test /api/offers/remove endpoint
+- [x] 5.7 Test /api/offers/remove endpoint
   - Test removing existing offer
   - Test removing non-existent offer
   - Test Redis del and zRem operations
   - _Requirements: 3.11_
 
-- [ ] 5.8 Test /api/trade/execute endpoint
+- [x] 5.8 Test /api/trade/execute endpoint
   - Test successful trade execution
   - Test 400 error when buyer equals seller
   - Test 404 error when offer doesn't exist
@@ -263,50 +263,50 @@
   - Test offer removed from marketplace
   - _Requirements: 3.12, 3.13, 3.14_
 
-- [ ] 5.9 Test error handling for malformed requests
+- [x] 5.9 Test error handling for malformed requests
   - Test 400 error for malformed JSON
   - Test 400 error for missing required fields
   - Test error messages are descriptive
   - _Requirements: 3.15, 10.1, 10.2_
 
-- [ ] 6. Implement error handling tests
+- [x] 6. Implement error handling tests
   - Test various error scenarios
   - Test error message formatting
   - Test error status codes
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
 
-- [ ] 6.1 Test authentication errors
+- [x] 6.1 Test authentication errors
   - Test 401 error when authentication fails
   - Test missing X-Username header handling
   - Test invalid username format handling
   - _Requirements: 10.3_
 
-- [ ] 6.2 Test resource not found errors
+- [x] 6.2 Test resource not found errors
   - Test 404 error for non-existent offers
   - Test 404 error for non-existent player states
   - Test error messages identify missing resource
   - _Requirements: 10.4_
 
-- [ ] 6.3 Test Redis connection errors
+- [x] 6.3 Test Redis connection errors
   - Mock Redis connection failure
   - Test graceful error handling
   - Test error logging
   - Test 500 error response
   - _Requirements: 10.5_
 
-- [ ] 6.4 Test concurrent request handling
+- [x] 6.4 Test concurrent request handling
   - Test race condition prevention in trades
   - Test atomic transaction behavior
   - Test stale data detection
   - _Requirements: 10.6_
 
-- [ ] 6.5 Test timeout errors
+- [x] 6.5 Test timeout errors
   - Mock slow Redis operations
   - Test timeout handling
   - Test 408 error response
   - _Requirements: 10.7_
 
-- [ ] 6.6 Test unexpected server errors
+- [x] 6.6 Test unexpected server errors
   - Mock unexpected exceptions
   - Test 500 error response
   - Test error details are not exposed to client
