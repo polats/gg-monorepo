@@ -93,13 +93,17 @@ export class X402Facilitator {
    */
   async verifyPayment(params: FacilitatorVerifyParams): Promise<VerificationResult> {
     try {
+      console.log('\n🔍 ===== FACILITATOR VERIFY PAYMENT =====');
       console.log('🔍 FACILITATOR: Starting payment verification');
       console.log('🔍 FACILITATOR: Expected amount:', params.expectedAmount);
       console.log('🔍 FACILITATOR: Expected recipient:', params.expectedRecipient);
       console.log('🔍 FACILITATOR: Network:', params.network);
+      console.log('🔍 FACILITATOR: Payment header length:', params.paymentHeader.length);
       
       // Decode payment header
+      console.log('🔍 FACILITATOR: About to decode payment header...');
       const payload = decodePaymentHeader(params.paymentHeader);
+      console.log('🔍 FACILITATOR: Decode result:', payload ? 'SUCCESS' : 'FAILED');
       
       if (!payload) {
         console.error('🔍 FACILITATOR: Failed to decode payment header');

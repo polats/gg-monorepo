@@ -101,7 +101,10 @@ export function decodePaymentHeader(encoded: string): PaymentPayload | null {
  * @returns True if payload is valid
  */
 export function isValidPaymentPayload(payload: any): payload is PaymentPayload {
+  console.log('🔍 VALIDATE: Starting payload validation');
+  
   if (!payload || typeof payload !== 'object') {
+    console.error('🔍 VALIDATE: Payload is not an object');
     return false;
   }
   
@@ -111,11 +114,17 @@ export function isValidPaymentPayload(payload: any): payload is PaymentPayload {
     typeof payload.scheme !== 'string' ||
     typeof payload.network !== 'string'
   ) {
+    console.error('🔍 VALIDATE: Missing or invalid top-level fields', {
+      x402Version: typeof payload.x402Version,
+      scheme: typeof payload.scheme,
+      network: typeof payload.network
+    });
     return false;
   }
   
   // Check payload object
   if (!payload.payload || typeof payload.payload !== 'object') {
+    console.error('🔍 VALIDATE: Missing or invalid payload object');
     return false;
   }
   
@@ -129,6 +138,13 @@ export function isValidPaymentPayload(payload: any): payload is PaymentPayload {
     typeof innerPayload.amount !== 'string' ||
     typeof innerPayload.mint !== 'string'
   ) {
+    console.error('🔍 VALIDATE: Missing or invalid inner payload fields', {
+      signature: typeof innerPayload.signature,
+      from: typeof innerPayload.from,
+      to: typeof innerPayload.to,
+      amount: typeof innerPayload.amount,
+      mint: typeof innerPayload.mint
+    });
     return false;
   }
   
@@ -139,15 +155,30 @@ export function isValidPaymentPayload(payload: any): payload is PaymentPayload {
     !innerPayload.amount.trim() ||
     !innerPayload.mint.trim()
   ) {
+    console.error('🔍 VALIDATE: Empty required fields', {
+      from: innerPayload.from,
+      to: innerPayload.to,
+      amount: innerPayload.amount,
+      mint: innerPayload.mint
+    });
     return false;
   }
   
   // Signature can be empty if signedTransaction is provided
   // At least one must be present
+  console.log('🔍 VALIDATE: Checking signature/signedTransaction', {
+    hasSignature: !!innerPayload.signature.trim(),
+    hasSignedTransaction: !!innerPayload.signedTransaction,
+    signatureLength: innerPayload.signature.length,
+    signedTransactionType: typeof innerPayload.signedTransaction
+  });
+  
   if (!innerPayload.signature.trim() && !innerPayload.signedTransaction) {
+    console.error('🔍 VALIDATE: Neither signature nor signedTransaction provided');
     return false;
   }
   
+  console.log('🔍 VALIDATE: Validation passed!');
   return true;
 }
 
