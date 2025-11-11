@@ -1,152 +1,139 @@
-# Project Structure: Goblin Gardens
+# Project Structure
 
-## Root Configuration
-- `devvit.json`: Devvit app configuration with post/server entry points
-- `package.json`: Dependencies and build scripts (includes React Three Fiber stack)
-- `tsconfig.json`: TypeScript project references (build-only)
-- `eslint.config.js`: ESLint configuration with environment-specific rules
+## Monorepo Layout
 
-## Source Organization
+```
+gg-monorepo/
+├── apps/                    # Applications
+│   ├── diamond-hands/       # World mini app (Next.js)
+│   └── goblin-gardens/      # 3D game (Vite + React)
+├── packages/                # Shared packages
+│   ├── bazaar-x402/         # Marketplace library (monorepo within monorepo)
+│   │   ├── core/            # Shared types and utilities
+│   │   ├── server/          # Backend SDK
+│   │   ├── client/          # Frontend SDK
+│   │   └── example/         # Integration example
+│   ├── types/               # Shared TypeScript types
+│   ├── utils/               # Common utility functions
+│   └── platform/            # Platform detection
+├── reference-projects/      # Reference implementations
+└── fixes/                   # Documentation of fixes and solutions
+```
 
-### `/src/client/`
-React Three Fiber application with Rapier physics
+## Application Structure
 
-**Main Entry Points:**
-- `main.ts`: Bootstrap that launches PileDemo directly
-- `PileDemo.tsx`: Main game component (4000+ lines) - the core game
-- `DemoApp.tsx`: Physics examples showcase (for reference/testing)
-- `index.html`: HTML template with canvas container
-- `index.css`: Global styling
+### Goblin Gardens
+```
+apps/goblin-gardens/
+├── src/
+│   ├── client/              # React Three Fiber app
+│   │   ├── components/      # 3D and UI components
+│   │   ├── utils/           # Game logic and calculations
+│   │   ├── constants/       # Game configuration
+│   │   └── PileDemo.tsx     # Main game component
+│   ├── server/              # Express API server
+│   │   ├── core/            # Business logic
+│   │   ├── adapters/        # Redis, auth adapters
+│   │   ├── local.ts         # Local dev server
+│   │   └── vercel.ts        # Vercel deployment
+│   └── shared/              # Shared types
+├── api/                     # Vercel serverless functions
+├── __tests__/               # Test fixtures and mocks
+├── docs/                    # Technical documentation
+└── tools/                   # Development tools
+```
 
-**Component Organization:**
-- `components/game/3d/`: 3D scene components
-  - `CanvasText.tsx`: 3D text rendering
-  - `FallingObjects.tsx`: Instanced physics objects (coins, gems, rocks)
-  - `ParticleExplosion.tsx`: Visual effects
-  - `Lighting.tsx`: Animated fire lights
-  - `Floor.tsx`: Shadow plane and colliders
-  - `DragZone.tsx`: Interactive drag area visualization
-  - `DebugVisuals.tsx`: Debug helpers (axes, indicators)
-  - `PointerForceField.tsx`: Mouse/touch interaction physics
+### Diamond Hands
+```
+apps/diamond-hands/
+├── app/                     # Next.js App Router
+│   ├── api/                 # API routes
+│   ├── create/              # Create raffle page
+│   ├── raffle/              # Raffle details
+│   └── minigame/            # Mini-game integration
+├── components/              # React components
+├── lib/                     # Utilities and hooks
+├── prisma/                  # Database schema
+├── types/                   # TypeScript types
+└── __tests__/               # Integration tests
+```
 
-- `components/game/ui/`: React UI overlays
-  - `PerformanceInfo.tsx`: FPS and device tier display
-  - `GemList.tsx`: Inventory management UI
-  - `CoinDisplay.tsx`: Coin balance and cost displays
+### Bazaar x402 Package
+```
+packages/bazaar-x402/
+├── core/                    # @bazaar-x402/core
+│   └── src/
+│       ├── types/           # Listing, payment, mystery box types
+│       ├── adapters/        # Interface definitions
+│       └── utils/           # Validation, conversion, errors
+├── server/                  # @bazaar-x402/server
+│   └── src/
+│       ├── marketplace.ts   # Main marketplace class
+│       ├── express.ts       # Express middleware
+│       └── adapters/        # Storage implementations
+└── client/                  # @bazaar-x402/client
+    └── src/
+        ├── bazaar-client.ts # Main client class
+        └── wallet-adapter.ts # Wallet integration
+```
 
-- `components/icons/`: SVG icon components
-  - `GemIcons.tsx`: Gem type icons
+## Key Conventions
 
-- `components/`: Shared 3D utilities
-  - `CustomDragControls.tsx`: Drag interaction system
-  - `DraggableRigidBody.tsx`: Physics-enabled dragging
+- **Tests**: Co-located in `__tests__/` directories next to source files
+- **Types**: Shared types in dedicated `types/` directories or packages
+- **Adapters**: Interface-based adapters for storage, items, payments
+- **Docs**: Technical documentation in `docs/` directories
+- **Config**: Root-level config files (tsconfig, vite.config, etc.)
+- **Mock Data**: Development mocks in `__tests__/mocks/` or `lib/mock/`
 
-**Utilities:**
-- `utils/colorUtils.ts`: Color palettes and gem/coin colors
-- `utils/gemGeneration.ts`: Procedural gem creation with rarities
-- `utils/gemValue.ts`: **CRITICAL** - Value calculation (must match server)
-- `utils/gemSorting.ts`: Inventory sorting algorithms
-- `utils/objectGeneration.tsx`: Instanced mesh generation
-- `utils/performanceDetection.ts`: Device tier detection
-- `utils/spawnPositions.ts`: Spawn zone coordinates
-- `utils/mobileHandlers.ts`: Touch event helpers
-- `utils/vector-utils.ts`: 3D math utilities
+## Special Directories
 
-**Constants:**
-- `constants/game.ts`: Level configs, location configs, faucet settings
+- `.kiro/` - Kiro AI assistant configuration and specs
+- `.claude/` - Claude AI skills and agents
+- `.cursor/` - Cursor IDE rules and MCP configuration
+- `reference-projects/` - External reference implementations
+- `fixes/` - Historical documentation of bug fixes and solutions
 
-**Types:**
-- `types/game.ts`: Game-specific TypeScript types
+## Reference Projects
 
-**Assets:**
-- `public/`: Textures, HDR environments, fonts, Draco decoder
-- `models/`: GLTF/GLB 3D models (mushrooms, objects)
+### x402 Reference Implementations
 
-### `/src/server/`
-Express server with Devvit integration
+Located in `reference-projects/x402/`, these are working implementations of the x402 payment protocol:
 
-**Main Server:**
-- `index.ts`: Express routes and API endpoints
-  - `/api/init`: Initialize player session
-  - `/api/player-state/save`: Persist player inventory
-  - `/api/player-state/load`: Load player inventory
-  - `/api/offers`: Get active marketplace offers
-  - `/api/offers/update`: Create/update player's offer
-  - `/api/offers/remove`: Remove player's offer
-  - `/api/trade/execute`: **ATOMIC** trade transaction
-  - `/internal/*`: Devvit lifecycle hooks
+**silkroad/** - Full-featured marketplace application
+- Next.js 15 + React 19 production implementation
+- Complete x402 payment flow with Solana/USDC
+- Payment verification, settlement, and delivery
+- Token gating, admin dashboard, encryption
+- Reference for: marketplace features, payment flows, database models
 
-**Business Logic:**
-- `core/post.ts`: Reddit post creation
+**x402-facilitator-express-server/** - Facilitator service implementation
+- Express + TypeScript facilitator server
+- Sponsored transactions with instant finality
+- Nonce-based replay attack prevention
+- Payment verification and settlement endpoints
+- Reference for: facilitator logic, security patterns, transaction handling
 
-**Key Server Functions:**
-- `calculateGemValue()`: **CRITICAL** - Must match client calculation exactly
-- `getUserPlayerStateKey()`: Redis key generation
-- `formatLastActive()`: Timestamp formatting
+**x402-template/** - Minimal Next.js starter
+- Simple x402 integration using `x402-next` package
+- Multiple price tiers and protected routes
+- Session management and storage strategies
+- Reference for: basic integration, middleware setup, simple payment gates
 
-### `/src/shared/`
-Shared types between client and server
+### When to Use Reference Projects
 
-**Types:**
-- `types/api.ts`: API request/response types
-  - `PlayerState`: Coins + gems inventory
-  - `Gem`: Full gem object with all properties
-  - `ActiveOffer`: Marketplace offer structure
-  - Trading request/response types
+**Implementing x402 payments**: Check `x402-facilitator-express-server/` for:
+- Payment verification logic (`src/routes/verify.ts`, `src/routes/settle.ts`)
+- Nonce management and replay protection (`src/lib/nonce-database.ts`)
+- Transaction signing and broadcasting (`src/lib/solana-utils.ts`)
 
-## Build Output
-- `dist/client/`: Built React app with code splitting
-- `dist/server/`: Built server bundle (`index.cjs`)
+**Building marketplace features**: Check `silkroad/` for:
+- Listing management (`app/api/listings/`)
+- Purchase flow (`app/api/purchase/route.ts`)
+- x402 protocol implementation (`lib/x402/`)
+- Database schemas (`models/`)
 
-## Architecture Patterns
-
-### React Three Fiber + Rapier
-- Declarative 3D scene graph with React components
-- Physics simulation via `@react-three/rapier`
-- Instanced rendering for performance (hundreds of objects)
-- `useFrame` hooks for animation loops
-
-### Physics Optimization
-- **Tier-based physics**: Adaptive timestep and solver iterations
-- **Sleeping bodies**: Objects at rest skip updates
-- **Instanced meshes**: Single draw call for many objects
-- **Matrix synchronization**: Manual sync between physics and visuals
-
-### State Management
-- React hooks for local state
-- Redis for persistent player state
-- Sorted sets for marketplace indexing
-- Atomic transactions for trading
-
-### Client-Server Sync
-- **Value calculation**: Identical logic in client and server
-- **Type safety**: Shared TypeScript types
-- **API-first**: All state changes via REST endpoints
-- **Optimistic updates**: Client updates immediately, syncs with server
-
-## Critical Synchronization Points
-
-⚠️ **These must stay in sync:**
-
-1. **Gem Value Calculation**
-   - `src/client/utils/gemValue.ts::calculateGemValue()`
-   - `src/server/index.ts::calculateGemValue()`
-   - Any mismatch enables trading exploits
-
-2. **Spawn Positions**
-   - `src/client/utils/spawnPositions.ts` (constants)
-   - `src/client/constants/game.ts` (faucet positions)
-   - `src/client/components/game/3d/FallingObjects.tsx` (spawn logic)
-
-3. **Type Definitions**
-   - `src/shared/types/api.ts` (API contracts)
-   - `src/client/types/game.ts` (game types)
-   - Server and client must use identical types
-
-## Performance Considerations
-
-- **Mobile-first**: Touch controls, responsive UI
-- **Device detection**: Automatic tier selection
-- **Physics budget**: Low tier = 30fps physics, High = 60fps
-- **Visual quality**: Always high (shadows, lighting, full object counts)
-- **Code splitting**: React lazy loading for demo components
+**Quick integration**: Check `x402-template/` for:
+- Middleware configuration (`middleware.ts`)
+- Protected route setup
+- Session token handling
