@@ -3,6 +3,10 @@
  * Demonstrates how to set up a marketplace with configurable payment modes
  */
 
+// Load environment variables from .env file
+import { config as dotenvConfig } from 'dotenv';
+dotenvConfig();
+
 import express from 'express';
 import cors from 'cors';
 import { BazaarMarketplace, createBazaarRoutes } from '@bazaar-x402/server';
@@ -18,9 +22,16 @@ const app = express();
 const PORT = 3001;
 
 // Load and validate configuration from environment
+console.log('\n🔍 DEBUG: Loading configuration...');
+console.log('🔍 DEBUG: process.env.PAYMENT_MODE =', process.env.PAYMENT_MODE);
+console.log('🔍 DEBUG: process.env.SOLANA_NETWORK =', process.env.SOLANA_NETWORK);
+
 let config;
 try {
   config = loadAndValidateConfig(process.env);
+  console.log('\n🔍 DEBUG: Configuration loaded successfully');
+  console.log('🔍 DEBUG: config.mode =', config.mode);
+  console.log('🔍 DEBUG: config.x402Config?.network =', config.x402Config?.network);
   console.log(getConfigSummary(config));
 } catch (error) {
   console.error('❌ Configuration error:', error instanceof Error ? error.message : error);
@@ -38,19 +49,31 @@ const paymentAdapter = new MockPaymentAdapter();
 const itemAdapter = new SimpleItemAdapter();
 
 // Create currency adapter based on configuration
+console.log('\n🔍 DEBUG: Creating currency adapter...');
+console.log('🔍 DEBUG: Passing config.mode =', config.mode);
+
 const currencyAdapter = createCurrencyAdapter({
   config,
   verbose: true,
 });
 
+console.log('🔍 DEBUG: Currency adapter created');
+console.log('🔍 DEBUG: Currency adapter type:', currencyAdapter.constructor.name);
+
 // Create marketplace instance
 // mockMode should match the payment mode from configuration
+console.log('\n🔍 DEBUG: Creating marketplace...');
+console.log('🔍 DEBUG: config.mode === "mock" =', config.mode === 'mock');
+console.log('🔍 DEBUG: Setting mockMode to:', config.mode === 'mock');
+
 const marketplace = new BazaarMarketplace({
   storageAdapter,
   paymentAdapter,
   itemAdapter,
   mockMode: config.mode === 'mock', // Use config to determine mock mode
 });
+
+console.log('🔍 DEBUG: Marketplace created');
 
 // Initialize sample listings for testing
 async function initializeSampleListings() {
@@ -107,7 +130,7 @@ async function initializeSampleListings() {
       itemData: { description: 'Legendary Dragon Slayer Sword' },
       sellerUsername: 'SampleSeller1',
       sellerWallet: 'wallet-sample-1',
-      priceUSDC: 25.0,
+      priceUSDC: 0.025,
     },
     {
       itemId: 'epic-shield-002',
@@ -115,7 +138,7 @@ async function initializeSampleListings() {
       itemData: { description: 'Epic Titanium Shield of Protection' },
       sellerUsername: 'SampleSeller2',
       sellerWallet: 'wallet-sample-2',
-      priceUSDC: 15.5,
+      priceUSDC: 0.015,
     },
     {
       itemId: 'rare-potion-003',
@@ -123,7 +146,7 @@ async function initializeSampleListings() {
       itemData: { description: 'Rare Health Restoration Potion' },
       sellerUsername: 'SampleSeller3',
       sellerWallet: 'wallet-sample-3',
-      priceUSDC: 5.0,
+      priceUSDC: 0.005,
     },
     {
       itemId: 'magic-staff-004',
@@ -131,7 +154,7 @@ async function initializeSampleListings() {
       itemData: { description: 'Ancient Staff of Wisdom' },
       sellerUsername: 'SampleSeller1',
       sellerWallet: 'wallet-sample-1',
-      priceUSDC: 30.0,
+      priceUSDC: 0.05,
     },
     {
       itemId: 'enchanted-boots-005',
@@ -139,7 +162,7 @@ async function initializeSampleListings() {
       itemData: { description: 'Enchanted Boots of Speed' },
       sellerUsername: 'SampleSeller4',
       sellerWallet: 'wallet-sample-4',
-      priceUSDC: 12.75,
+      priceUSDC: 1.0,
     },
   ];
 
@@ -166,10 +189,17 @@ app.use('/api/bazaar', router);
 
 // Configuration endpoint
 app.get('/api/config', (req, res) => {
-  res.json({
+  console.log('\n🔍 DEBUG: /api/config endpoint called');
+  console.log('🔍 DEBUG: Returning config.mode =', config.mode);
+  console.log('🔍 DEBUG: Returning config.network =', config.mode === 'production' ? config.x402Config?.network : undefined);
+  
+  const response = {
     mode: config.mode,
     network: config.mode === 'production' ? config.x402Config?.network : undefined,
-  });
+  };
+  
+  console.log('🔍 DEBUG: Response:', JSON.stringify(response, null, 2));
+  res.json(response);
 });
 
 // Add inventory endpoint
