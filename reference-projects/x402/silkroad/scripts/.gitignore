@@ -1,0 +1,6 @@
+# Test wallets (keep private)
+.test-wallets/
+
+# Mock data persistence
+.mock-data/
+

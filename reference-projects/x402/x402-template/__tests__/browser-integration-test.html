@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gem Balance API Integration Tests</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-section h2 {
+      margin-top: 0;
+      color: #5b21b6;
+    }
+    button {
+      background: #5b21b6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #4c1d95;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+    .success {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      color: #065f46;
+    }
+    .error {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+      color: #991b1b;
+    }
+    .info {
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      color: #1e40af;
+    }
+    .balance-display {
+      font-size: 24px;
+      font-weight: bold;
+      color: #5b21b6;
+      margin: 10px 0;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Gem Balance API Integration Tests</h1>
+  <p>This page tests the gem balance API integration. Make sure the dev server is running on <code>http://localhost:3000</code></p>
+
+  <!-- Current Balance Display -->
+  <div class="test-section">
+    <h2>Current Balance</h2>
+    <div class="balance-display" id="currentBalance">Loading...</div>
+    <button onclick="refreshBalance()">Refresh Balance</button>
+    <div id="balanceResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 1: Add Gems -->
+  <div class="test-section">
+    <h2>Test 1: Add Gems</h2>
+    <p>Test adding gems via /api/gems/add</p>
+    <input type="number" id="addAmount" value="100" min="1" />
+    <button onclick="testAddGems()">Add Gems</button>
+    <button onclick="testAddGemsMultiple()">Add 5x100 Gems (Concurrent)</button>
+    <div id="addResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 2: Spend Gems -->
+  <div class="test-section">
+    <h2>Test 2: Spend Gems</h2>
+    <p>Test spending gems via /api/gems/spend</p>
+    <input type="number" id="spendAmount" value="10" min="1" />
+    <button onclick="testSpendGems()">Spend Gems</button>
+    <button onclick="testSpendGemsMultiple()">Spend 5x10 Gems (Concurrent)</button>
+    <button onclick="testSpendInsufficientGems()">Try Spend 10000 (Should Fail)</button>
+    <div id="spendResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 3: Persistence -->
+  <div class="test-section">
+    <h2>Test 3: Balance Persistence</h2>
+    <p>Test that balance persists across page refreshes</p>
+    <button onclick="testPersistence()">Test Persistence</button>
+    <button onclick="location.reload()">Refresh Page</button>
+    <div id="persistenceResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 4: Concurrent Operations -->
+  <div class="test-section">
+    <h2>Test 4: Concurrent Operations</h2>
+    <p>Test concurrent add and spend operations</p>
+    <button onclick="testConcurrentMixed()">Run Mixed Operations (10 concurrent)</button>
+    <button onclick="testConcurrentRaceCondition()">Test Race Condition Prevention</button>
+    <div id="concurrentResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 5: Rate Limiting -->
+  <div class="test-section">
+    <h2>Test 5: Rate Limiting</h2>
+    <p>Test rate limiting (100 requests per minute)</p>
+    <button onclick="testRateLimit()">Send 105 Requests</button>
+    <div id="rateLimitResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 6: Error Handling -->
+  <div class="test-section">
+    <h2>Test 6: Error Handling</h2>
+    <p>Test various error scenarios</p>
+    <button onclick="testInvalidAmount()">Test Invalid Amounts</button>
+    <button onclick="testInsufficientGems()">Test Insufficient Gems</button>
+    <div id="errorResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test 7: Full Purchase Flow -->
+  <div class="test-section">
+    <h2>Test 7: Purchase Flow Simulation</h2>
+    <p>Simulate a complete purchase flow</p>
+    <button onclick="simulatePurchase('starter')">Simulate Starter Pack (100 gems)</button>
+    <button onclick="simulatePurchase('value')">Simulate Value Pack (550 gems)</button>
+    <button onclick="simulatePurchase('premium')">Simulate Premium Pack (1200 gems)</button>
+    <div id="purchaseResult" class="result" style="display:none;"></div>
+  </div>
+
+  <!-- Test Summary -->
+  <div class="test-section">
+    <h2>Test Summary</h2>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    <div id="summaryResult" class="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:3000';
+    let testResults = [];
+
+    // Helper function to display results
+    function showResult(elementId, message, type = 'info') {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.className = `result ${type}`;
+      element.style.display = 'block';
+    }
+
+    // Refresh balance display
+    async function refreshBalance() {
+      try {
+        const response = await fetch(`${API_BASE}/api/gems/balance`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('currentBalance').textContent = 
+            `${data.balance} gems (Lifetime: ${data.lifetime}, Spent: ${data.spent})`;
+          showResult('balanceResult', JSON.stringify(data, null, 2), 'success');
+        } else {
+          const error = await response.json();
+          document.getElementById('currentBalance').textContent = 'Error loading balance';
+          showResult('balanceResult', `Error: ${error.error}`, 'error');
+        }
+      } catch (error) {
+        document.getElementById('currentBalance').textContent = 'Error loading balance';
+        showResult('balanceResult', `Network error: ${error.message}`, 'error');
+      }
+    }
+
+    // Test 1: Add Gems
+    async function testAddGems() {
+      const amount = parseInt(document.getElementById('addAmount').value);
+      try {
+        const response = await fetch(`${API_BASE}/api/gems/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ amount, description: 'Test add' })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          showResult('addResult', `✅ Added ${amount} gems\n${JSON.stringify(data, null, 2)}`, 'success');
+          testResults.push({ test: 'Add Gems', status: 'PASS' });
+        } else {
+          showResult('addResult', `❌ Failed to add gems\n${JSON.stringify(data, null, 2)}`, 'error');
+          testResults.push({ test: 'Add Gems', status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('addResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Add Gems', status: 'FAIL' });
+      }
+    }
+
+    async function testAddGemsMultiple() {
+      try {
+        const requests = Array.from({ length: 5 }, () =>
+          fetch(`${API_BASE}/api/gems/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ amount: 100 })
+          })
+        );
+        
+        const responses = await Promise.all(requests);
+        const results = await Promise.all(responses.map(r => r.json()));
+        
+        const allSuccess = responses.every(r => r.ok);
+        if (allSuccess) {
+          showResult('addResult', `✅ Added 500 gems concurrently\nFinal: ${JSON.stringify(results[results.length - 1], null, 2)}`, 'success');
+          testResults.push({ test: 'Concurrent Add', status: 'PASS' });
+        } else {
+          showResult('addResult', `❌ Some requests failed\n${JSON.stringify(results, null, 2)}`, 'error');
+          testResults.push({ test: 'Concurrent Add', status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('addResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Concurrent Add', status: 'FAIL' });
+      }
+    }
+
+    // Test 2: Spend Gems
+    async function testSpendGems() {
+      const amount = parseInt(document.getElementById('spendAmount').value);
+      try {
+        const response = await fetch(`${API_BASE}/api/gems/spend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ amount, description: 'Test spend' })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          showResult('spendResult', `✅ Spent ${amount} gems\n${JSON.stringify(data, null, 2)}`, 'success');
+          testResults.push({ test: 'Spend Gems', status: 'PASS' });
+        } else {
+          showResult('spendResult', `❌ Failed to spend gems\n${JSON.stringify(data, null, 2)}`, 'error');
+          testResults.push({ test: 'Spend Gems', status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('spendResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Spend Gems', status: 'FAIL' });
+      }
+    }
+
+    async function testSpendGemsMultiple() {
+      try {
+        const requests = Array.from({ length: 5 }, () =>
+          fetch(`${API_BASE}/api/gems/spend`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ amount: 10 })
+          })
+        );
+        
+        const responses = await Promise.all(requests);
+        const results = await Promise.all(responses.map(r => r.json()));
+        
+        const successCount = responses.filter(r => r.ok).length;
+        showResult('spendResult', `✅ ${successCount}/5 spend operations succeeded\n${JSON.stringify(results, null, 2)}`, 'success');
+        testResults.push({ test: 'Concurrent Spend', status: successCount > 0 ? 'PASS' : 'FAIL' });
+        await refreshBalance();
+      } catch (error) {
+        showResult('spendResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Concurrent Spend', status: 'FAIL' });
+      }
+    }
+
+    async function testSpendInsufficientGems() {
+      try {
+        const response = await fetch(`${API_BASE}/api/gems/spend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ amount: 10000 })
+        });
+        
+        const data = await response.json();
+        if (response.status === 400 && data.error.includes('Insufficient')) {
+          showResult('spendResult', `✅ Correctly rejected insufficient gems\n${JSON.stringify(data, null, 2)}`, 'success');
+          testResults.push({ test: 'Insufficient Gems Validation', status: 'PASS' });
+        } else {
+          showResult('spendResult', `❌ Should have rejected insufficient gems\n${JSON.stringify(data, null, 2)}`, 'error');
+          testResults.push({ test: 'Insufficient Gems Validation', status: 'FAIL' });
+        }
+      } catch (error) {
+        showResult('spendResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Insufficient Gems Validation', status: 'FAIL' });
+      }
+    }
+
+    // Test 3: Persistence
+    async function testPersistence() {
+      try {
+        const balanceBefore = await fetch(`${API_BASE}/api/gems/balance`, {
+          credentials: 'include'
+        }).then(r => r.json());
+        
+        showResult('persistenceResult', 
+          `Current balance: ${balanceBefore.balance} gems\n\nNow refresh the page and check if balance persists...`, 
+          'info'
+        );
+        testResults.push({ test: 'Persistence', status: 'MANUAL_CHECK' });
+      } catch (error) {
+        showResult('persistenceResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Persistence', status: 'FAIL' });
+      }
+    }
+
+    // Test 4: Concurrent Operations
+    async function testConcurrentMixed() {
+      try {
+        const requests = [
+          ...Array.from({ length: 5 }, () =>
+            fetch(`${API_BASE}/api/gems/add`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ amount: 50 })
+            })
+          ),
+          ...Array.from({ length: 5 }, () =>
+            fetch(`${API_BASE}/api/gems/spend`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ amount: 10 })
+            })
+          )
+        ];
+        
+        const responses = await Promise.all(requests);
+        const addSuccess = responses.slice(0, 5).filter(r => r.ok).length;
+        const spendSuccess = responses.slice(5).filter(r => r.ok).length;
+        
+        showResult('concurrentResult', 
+          `✅ Mixed operations completed\nAdd: ${addSuccess}/5 succeeded\nSpend: ${spendSuccess}/5 succeeded`, 
+          'success'
+        );
+        testResults.push({ test: 'Concurrent Mixed', status: 'PASS' });
+        await refreshBalance();
+      } catch (error) {
+        showResult('concurrentResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Concurrent Mixed', status: 'FAIL' });
+      }
+    }
+
+    async function testConcurrentRaceCondition() {
+      try {
+        // Get initial balance
+        const initialBalance = await fetch(`${API_BASE}/api/gems/balance`, {
+          credentials: 'include'
+        }).then(r => r.json());
+        
+        // Perform 20 concurrent operations
+        const requests = Array.from({ length: 20 }, () =>
+          fetch(`${API_BASE}/api/gems/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ amount: 10 })
+          })
+        );
+        
+        await Promise.all(requests);
+        
+        // Get final balance
+        const finalBalance = await fetch(`${API_BASE}/api/gems/balance`, {
+          credentials: 'include'
+        }).then(r => r.json());
+        
+        const expected = initialBalance.balance + 200;
+        const actual = finalBalance.balance;
+        
+        if (actual === expected) {
+          showResult('concurrentResult', 
+            `✅ No race condition detected\nExpected: ${expected}, Actual: ${actual}`, 
+            'success'
+          );
+          testResults.push({ test: 'Race Condition Prevention', status: 'PASS' });
+        } else {
+          showResult('concurrentResult', 
+            `❌ Race condition detected!\nExpected: ${expected}, Actual: ${actual}`, 
+            'error'
+          );
+          testResults.push({ test: 'Race Condition Prevention', status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('concurrentResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Race Condition Prevention', status: 'FAIL' });
+      }
+    }
+
+    // Test 5: Rate Limiting
+    async function testRateLimit() {
+      try {
+        showResult('rateLimitResult', 'Sending 105 requests...', 'info');
+        
+        const requests = Array.from({ length: 105 }, () =>
+          fetch(`${API_BASE}/api/gems/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ amount: 1 })
+          })
+        );
+        
+        const responses = await Promise.all(requests);
+        const successCount = responses.filter(r => r.status === 200).length;
+        const rateLimitedCount = responses.filter(r => r.status === 429).length;
+        
+        if (rateLimitedCount > 0) {
+          showResult('rateLimitResult', 
+            `✅ Rate limiting working\nSuccess: ${successCount}\nRate Limited: ${rateLimitedCount}`, 
+            'success'
+          );
+          testResults.push({ test: 'Rate Limiting', status: 'PASS' });
+        } else {
+          showResult('rateLimitResult', 
+            `❌ Rate limiting not working\nAll ${successCount} requests succeeded`, 
+            'error'
+          );
+          testResults.push({ test: 'Rate Limiting', status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('rateLimitResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: 'Rate Limiting', status: 'FAIL' });
+      }
+    }
+
+    // Test 6: Error Handling
+    async function testInvalidAmount() {
+      const invalidAmounts = [-10, 0, 1.5];
+      const results = [];
+      
+      for (const amount of invalidAmounts) {
+        try {
+          const response = await fetch(`${API_BASE}/api/gems/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ amount })
+          });
+          
+          const data = await response.json();
+          results.push({ amount, status: response.status, error: data.error });
+        } catch (error) {
+          results.push({ amount, error: error.message });
+        }
+      }
+      
+      const allRejected = results.every(r => r.status === 400);
+      if (allRejected) {
+        showResult('errorResult', 
+          `✅ Invalid amounts correctly rejected\n${JSON.stringify(results, null, 2)}`, 
+          'success'
+        );
+        testResults.push({ test: 'Invalid Amount Validation', status: 'PASS' });
+      } else {
+        showResult('errorResult', 
+          `❌ Some invalid amounts not rejected\n${JSON.stringify(results, null, 2)}`, 
+          'error'
+        );
+        testResults.push({ test: 'Invalid Amount Validation', status: 'FAIL' });
+      }
+    }
+
+    async function testInsufficientGems() {
+      await testSpendInsufficientGems();
+    }
+
+    // Test 7: Purchase Flow
+    async function simulatePurchase(tier) {
+      const tiers = {
+        starter: { gems: 100, description: 'Starter Pack' },
+        value: { gems: 550, description: 'Value Pack' },
+        premium: { gems: 1200, description: 'Premium Pack' }
+      };
+      
+      const config = tiers[tier];
+      try {
+        const response = await fetch(`${API_BASE}/api/gems/add`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            amount: config.gems, 
+            description: `${config.description} purchase` 
+          })
+        });
+        
+        const data = await response.json();
+        if (response.ok) {
+          showResult('purchaseResult', 
+            `✅ ${config.description} purchased!\nAdded ${config.gems} gems\n${JSON.stringify(data, null, 2)}`, 
+            'success'
+          );
+          testResults.push({ test: `Purchase ${tier}`, status: 'PASS' });
+        } else {
+          showResult('purchaseResult', 
+            `❌ Purchase failed\n${JSON.stringify(data, null, 2)}`, 
+            'error'
+          );
+          testResults.push({ test: `Purchase ${tier}`, status: 'FAIL' });
+        }
+        await refreshBalance();
+      } catch (error) {
+        showResult('purchaseResult', `❌ Error: ${error.message}`, 'error');
+        testResults.push({ test: `Purchase ${tier}`, status: 'FAIL' });
+      }
+    }
+
+    // Run all tests
+    async function runAllTests() {
+      testResults = [];
+      showResult('summaryResult', 'Running all tests...', 'info');
+      
+      await testAddGems();
+      await new Promise(r => setTimeout(r, 500));
+      
+      await testSpendGems();
+      await new Promise(r => setTimeout(r, 500));
+      
+      await testInvalidAmount();
+      await new Promise(r => setTimeout(r, 500));
+      
+      await testSpendInsufficientGems();
+      await new Promise(r => setTimeout(r, 500));
+      
+      await testConcurrentMixed();
+      await new Promise(r => setTimeout(r, 500));
+      
+      // Display summary
+      const passed = testResults.filter(r => r.status === 'PASS').length;
+      const failed = testResults.filter(r => r.status === 'FAIL').length;
+      const manual = testResults.filter(r => r.status === 'MANUAL_CHECK').length;
+      
+      showResult('summaryResult', 
+        `Test Summary:\n✅ Passed: ${passed}\n❌ Failed: ${failed}\n⚠️  Manual Check: ${manual}\n\n${JSON.stringify(testResults, null, 2)}`, 
+        failed === 0 ? 'success' : 'error'
+      );
+    }
+
+    function clearResults() {
+      testResults = [];
+      const resultElements = document.querySelectorAll('.result');
+      resultElements.forEach(el => el.style.display = 'none');
+    }
+
+    // Load balance on page load
+    window.addEventListener('load', refreshBalance);
+  </script>
+</body>
+</html>

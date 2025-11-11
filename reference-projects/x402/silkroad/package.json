@@ -1,0 +1,53 @@
+{
+  "name": "silk-road",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "testx402": "tsx scripts/test-x402-devnet.ts"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.98.4",
+    "@tsparticles/engine": "^3.9.1",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
+    "axios": "^1.13.0",
+    "cloudinary": "^2.8.0",
+    "crypto-js": "^4.2.0",
+    "fuse.js": "^7.1.0",
+    "isomorphic-dompurify": "^2.30.1",
+    "jsonwebtoken": "^9.0.2",
+    "marked": "^16.4.1",
+    "mongoose": "^8.0.0",
+    "next": "16.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "tweetnacl": "^1.0.3",
+    "validator": "^13.15.20",
+    "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.0",
+    "@types/dompurify": "^3.0.5",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/validator": "^13.15.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}

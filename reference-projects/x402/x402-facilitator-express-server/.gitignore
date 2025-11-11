@@ -1,0 +1,7 @@
+.env
+.DS_Store
+node_modules/
+dist
+logs
+facilitator-keypair.json
+test-client-keypair.json

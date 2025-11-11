@@ -1,0 +1,157 @@
+{
+  "users": [
+    [
+      "5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd",
+      {
+        "wallet": "5Ueu3rRwUbpvgcB2FWLKqwkeHZTVAvFJ7CF1RUsHHwDd",
+        "hasAcceptedTOS": true,
+        "isTokenGated": true
+      }
+    ],
+    [
+      "9gJenaJYRCFbahPMtcfaWZ4LnCFtaqzriw5tcMwWBiuW",
+      {
+        "wallet": "9gJenaJYRCFbahPMtcfaWZ4LnCFtaqzriw5tcMwWBiuW",
+        "hasAcceptedTOS": true,
+        "isTokenGated": true
+      }
+    ]
+  ],
+  "listings": [
+    [
+      "listing_1",
+      {
+        "_id": "listing_1",
+        "wallet": "mockSeller1",
+        "title": "Advanced Trading Bot - MEV Arbitrage",
+        "description": "High-frequency trading bot optimized for Solana DEX arbitrage. Includes advanced MEV strategies, customizable parameters, and detailed profit tracking. Built with Rust for maximum performance.",
+        "imageUrl": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://github.com/seller/mev-bot/releases/download/v1.0.0/bot.zip",
+        "price": 49.99,
+        "category": "Trading Bot",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.762Z",
+        "updatedAt": "2025-11-10T16:00:20.763Z"
+      }
+    ],
+    [
+      "listing_2",
+      {
+        "_id": "listing_2",
+        "wallet": "mockSeller2",
+        "title": "NFT Sniper Bot - Multi-Marketplace",
+        "description": "Lightning-fast NFT minting and sniping bot supporting Magic Eden, Tensor, and other major Solana marketplaces. Real-time floor tracking and automated bidding.",
+        "imageUrl": "https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://mega.nz/file/nft-sniper-v2.1.0.zip",
+        "price": 29.99,
+        "category": "Trading Bot",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.764Z",
+        "updatedAt": "2025-11-10T16:00:20.764Z"
+      }
+    ],
+    [
+      "listing_3",
+      {
+        "_id": "listing_3",
+        "wallet": "mockSeller1",
+        "title": "Solana RPC Analytics API",
+        "description": "RESTful API providing real-time Solana blockchain analytics, wallet tracking, and transaction monitoring. Perfect for building dashboards and monitoring tools.",
+        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://drive.google.com/file/d/analytics-api-docs",
+        "price": 19.99,
+        "category": "API Tool",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.765Z",
+        "updatedAt": "2025-11-10T16:00:20.765Z"
+      }
+    ],
+    [
+      "listing_4",
+      {
+        "_id": "listing_4",
+        "wallet": "mockSeller3",
+        "title": "Token Launcher Script - Full Automation",
+        "description": "Complete token launch automation for Solana. Creates mint, metadata, and initial liquidity pool. Includes anti-bot measures and customizable tokenomics.",
+        "imageUrl": "https://images.unsplash.com/photo-1642790106117-e829e14a795f?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://dropbox.com/s/token-launcher-script.tar.gz",
+        "price": 15.5,
+        "category": "Script",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.766Z",
+        "updatedAt": "2025-11-10T16:00:20.767Z"
+      }
+    ],
+    [
+      "listing_5",
+      {
+        "_id": "listing_5",
+        "wallet": "mockSeller2",
+        "title": "Wallet Drainer Detection Tool",
+        "description": "Security tool that analyzes smart contracts and transaction patterns to detect potential wallet drainers and malicious dApps. Includes real-time alerts.",
+        "imageUrl": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://github.com/security/drainer-detector/releases/v1.5.0.zip",
+        "price": 24.99,
+        "category": "Custom",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.768Z",
+        "updatedAt": "2025-11-10T16:00:20.770Z"
+      }
+    ],
+    [
+      "listing_6",
+      {
+        "_id": "listing_6",
+        "wallet": "mockSeller3",
+        "title": "DeFi Yield Optimizer Bot",
+        "description": "Automated yield farming optimizer that rebalances your portfolio across multiple Solana DeFi protocols to maximize APY. Set it and forget it.",
+        "imageUrl": "https://images.unsplash.com/photo-1640340434855-6084b1f4901c?w=800&h=600&fit=crop",
+        "deliveryUrl": "https://mega.nz/file/yield-optimizer-pro.zip",
+        "price": 34.99,
+        "category": "Trading Bot",
+        "riskLevel": "standard",
+        "state": "on_market",
+        "approved": true,
+        "pinned": false,
+        "reportsCount": 0,
+        "failedPurchaseCount": 0,
+        "views": 0,
+        "createdAt": "2025-11-10T16:00:20.772Z",
+        "updatedAt": "2025-11-10T16:00:20.773Z"
+      }
+    ]
+  ],
+  "transactions": [],
+  "listingIdCounter": 7,
+  "transactionIdCounter": 1
+}

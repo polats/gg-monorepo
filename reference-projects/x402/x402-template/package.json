@@ -1,0 +1,49 @@
+{
+  "name": "x402-template",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest __tests__/gem-balance-integration.test.ts",
+    "test:browser": "open __tests__/browser-integration-test.html",
+    "verify": "./__tests__/verify-implementation.sh"
+  },
+  "version": "0.1.0",
+  "private": true,
+  "displayName": "X402 Next.js",
+  "description": "Next.js Solana starter with X402 payment protocol integration",
+  "usecase": "Payments",
+  "keywords": [
+    "solana",
+    "nextjs",
+    "x402",
+    "template",
+    "starter"
+  ],
+  "dependencies": {
+    "ioredis": "^5.8.2",
+    "next": "16.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "viem": "^2.38.5",
+    "x402-next": "^0.7.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "tailwindcss": "^4",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5"
+  }
+}
