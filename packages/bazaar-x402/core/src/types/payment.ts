@@ -93,7 +93,7 @@ export interface PaymentPayload {
   
   /** Payment details */
   payload: {
-    /** Solana transaction signature */
+    /** Solana transaction signature (filled by server after broadcasting) */
     signature: string;
     
     /** Buyer's wallet address */
@@ -107,6 +107,9 @@ export interface PaymentPayload {
     
     /** Token mint address used */
     mint: string;
+    
+    /** Base64-encoded signed transaction (client-signed, server broadcasts) */
+    signedTransaction?: string;
   };
 }
 

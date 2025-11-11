@@ -8,7 +8,7 @@
  * 4. Retry requests with X-Payment header
  */
 
-import { Connection, Transaction, SystemProgram, PublicKey } from '@solana/web3.js';
+import { Connection, Transaction, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createTransferInstruction } from '@solana/spl-token';
 
 /**
@@ -47,54 +47,54 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
     throw new Error('Invalid 402 response: missing payment requirements');
   }
   
-  const requirements = paymentRequirements.requirements;
+  // Extract the actual requirements from the x402 response structure
+  // Server returns: { requirements: { x402Version: 1, accepts: [...] } }
+  // We need the first item from the accepts array
+  const x402Response = paymentRequirements.requirements;
+  if (!x402Response || !x402Response.accepts || x402Response.accepts.length === 0) {
+    throw new Error('Invalid 402 response: missing payment requirements in accepts array');
+  }
+  
+  const requirements = x402Response.accepts[0];
   
   // Step 3: Create and sign transaction
   onStatusUpdate('Please sign the transaction in your wallet...');
-  let transaction, signature;
+  let signedTransaction;
   try {
-    const result = await createAndSignTransaction(wallet, requirements);
-    transaction = result.transaction;
-    signature = result.signature;
+    signedTransaction = await createAndSignTransaction(wallet, requirements);
   } catch (error) {
     console.error('Transaction creation/signing error:', error);
     throw new Error(`Failed to create transaction: ${error.message}`);
   }
   
-  // Step 4: Broadcast transaction to Solana
-  onStatusUpdate('Broadcasting transaction to Solana...');
-  const connection = new Connection(
-    requirements.network === 'solana-mainnet'
-      ? 'https://api.mainnet-beta.solana.com'
-      : 'https://api.devnet.solana.com',
-    'confirmed'
-  );
+  // Step 4: Create payment payload with SIGNED TRANSACTION (not signature)
+  // The server will broadcast the transaction after verification
+  onStatusUpdate('Preparing payment proof...');
   
-  const txSignature = await connection.sendRawTransaction(transaction.serialize());
+  // Serialize the signed transaction to base64
+  const serializedTx = signedTransaction.serialize().toString('base64');
   
-  // Step 5: Wait for confirmation
-  onStatusUpdate('Waiting for transaction confirmation...');
-  await connection.confirmTransaction(txSignature, 'confirmed');
-  
-  // Step 6: Create payment payload
   const paymentPayload = {
     x402Version: 1,
     scheme: 'exact',
     network: requirements.network,
     payload: {
-      signature: txSignature,
+      // Note: signature will be generated when server broadcasts the transaction
+      signature: '', // Placeholder - server will fill this after broadcasting
       from: wallet.publicKey.toBase58(),
       to: requirements.payTo,
       amount: requirements.maxAmountRequired,
       mint: requirements.asset,
+      signedTransaction: serializedTx, // Include the signed transaction
     },
   };
   
-  // Step 7: Encode payment header
+  // Step 5: Encode payment header
   const paymentHeader = btoa(JSON.stringify(paymentPayload));
   
-  // Step 8: Retry request with X-Payment header
-  onStatusUpdate('Verifying payment...');
+  // Step 6: Send request with X-Payment header
+  // Server will verify and broadcast the transaction
+  onStatusUpdate('Verifying payment with server...');
   const finalResponse = await fetch(url, {
     headers: {
       'X-Payment': paymentHeader,
@@ -115,7 +115,7 @@ export async function handleX402Purchase(url, wallet, onStatusUpdate = () => {})
  * 
  * @param {Object} wallet - Solana wallet adapter
  * @param {Object} requirements - Payment requirements from 402 response
- * @returns {Promise<{transaction: Transaction, signature: string}>}
+ * @returns {Promise<Transaction>} Signed transaction ready to be serialized
  */
 async function createAndSignTransaction(wallet, requirements) {
   console.log('Creating transaction with requirements:', requirements);
@@ -185,15 +185,14 @@ async function createAndSignTransaction(wallet, requirements) {
   
   console.log('Transaction created, requesting signature...');
   
-  // Sign transaction
+  // Sign transaction (but don't broadcast it yet)
+  // The server will broadcast it after verification
   const signedTransaction = await wallet.signTransaction(transaction);
   
   console.log('Transaction signed successfully');
+  console.log('Transaction will be broadcast by server after verification');
   
-  return {
-    transaction: signedTransaction,
-    signature: signedTransaction.signature?.toString('base64') || '',
-  };
+  return signedTransaction;
 }
 
 /**

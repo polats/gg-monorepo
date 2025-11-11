@@ -179,27 +179,83 @@ export class X402Facilitator {
         };
       }
       
-      // Verify transaction on-chain
-      const isValidOnChain = await this.verifyTransactionOnChain(
-        payload.payload.signature,
-        payload.payload.from,
-        payload.payload.to,
-        payload.payload.amount,
-        payload.payload.mint
-      );
+      // Check if we have a signed transaction to broadcast
+      let txSignature = payload.payload.signature;
       
-      if (!isValidOnChain) {
+      if (payload.payload.signedTransaction) {
+        // Client sent a signed transaction - we need to broadcast it
+        console.log('Broadcasting client-signed transaction...');
+        
+        try {
+          // Decode the base64-encoded transaction
+          const txBuffer = Buffer.from(payload.payload.signedTransaction, 'base64');
+          
+          // Broadcast the transaction
+          txSignature = await this.connection.sendRawTransaction(txBuffer, {
+            skipPreflight: false,
+            preflightCommitment: 'confirmed',
+          });
+          
+          console.log('Transaction broadcast successful:', txSignature);
+          
+          // Wait for confirmation
+          const confirmation = await this.connection.confirmTransaction(
+            txSignature,
+            'confirmed'
+          );
+          
+          if (confirmation.value.err) {
+            return {
+              success: false,
+              txHash: txSignature,
+              networkId: params.network,
+              error: `Transaction failed: ${JSON.stringify(confirmation.value.err)}`,
+            };
+          }
+          
+          console.log('Transaction confirmed on-chain');
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('Failed to broadcast transaction:', errorMessage);
+          return {
+            success: false,
+            txHash: '',
+            networkId: params.network,
+            error: `Failed to broadcast transaction: ${errorMessage}`,
+          };
+        }
+      } else if (txSignature) {
+        // Client already broadcast the transaction - verify it exists on-chain
+        console.log('Verifying existing transaction on-chain...');
+        
+        const isValidOnChain = await this.verifyTransactionOnChain(
+          txSignature,
+          payload.payload.from,
+          payload.payload.to,
+          payload.payload.amount,
+          payload.payload.mint
+        );
+        
+        if (!isValidOnChain) {
+          return {
+            success: false,
+            txHash: txSignature,
+            networkId: params.network,
+            error: 'Transaction not found or invalid on blockchain',
+          };
+        }
+      } else {
         return {
           success: false,
-          txHash: payload.payload.signature,
+          txHash: '',
           networkId: params.network,
-          error: 'Transaction not found or invalid on blockchain',
+          error: 'No transaction signature or signed transaction provided',
         };
       }
       
       return {
         success: true,
-        txHash: payload.payload.signature,
+        txHash: txSignature,
         networkId: params.network,
       };
     } catch (error) {
