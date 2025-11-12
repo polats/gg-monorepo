@@ -46,7 +46,9 @@ import {
   GROWING_GEM_SPAWN_Z,
   GROWING_GEM_SPAWN_RADIUS,
 } from './utils/spawnPositions';
-import { apiGet, apiPost, apiDelete, setApiUsername } from './utils/api-client';
+import { apiGet, apiPost, apiDelete, setApiUsername, linkWallet, getLinkedWallet, unlinkWallet } from './utils/api-client';
+import { WalletProvider } from './components/WalletProvider';
+import { WalletButton } from './components/WalletButton';
 
 // Import types and constants
 import type {
@@ -609,7 +611,7 @@ const GARDEN_ITEM_TYPES = {
   ],
 } as const;
 
-export const PileDemo = ({
+const PileDemoInner = ({
   onClose,
   level = 1,
   username,
@@ -947,6 +949,7 @@ export const PileDemo = ({
   const [gameTab, setGameTab] = useState<'scrounge' | 'garden' | 'hoard' | 'settings'>('scrounge'); // Game mode tabs
   const [activeScene, setActiveScene] = useState<'scrounge' | 'garden'>('scrounge'); // Track which 3D scene is active
   const [gardenAction, setGardenAction] = useState<'appraise' | 'grow' | 'my-offer'>('grow'); // Garden action tabs
+  const [tradeAction, setTradeAction] = useState<'town' | 'bazaar'>('town'); // Trade action tabs
   const [sceneKey, setSceneKey] = useState(0); // Key to force scene refresh
   const [scroungeObjectsActive, setScroungeObjectsActive] = useState(true); // Control useFrame loops in scrounge objects
   const [gardenObjectsActive, setGardenObjectsActive] = useState(false); // Control useFrame loops in garden objects
@@ -980,19 +983,21 @@ export const PileDemo = ({
         | 'insufficient_coins'
         | 'scrounge_location'
         | 'sold'
-        | 'bought';
+        | 'bought'
+        | 'wallet';
       coinType?: string;
       gem?: Gem;
       timestamp: number;
       growingStatus?: 'started' | 'stopped'; // For 'growing' type toasts
       offeringStatus?: 'started' | 'stopped'; // For 'offering' type toasts
-      message?: string; // For 'insufficient_coins' type toasts
+      message?: string; // For 'insufficient_coins', 'wallet' type toasts
       locationName?: string; // For 'scrounge_location' type toasts
       locationYields?: Array<{ type: 'coin' | 'gem'; color: string; shape?: string }>; // For 'scrounge_location' type toasts
       soldCount?: number; // For 'sold' type toasts - number of gems sold
       soldValue?: number; // For 'sold' type toasts - total bronze value
       boughtCount?: number; // For 'bought' type toasts - number of gems bought
       boughtValue?: number; // For 'bought' type toasts - total bronze value spent
+      walletAction?: 'linked' | 'unlinked'; // For 'wallet' type toasts
     }>
   >([]);
 
@@ -2172,6 +2177,15 @@ export const PileDemo = ({
             } else if (toast.type === 'scrounge_location') {
               background = 'rgba(139, 111, 71, 0.95)'; // Brown background for scrounge location
               border = '2px solid #d4a574';
+            } else if (toast.type === 'wallet') {
+              background =
+                toast.walletAction === 'linked'
+                  ? 'rgba(76, 175, 80, 0.9)' // Green background for wallet linked
+                  : 'rgba(100, 100, 100, 0.9)'; // Gray background for wallet unlinked
+              border =
+                toast.walletAction === 'linked'
+                  ? '2px solid #4CAF50' // Green border for linked
+                  : '2px solid #999'; // Gray border for unlinked
             }
 
             return (
@@ -2450,6 +2464,45 @@ export const PileDemo = ({
                       }}
                     >
                       Swipe across screen to scrounge. Tap or drag found objects to pick them up
+                    </div>
+                  </div>
+                )}
+                {toast.type === 'wallet' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      flex: 1,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>
+                      {toast.walletAction === 'linked' ? '🔗' : '🔓'}
+                    </span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 4,
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: 'white',
+                          fontSize: 14,
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {toast.walletAction === 'linked' ? 'Wallet Linked' : 'Wallet Unlinked'}
+                      </span>
+                      <span
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: 11,
+                        }}
+                      >
+                        {toast.message}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -3424,7 +3477,7 @@ export const PileDemo = ({
                 onScroll={(e) => {
                   const target = e.target as HTMLDivElement;
                   const bottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 50;
-                  if (bottom && hasMoreUsers && !loadingUsers) {
+                  if (bottom && hasMoreUsers && !loadingUsers && tradeAction === 'town') {
                     fetchActiveOffers(followedUsersCursor);
                   }
                 }}
@@ -3434,6 +3487,10 @@ export const PileDemo = ({
                         display: none;
                       }
                     `}</style>
+
+                {/* Town Subtab - P2P Trading */}
+                {tradeAction === 'town' && (
+                  <>
 
                 {/* Your Offer Section */}
                 {(() => {
@@ -3794,6 +3851,67 @@ export const PileDemo = ({
                     No other gobs yet
                   </div>
                 )}
+                  </>
+                )}
+
+                {/* Bazaar Subtab - Coming Soon */}
+                {tradeAction === 'bazaar' && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 15,
+                      padding: '40px 20px',
+                      flex: 1,
+                    }}
+                  >
+                    <span style={{ fontSize: 48 }}>🏪</span>
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: 14,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                      }}
+                    >
+                      Bazaar
+                    </div>
+                    <div
+                      style={{
+                        color: 'rgba(255, 255, 255, 0.5)',
+                        fontSize: 10,
+                        textAlign: 'center',
+                        lineHeight: 1.5,
+                        maxWidth: 250,
+                      }}
+                    >
+                      The Bazaar marketplace is coming soon! Trade gems with USDC using the x402
+                      payment protocol.
+                    </div>
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: 8,
+                        padding: 12,
+                        marginTop: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          color: 'rgba(255, 255, 255, 0.6)',
+                          fontSize: 8,
+                          textAlign: 'center',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        💡 Link your Solana wallet in the Profile tab to prepare for Bazaar trading
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -3856,6 +3974,66 @@ export const PileDemo = ({
                   >
                     {effectiveUsername}
                   </span>
+                </div>
+
+                {/* Wallet Connection */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    padding: 10,
+                    borderRadius: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      fontSize: 7,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Solana Wallet
+                  </span>
+                  <WalletButton
+                    apiClient={{ linkWallet, getLinkedWallet, unlinkWallet }}
+                    onWalletLinked={(address) => {
+                      console.log('Wallet linked:', address);
+                      const toastId = `toast-${Date.now()}-${Math.random()}`;
+                      setToasts((prev) => [
+                        ...prev,
+                        {
+                          id: toastId,
+                          message: `Wallet ${address.slice(0, 4)}...${address.slice(-4)} linked to account`,
+                          type: 'wallet',
+                          walletAction: 'linked',
+                          timestamp: Date.now(),
+                        },
+                      ]);
+                      setTimeout(() => {
+                        setToasts((prev) => prev.filter((t) => t.id !== toastId));
+                      }, 3000);
+                    }}
+                    onWalletUnlinked={() => {
+                      console.log('Wallet unlinked');
+                      const toastId = `toast-${Date.now()}-${Math.random()}`;
+                      setToasts((prev) => [
+                        ...prev,
+                        {
+                          id: toastId,
+                          message: 'Wallet disconnected from account',
+                          type: 'wallet',
+                          walletAction: 'unlinked',
+                          timestamp: Date.now(),
+                        },
+                      ]);
+                      setTimeout(() => {
+                        setToasts((prev) => prev.filter((t) => t.id !== toastId));
+                      }, 3000);
+                    }}
+                  />
                 </div>
 
                 {/* Debug Mode Toggle - Hidden */}
@@ -4047,6 +4225,81 @@ export const PileDemo = ({
                   }}
                 >
                   My Offer
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* Trade Actions - Only visible in trade tab */}
+          {gameTab === 'hoard' && (
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                padding: '8px 10px',
+                borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+              }}
+            >
+              <button
+                {...createMobileFriendlyHandlers(() => {
+                  setTradeAction('town');
+                })}
+                style={{
+                  ...mobileFriendlyButtonStyles,
+                  flex: 1,
+                  background: tradeAction === 'town' ? '#7c4a6f' : 'rgba(255, 255, 255, 0.15)',
+                  border: tradeAction === 'town' ? '2px solid #bf6fb3' : '2px solid transparent',
+                  borderRadius: 6,
+                  padding: '8px 4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 3,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🏘️</span>
+                <span
+                  style={{
+                    color: 'white',
+                    fontSize: 7,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Town
+                </span>
+              </button>
+
+              <button
+                {...createMobileFriendlyHandlers(() => {
+                  setTradeAction('bazaar');
+                })}
+                style={{
+                  ...mobileFriendlyButtonStyles,
+                  flex: 1,
+                  background: tradeAction === 'bazaar' ? '#8b6f47' : 'rgba(255, 255, 255, 0.15)',
+                  border: tradeAction === 'bazaar' ? '2px solid #d4a574' : '2px solid transparent',
+                  borderRadius: 6,
+                  padding: '8px 4px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 3,
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🏪</span>
+                <span
+                  style={{
+                    color: 'white',
+                    fontSize: 7,
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Bazaar
                 </span>
               </button>
             </div>
@@ -4736,5 +4989,18 @@ export const PileDemo = ({
         </Physics>
       </Canvas>
     </div>
+  );
+};
+
+// Wrap with WalletProvider
+export const PileDemo = (props: {
+  onClose: () => void;
+  level?: number;
+  username?: string;
+}) => {
+  return (
+    <WalletProvider>
+      <PileDemoInner {...props} />
+    </WalletProvider>
   );
 };

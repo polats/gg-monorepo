@@ -99,3 +99,24 @@ export async function apiPost<T>(endpoint: string, data?: any): Promise<T> {
 export async function apiDelete<T>(endpoint: string): Promise<T> {
   return apiCall<T>(endpoint, { method: 'DELETE' });
 }
+
+
+// ============================================================================
+// Wallet API Methods
+// ============================================================================
+
+export async function linkWallet(
+  walletAddress: string,
+  signature: string,
+  message: string
+): Promise<any> {
+  return apiPost('/api/wallet/link', { walletAddress, signature, message });
+}
+
+export async function getLinkedWallet(): Promise<{ walletAddress: string | null }> {
+  return apiGet('/api/wallet/linked');
+}
+
+export async function unlinkWallet(): Promise<any> {
+  return apiDelete('/api/wallet/unlink');
+}

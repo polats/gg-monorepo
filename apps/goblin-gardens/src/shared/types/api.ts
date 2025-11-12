@@ -173,3 +173,31 @@ export type ExecuteTradeResponse = {
     coinsSpent: number; // Bronze coins paid
   };
 };
+
+// ============================================================================
+// Wallet Association Types
+// ============================================================================
+
+export type LinkWalletRequest = {
+  walletAddress: string;
+  signature: string;
+  message: string;
+};
+
+export type LinkWalletResponse = {
+  type: 'linkWallet';
+  success: boolean;
+  message?: string;
+  walletAddress?: string;
+};
+
+export type GetLinkedWalletResponse = {
+  type: 'getLinkedWallet';
+  walletAddress: string | null;
+};
+
+export type UnlinkWalletResponse = {
+  type: 'unlinkWallet';
+  success: boolean;
+  message?: string;
+};

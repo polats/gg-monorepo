@@ -18,9 +18,15 @@ import {
   ExecuteTradeRequest,
   ExecuteTradeResponse,
   Gem,
+  LinkWalletRequest,
+  LinkWalletResponse,
+  GetLinkedWalletResponse,
 } from '../../shared/types/api';
 import { RedisAdapter } from '../adapters/redis-adapter';
 import { AuthAdapter } from '../adapters/auth-adapter';
+import { PublicKey } from '@solana/web3.js';
+import bs58 from 'bs58';
+import nacl from 'tweetnacl';
 
 /**
  * Context required for route handlers
@@ -765,6 +771,152 @@ export function createRoutes(context: RouteContext): Router {
       }
     }
   );
+
+  // ============================================================================
+  // Wallet Association Endpoints
+  // ============================================================================
+
+  /**
+   * Link a Solana wallet to the current guest account
+   * POST /api/wallet/link
+   */
+  router.post(
+    '/api/wallet/link',
+    express.json(),
+    async (req: Request, res: Response): Promise<void> => {
+      try {
+        const { walletAddress, signature, message }: LinkWalletRequest = req.body;
+        const username = await auth.getUsername(req);
+
+        // Validate inputs
+        if (!walletAddress || !signature || !message) {
+          res.status(400).json({
+            type: 'linkWallet',
+            success: false,
+            message: 'Missing required fields',
+          });
+          return;
+        }
+
+        // Verify the signature
+        try {
+          const publicKey = new PublicKey(walletAddress);
+          const messageBytes = new TextEncoder().encode(message);
+          const signatureBytes = bs58.decode(signature);
+
+          const verified = nacl.sign.detached.verify(
+            messageBytes,
+            signatureBytes,
+            publicKey.toBytes()
+          );
+
+          if (!verified) {
+            res.status(400).json({
+              type: 'linkWallet',
+              success: false,
+              message: 'Invalid signature',
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('[WALLET LINK] Signature verification failed:', error);
+          res.status(400).json({
+            type: 'linkWallet',
+            success: false,
+            message: 'Signature verification failed',
+          });
+          return;
+        }
+
+        // Check if user already has a wallet linked
+        const existingWallet = await redis.get(`user:${username}:wallet`);
+        if (existingWallet && existingWallet !== walletAddress) {
+          // Remove old wallet association from this user
+          await redis.del(`user:${username}:wallet`);
+        }
+
+        // Store the association (one-way: user -> wallet)
+        // Note: Multiple users can link the same wallet
+        await redis.set(`user:${username}:wallet`, walletAddress);
+
+        console.log(`[WALLET LINK] ${username} linked wallet ${walletAddress}`);
+
+        res.json({
+          type: 'linkWallet',
+          success: true,
+          message: 'Wallet linked successfully',
+          walletAddress,
+        });
+      } catch (error) {
+        console.error('API Link Wallet Error:', error);
+        res.status(500).json({
+          type: 'linkWallet',
+          success: false,
+          message: 'Failed to link wallet',
+        });
+      }
+    }
+  );
+
+  /**
+   * Get the linked wallet for the current user
+   * GET /api/wallet/linked
+   */
+  router.get('/api/wallet/linked', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const username = await auth.getUsername(req);
+      const walletAddress = await redis.get(`user:${username}:wallet`);
+
+      res.json({
+        type: 'getLinkedWallet',
+        walletAddress: walletAddress || null,
+      });
+    } catch (error) {
+      console.error('API Get Linked Wallet Error:', error);
+      res.status(500).json({
+        type: 'getLinkedWallet',
+        walletAddress: null,
+      });
+    }
+  });
+
+  /**
+   * Unlink the wallet from the current user account
+   * DELETE /api/wallet/unlink
+   */
+  router.delete('/api/wallet/unlink', async (req: Request, res: Response): Promise<void> => {
+    try {
+      const username = await auth.getUsername(req);
+      const walletAddress = await redis.get(`user:${username}:wallet`);
+
+      if (!walletAddress) {
+        res.status(400).json({
+          type: 'unlinkWallet',
+          success: false,
+          message: 'No wallet linked to this account',
+        });
+        return;
+      }
+
+      // Remove user's wallet association
+      await redis.del(`user:${username}:wallet`);
+
+      console.log(`[WALLET UNLINK] ${username} unlinked wallet ${walletAddress}`);
+
+      res.json({
+        type: 'unlinkWallet',
+        success: true,
+        message: 'Wallet unlinked successfully',
+      });
+    } catch (error) {
+      console.error('API Unlink Wallet Error:', error);
+      res.status(500).json({
+        type: 'unlinkWallet',
+        success: false,
+        message: 'Failed to unlink wallet',
+      });
+    }
+  });
 
   return router;
 }
